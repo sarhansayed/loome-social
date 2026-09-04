@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const client = window.supabaseClient || window.supabase;
+
     const authForm = document.getElementById('auth-form');
     const authTitle = document.getElementById('auth-title');
     const btnSubmit = document.getElementById('btn-submit');
@@ -13,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let isSignUp = false;
 
-    // التبديل بين تسجيل الدخول وإنشاء حساب
     if (toggleAuth) {
         toggleAuth.addEventListener('click', (e) => {
             e.preventDefault();
@@ -26,7 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // التسجيل أو تسجيل الدخول بالبريد
     if (authForm) {
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -36,12 +36,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 if (isSignUp) {
-                    const { data, error } = await window.supabaseClient.auth.signUp({ email, password });
+                    const { data, error } = await client.auth.signUp({ email, password });
                     if (error) throw error;
-                    alert("تم إنشاء الحساب بنجاح! يتم الآن توجيهك للداخل...");
+                    alert("تم إنشاء الحساب بنجاح!");
                     showMainContent();
                 } else {
-                    const { data, error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
+                    const { data, error } = await client.auth.signInWithPassword({ email, password });
                     if (error) throw error;
                     showMainContent();
                 }
@@ -52,20 +52,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // الدخول كزائر
     if (btnAnon) {
         btnAnon.addEventListener('click', async () => {
             authError.style.display = 'none';
             try {
-                // المحاولة بالطريقة المباشرة المحدثة
-                if (window.supabaseClient.auth.signInAnonymously) {
-                    const { data, error } = await window.supabaseClient.auth.signInAnonymously();
+                if (client && client.auth && client.auth.signInAnonymously) {
+                    const { data, error } = await client.auth.signInAnonymously();
                     if (error) throw error;
                 } else {
-                    // طريقة احتياطية متوافقة مع كل الإصدارات
                     const anonEmail = `guest_${Date.now()}@loome.com`;
                     const anonPass = "Guest123456!";
-                    const { data, error } = await window.supabaseClient.auth.signUp({ email: anonEmail, password: anonPass });
+                    const { data, error } = await client.auth.signUp({ email: anonEmail, password: anonPass });
                     if (error) throw error;
                 }
                 showMainContent();
@@ -76,10 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // تسجيل الخروج
     if (btnLogout) {
         btnLogout.addEventListener('click', async () => {
-            await window.supabaseClient.auth.signOut();
+            await client.auth.signOut();
             authContainer.style.display = 'block';
             mainContent.style.display = 'none';
         });
@@ -91,7 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function checkUser() {
-        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        if (!client) return;
+        const { data: { user } } = await client.auth.getUser();
         if (user) {
             showMainContent();
         }

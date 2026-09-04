@@ -36,12 +36,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 if (isSignUp) {
-                    const { data, error } = await supabase.auth.signUp({ email, password });
+                    const { data, error } = await window.supabaseClient.auth.signUp({ email, password });
                     if (error) throw error;
                     alert("تم إنشاء الحساب بنجاح! يتم الآن توجيهك للداخل...");
                     showMainContent();
                 } else {
-                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                    const { data, error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
                     if (error) throw error;
                     showMainContent();
                 }
@@ -57,8 +57,17 @@ document.addEventListener('DOMContentLoaded', () => {
         btnAnon.addEventListener('click', async () => {
             authError.style.display = 'none';
             try {
-                const { data, error } = await supabase.auth.signInAnonymously();
-                if (error) throw error;
+                // المحاولة بالطريقة المباشرة المحدثة
+                if (window.supabaseClient.auth.signInAnonymously) {
+                    const { data, error } = await window.supabaseClient.auth.signInAnonymously();
+                    if (error) throw error;
+                } else {
+                    // طريقة احتياطية متوافقة مع كل الإصدارات
+                    const anonEmail = `guest_${Date.now()}@loome.com`;
+                    const anonPass = "Guest123456!";
+                    const { data, error } = await window.supabaseClient.auth.signUp({ email: anonEmail, password: anonPass });
+                    if (error) throw error;
+                }
                 showMainContent();
             } catch (err) {
                 authError.textContent = err.message || "فشل الدخول كزائر";
@@ -70,21 +79,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // تسجيل الخروج
     if (btnLogout) {
         btnLogout.addEventListener('click', async () => {
-            await supabase.auth.signOut();
+            await window.supabaseClient.auth.signOut();
             authContainer.style.display = 'block';
             mainContent.style.display = 'none';
         });
     }
 
-    // إظهار الواجهة الرئيسية
     function showMainContent() {
         authContainer.style.display = 'none';
         mainContent.style.display = 'block';
     }
 
-    // التحقق من حالة المستخدم الحالية عند فتح الصفحة
     async function checkUser() {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
         if (user) {
             showMainContent();
         }

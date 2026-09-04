@@ -84,6 +84,50 @@ document.addEventListener('DOMContentLoaded', () => {
     function showMainContent() {
         authContainer.style.display = 'none';
         mainContent.style.display = 'block';
+        fetchPosts();
+    }
+
+    // جلب وعرض المنشورات
+    async function fetchPosts() {
+        const postsContainer = document.getElementById('posts-container');
+        if (!postsContainer) return;
+
+        const { data: posts, error } = await client.from('posts').select('*').order('created_at', { ascending: false });
+
+        if (error) {
+            postsContainer.innerHTML = "حدث خطأ أثناء تحميل المنشورات.";
+            return;
+        }
+
+        if (posts.length === 0) {
+            postsContainer.innerHTML = "<p>لا توجد منشورات بعد. كن أول من ينشر!</p>";
+            return;
+        }
+
+        postsContainer.innerHTML = posts.map(post => `
+            <div style="border: 1px solid #ddd; padding: 12px; margin-bottom: 10px; border-radius: 6px; background-color: #f9f9f9;">
+                <p style="margin: 0 0 8px 0; font-size: 16px;">${post.content}</p>
+                <small style="color: #777;">${new Date(post.created_at).toLocaleString('ar-EG')}</small>
+            </div>
+        `).join('');
+    }
+
+    // زر إرسال المنشور
+    const btnPost = document.getElementById('btn-post');
+    if (btnPost) {
+        btnPost.addEventListener('click', async () => {
+            const input = document.getElementById('post-input');
+            const content = input.value.trim();
+            if (!content) return;
+
+            const { error } = await client.from('posts').insert([{ content }]);
+            if (error) {
+                alert("فشل نشر المحتوى: " + error.message);
+            } else {
+                input.value = '';
+                fetchPosts();
+            }
+        });
     }
 
     async function checkUser() {

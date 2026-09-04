@@ -1,117 +1,63 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Loome Social</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js" defer></script>
-  <script src="i18n.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loome Social</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <div id="app">
+        <header>
+            <h1 id="app-title">لومي سبيس</h1>
+            <select id="language-select">
+                <option value="ar">العربية</option>
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+                <option value="ru">Русский</option>
+                <option value="zh">中文</option>
+                <option value="de">Deutsch</option>
+            </select>
+        </header>
 
-  <header>
-    <div class="logo" data-i18n="appName">لومي سبيس</div>
-    <div class="header-controls">
-      <select id="langSelect" onchange="setLanguage(this.value)">
-        <option value="ar">العربية</option>
-        <option value="en">English</option>
-        <option value="fr">Français</option>
-        <option value="ru">Русский</option>
-        <option value="zh">中文</option>
-        <option value="de">Deutsch</option>
-      </select>
-      <button id="logoutBtn" class="btn hidden" onclick="handleLogout()" data-i18n="logout">تسجيل الخروج</button>
+        <!-- واجهة الدخول -->
+        <main id="auth-container" class="card">
+            <h2 id="auth-title">تسجيل الدخول</h2>
+            <form id="auth-form">
+                <div class="form-group">
+                    <label id="label-email">البريد الإلكتروني</label>
+                    <input type="email" id="email" required placeholder="name@example.com">
+                </div>
+                <div class="form-group">
+                    <label id="label-password">كلمة المرور</label>
+                    <input type="password" id="password" required placeholder="******">
+                </div>
+                <button type="submit" id="btn-submit">تسجيل الدخول</button>
+            </form>
+
+            <div style="margin: 15px 0; text-align: center;">أو</div>
+
+            <!-- زر الدخول كزائر الفوري -->
+            <button id="btn-anon" type="button" style="background-color: #4A5568; color: white; width: 100%;">الدخول كزائر (بدون حساب)</button>
+
+            <p id="auth-toggle-text" style="margin-top: 15px;">
+                <span id="toggle-msg">ليس لديك حساب؟</span> 
+                <a href="#" id="toggle-auth">إنشاء حساب جديد</a>
+            </p>
+            <p id="auth-error" class="error-msg" style="display:none; color: red; margin-top: 10px;"></p>
+        </main>
+
+        <!-- الواجهة الرئيسية -->
+        <main id="main-content" class="card" style="display: none;">
+            <h2 id="welcome-msg">مرحباً بك في لومي سبيس!</h2>
+            <p id="status-msg">تم تسجيل الدخول بنجاح. سنبدأ الآن ببرمجة المنشورات والدردشة.</p>
+            <button id="btn-logout">تسجيل الخروج</button>
+        </main>
     </div>
-  </header>
 
-  <div class="container">
-    <div id="authSection" class="card">
-      <h2 id="authTitle" data-i18n="login">تسجيل الدخول</h2>
-      <br>
-      <form id="authForm" onsubmit="handleAuth(event)">
-        <div class="input-group">
-          <label data-i18n="email">البريد الإلكتروني</label>
-          <input type="email" id="email" required>
-        </div>
-        <div class="input-group">
-          <label data-i18n="password">كلمة المرور</label>
-          <input type="password" id="password" required>
-        </div>
-        <button type="submit" id="authSubmitBtn" class="btn" data-i18n="login">تسجيل الدخول</button>
-      </form>
-      <br>
-      <p style="text-align: center; cursor: pointer; color: var(--primary-color);" onclick="toggleAuthMode()" id="toggleAuthText">
-        ليس لديك حساب؟ إنشاء حساب جديد
-      </p>
-    </div>
-
-    <div id="mainSection" class="hidden">
-      <div class="card">
-        <textarea id="postContent" data-i18n="postPlaceholder" placeholder="بماذا تفكر اليوم؟"></textarea>
-        <br><br>
-        <button class="btn" onclick="createPost()" data-i18n="publish">نشر</button>
-      </div>
-
-      <div id="feed" class="card">
-        <p data-i18n="noPosts">لا توجد منشورات حتى الآن.</p>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    let isSignUp = false;
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const langSelect = document.getElementById('langSelect');
-      if (langSelect) langSelect.value = currentLang;
-    });
-
-    function toggleAuthMode() {
-      isSignUp = !isSignUp;
-      const title = document.getElementById('authTitle');
-      const btn = document.getElementById('authSubmitBtn');
-      const toggleText = document.getElementById('toggleAuthText');
-
-      if (isSignUp) {
-        title.setAttribute('data-i18n', 'register');
-        btn.setAttribute('data-i18n', 'register');
-        toggleText.textContent = "لديك حساب بالفعل؟ تسجيل الدخول";
-      } else {
-        title.setAttribute('data-i18n', 'login');
-        btn.setAttribute('data-i18n', 'login');
-        toggleText.textContent = "ليس لديك حساب؟ إنشاء حساب جديد";
-      }
-      updateUI();
-    }
-
-    async function handleAuth(event) {
-      event.preventDefault();
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-
-      if (isSignUp) {
-        const { data, error } = await supabase.auth.signUp({ email, password });
-        if (error) alert(error.message);
-        else alert("تم إنشاء الحساب بنجاح! تحقق من بريدك الإلكتروني للتأكيد.");
-      } else {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) alert(error.message);
-        else showApp();
-      }
-    }
-
-    function showApp() {
-      document.getElementById('authSection').classList.add('hidden');
-      document.getElementById('mainSection').classList.remove('hidden');
-      document.getElementById('logoutBtn').classList.remove('hidden');
-    }
-
-    async function handleLogout() {
-      await supabase.auth.signOut();
-      location.reload();
-    }
-  </script>
+    <script src="supabase-config.js"></script>
+    <script src="i18n.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>

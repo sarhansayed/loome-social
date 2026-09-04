@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loome Social</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- مكتبة Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- ملف الإعدادات والترجمة -->
+  <script src="supabase-config.js" defer></script>
+  <script src="i18n.js" defer></script>
+</head>
+<body>
+
+  <!-- شريط الملاحة العلوي -->
+  <header>
+    <div class="logo" data-i18n="appName">لومي سبيس</div>
+    <div class="header-controls">
+      <!-- قائمة اختيار اللغة -->
+      <select id="langSelect" onchange="setLanguage(this.value)">
+        <option value="ar">العربية</option>
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+        <option value="ru">Русский</option>
+        <option value="zh">中文</option>
+        <option value="de">Deutsch</option>
+      </select>
+      <button id="logoutBtn" class="btn hidden" onclick="handleLogout()" data-i18n="logout">تسجيل الخروج</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- واجهة تسجيل الدخول / إنشاء حساب -->
+    <div id="authSection" class="card">
+      <h2 id="authTitle" data-i18n="login">تسجيل الدخول</h2>
+      <br>
+      <form id="authForm" onsubmit="handleAuth(event)">
+        <div class="input-group">
+          <label data-i18n="email">البريد الإلكتروني</label>
+          <input type="email" id="email" required>
+        </div>
+        <div class="input-group">
+          <label data-i18n="password">كلمة المرور</label>
+          <input type="password" id="password" required>
+        </div>
+        <button type="submit" class="btn" data-i18n="login">تسجيل الدخول</button>
+      </form>
+    </div>
+
+    <!-- الواجهة الرئيسية بعد تسجيل الدخول -->
+    <div id="mainSection" class="hidden">
+      <!-- صندوق كتابة منشور -->
+      <div class="card">
+        <textarea id="postContent" data-i18n="postPlaceholder" placeholder="بماذا تفكر اليوم؟"></textarea>
+        <br><br>
+        <button class="btn" onclick="createPost()" data-i18n="publish">نشر</button>
+      </div>
+
+      <!-- قائمة المنشورات -->
+      <div id="feed" class="card">
+        <p data-i18n="noPosts">لا توجد منشورات حتى الآن.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // التحكم بتبديل اللغة من القائمة
+    document.addEventListener('DOMContentLoaded', () => {
+      const langSelect = document.getElementById('langSelect');
+      if (langSelect) langSelect.value = currentLang;
+    });
+
+    // تسجيل الدخول العادي
+    async function handleAuth(event) {
+      event.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        alert(error.message);
+      } else {
+        showApp();
+      }
+    }
+
+    // عرض التطبيق بعد الدخول
+    function showApp() {
+      document.getElementById('authSection').classList.add('hidden');
+      document.getElementById('mainSection').classList.remove('hidden');
+      document.getElementById('logoutBtn').classList.remove('hidden');
+    }
+
+    // تسجيل الخروج
+    async function handleLogout() {
+      await supabase.auth.signOut();
+      location.reload();
+    }
+  </script>
+</body>
+</html>

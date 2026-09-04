@@ -6,58 +6,43 @@
     <title>Loome Social</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="app.js" defer></script>
 </head>
 <body>
-    <div id="app">
-        <header>
-            <h1 id="app-title">لومي سبيس</h1>
-            <select id="language-select">
-                <option value="ar">العربية</option>
-                <option value="en">English</option>
-                <option value="fr">Français</option>
-                <option value="ru">Русский</option>
-                <option value="zh">中文</option>
-                <option value="de">Deutsch</option>
-            </select>
-        </header>
-
-        <!-- واجهة الدخول -->
-        <main id="auth-container" class="card">
+    <div class="container">
+        <!-- شاشة تسجيل الدخول -->
+        <div id="auth-container">
             <h2 id="auth-title">تسجيل الدخول</h2>
             <form id="auth-form">
-                <div class="form-group">
-                    <label id="label-email">البريد الإلكتروني</label>
-                    <input type="email" id="email" required placeholder="name@example.com">
-                </div>
-                <div class="form-group">
-                    <label id="label-password">كلمة المرور</label>
-                    <input type="password" id="password" required placeholder="******">
-                </div>
+                <input type="email" id="email" placeholder="البريد الإلكتروني" required>
+                <input type="password" id="password" placeholder="كلمة المرور" required>
                 <button type="submit" id="btn-submit">تسجيل الدخول</button>
             </form>
+            <p>أو</p>
+            <button id="btn-anon" style="width: 100%; background-color: #555; color: white; padding: 10px; margin-bottom: 10px;">الدخول كزائر (بدون حساب)</button>
+            <p><span id="toggle-msg">ليس لديك حساب؟</span> <a href="#" id="toggle-auth">إنشاء حساب جديد</a></p>
+            <div id="auth-error" style="color: red; display: none; margin-top: 10px;"></div>
+        </div>
 
-            <div style="margin: 15px 0; text-align: center;">أو</div>
+        <!-- الشاشة الرئيسية والمنشورات -->
+        <div id="main-content" style="display: none;">
+            <h2>مرحباً بك في لومي سبيس!</h2>
+            
+            <!-- صندوق إضافة منشور -->
+            <div style="margin-top: 20px;">
+                <textarea id="post-input" placeholder="بماذا تفكر اليوم؟" style="width: 100%; height: 80px; padding: 10px; box-sizing: border-box;"></textarea>
+                <button id="btn-post" style="margin-top: 10px; padding: 10px 20px; cursor: pointer; width: 100%;">نشر المنشور</button>
+            </div>
 
-            <!-- زر الدخول كزائر الفوري -->
-            <button id="btn-anon" type="button" style="background-color: #4A5568; color: white; width: 100%;">الدخول كزائر (بدون حساب)</button>
+            <hr style="margin: 20px 0;">
 
-            <p id="auth-toggle-text" style="margin-top: 15px;">
-                <span id="toggle-msg">ليس لديك حساب؟</span> 
-                <a href="#" id="toggle-auth">إنشاء حساب جديد</a>
-            </p>
-            <p id="auth-error" class="error-msg" style="display:none; color: red; margin-top: 10px;"></p>
-        </main>
+            <!-- قائمة المنشورات -->
+            <h3>المنشورات الأخيرة</h3>
+            <div id="posts-container">جاري تحميل المنشورات...</div>
 
-        <!-- الواجهة الرئيسية -->
-        <main id="main-content" class="card" style="display: none;">
-            <h2 id="welcome-msg">مرحباً بك في لومي سبيس!</h2>
-            <p id="status-msg">تم تسجيل الدخول بنجاح. سنبدأ الآن ببرمجة المنشورات والدردشة.</p>
-            <button id="btn-logout">تسجيل الخروج</button>
-        </main>
+            <button id="btn-logout" style="margin-top: 30px; background-color: #d9534f; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">تسجيل الخروج</button>
+        </div>
     </div>
-
-    <script src="supabase-config.js"></script>
-    <script src="i18n.js"></script>
-    <script src="app.js"></script>
 </body>
 </html>

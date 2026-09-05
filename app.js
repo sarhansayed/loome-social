@@ -2,12 +2,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const client = window.supabaseClient || window.supabase;
 
     let currentUser = null;
-    let activeVideoTarget = null; // chat أو dm
+    let activeCamTarget = 'chat'; // 'chat' | 'dm' | 'post'
     let mediaRecorder = null;
     let chunks = [];
     let videoStream = null;
 
-    // تسجيل الدخول والخروج
+    // تسجيل الدخول والزائر
     const authForm = document.getElementById('auth-form');
     if (authForm) {
         authForm.addEventListener('submit', async (e) => {
@@ -39,13 +39,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         fetchChat();
         fetchPosts();
-        
-        // الاستماع الفوري لرسائل الدردشة العامة
+
         client.channel('chat-room').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, fetchChat).subscribe();
     }
 
-    // --- معالجة صيغ الوسائط (صوت - صورة - فيديو) ---
+    // --- معالجة صيغ كل أنواع الوسائط المستلمة ---
     function renderMediaContent(content) {
+        if (!content) return '';
+
         if (content.startsWith('[AUDIO]:')) {
             return `<audio controls src="${content.replace('[AUDIO]:', '')}" style="max-width:100%; height:35px;"></audio>`;
         }
@@ -54,6 +55,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (content.startsWith('[VIDEO]:')) {
             return `<video controls src="${content.replace('[VIDEO]:', '')}" style="max-width:100%; border-radius:8px;"></video>`;
+        }
+        if (content.startsWith('[FILE]:')) {
+            const url = content.replace('[FILE]:', '');
+            const rawName = url.split('/').pop().split('_').slice(2).join('_') || 'تحميل الملف';
+            return `<a href="${url}" target="_blank" download style="display:inline-flex; align-items:center; gap:6px; padding:8px 12px; background:#e7f3ff; border-radius:8px; text-decoration:none; color:#0084ff; font-weight:bold; font-size:13px;">📄 ${rawName}</a>`;
         }
         return `<div>${content}</div>`;
     }
@@ -81,7 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
         input.value = '';
     });
 
-    // رفع ملفات بالدردشة
     document.getElementById('chat-file-input').addEventListener('change', (e) => uploadAndSend(e.target.files[0], 'chat'));
 
     // --- 2. الرسائل الخاصة ---
@@ -119,32 +124,15 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('dm-file-input').addEventListener('change', (e) => uploadAndSend(e.target.files[0], 'dm'));
 
     // --- 3. المنشورات العامة ---
-    let pendingPostMedia = null;
-    document.getElementById('post-file-input').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const bucket = file.type.startsWith('image/') ? 'chat-images' : 'chat-videos';
-        const name = `post_${Date.now()}_${file.name}`;
-        
-        document.getElementById('post-file-status').innerText = "جاري رفع الملف...";
-        const { error } = await client.storage.from(bucket).upload(name, file);
-        if (!error) {
-            const url = client.storage.from(bucket).getPublicUrl(name).data.publicUrl;
-            pendingPostMedia = `${file.type.startsWith('image/') ? '[IMAGE]:' : '[VIDEO]:'}${url}`;
-            document.getElementById('post-file-status').innerText = "تم إرفاق الملف ✓";
-        }
-    });
+    document.getElementById('post-file-input').addEventListener('change', (e) => uploadAndSend(e.target.files[0], 'post'));
 
     document.getElementById('btn-send-post').addEventListener('click', async () => {
         const input = document.getElementById('post-input');
         let text = input.value.trim();
-        if (!text && !pendingPostMedia) return;
+        if (!text) return;
 
-        if (pendingPostMedia) text = `${text} ${pendingPostMedia}`;
         await client.from('posts').insert([{ content: text, user_id: currentUser?.id }]);
         input.value = '';
-        pendingPostMedia = null;
-        document.getElementById('post-file-status').innerText = '';
         fetchPosts();
     });
 
@@ -160,18 +148,35 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
-    // --- وظيفة الرفع العامة ---
+    // --- دالة رفع جميع أنواع الملفات الموحّدة ---
     async function uploadAndSend(file, type) {
         if (!file) return;
-        const isImg = file.type.startsWith('image/');
-        const bucket = isImg ? 'chat-images' : 'chat-videos';
-        const name = `${type}_${Date.now()}_${file.name}`;
 
-        const { error } = await client.storage.from(bucket).upload(name, file);
-        if (error) return alert("فشل الرفع: " + error.message);
+        let bucket = 'chat-files';
+        let prefix = '[FILE]:';
 
-        const url = client.storage.from(bucket).getPublicUrl(name).data.publicUrl;
-        const formatted = `${isImg ? '[IMAGE]:' : '[VIDEO]:'}${url}`;
+        if (file.type.startsWith('image/')) {
+            bucket = 'chat-images';
+            prefix = '[IMAGE]:';
+        } else if (file.type.startsWith('video/')) {
+            bucket = 'chat-videos';
+            prefix = '[VIDEO]:';
+        } else if (file.type.startsWith('audio/')) {
+            bucket = 'audio-messages';
+            prefix = '[AUDIO]:';
+        }
+
+        const fileName = `${type}_${Date.now()}_${file.name}`;
+        if (type === 'post') document.getElementById('post-file-status').innerText = "جاري رفع الملف...";
+
+        const { error } = await client.storage.from(bucket).upload(fileName, file);
+        if (error) {
+            if (type === 'post') document.getElementById('post-file-status').innerText = "";
+            return alert("فشل الرفع: " + error.message);
+        }
+
+        const url = client.storage.from(bucket).getPublicUrl(fileName).data.publicUrl;
+        const formatted = `${prefix}${url}`;
 
         if (type === 'chat') {
             await client.from('messages').insert([{ content: formatted, sender_email: currentUser?.email || 'زائر' }]);
@@ -181,39 +186,53 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!target) return alert("أدخل بريد المستلم");
             await client.from('direct_messages').insert([{ content: formatted, sender_email: currentUser?.email || 'زائر', receiver_email: target }]);
             fetchDM();
+        } else if (type === 'post') {
+            await client.from('posts').insert([{ content: formatted, user_id: currentUser?.id }]);
+            document.getElementById('post-file-status').innerText = "";
+            fetchPosts();
         }
     }
 
-    // --- التسجيل الصوتي المباشر (لشاشة Chat و DM) ---
+    // --- التسجيل الصوتي المباشر للمقاطع ---
     function setupMic(btnId, targetType) {
         const btn = document.getElementById(btnId);
+        if (!btn) return;
+
         btn.addEventListener('click', async () => {
             if (!mediaRecorder || mediaRecorder.state === 'inactive') {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                chunks = [];
-                mediaRecorder.ondataavailable = e => chunks.push(e.data);
-                mediaRecorder.onstop = async () => {
-                    const blob = new Blob(chunks, { type: 'audio/webm' });
-                    const name = `audio_${Date.now()}.webm`;
-                    await client.storage.from('audio-messages').upload(name, blob);
-                    const url = client.storage.from('audio-messages').getPublicUrl(name).data.publicUrl;
-                    const formatted = `[AUDIO]:${url}`;
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    chunks = [];
+                    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                    mediaRecorder.onstop = async () => {
+                        const blob = new Blob(chunks, { type: 'audio/webm' });
+                        const fileName = `voice_${Date.now()}.webm`;
 
-                    if (targetType === 'chat') {
-                        await client.from('messages').insert([{ content: formatted, sender_email: currentUser?.email || 'زائر' }]);
-                        fetchChat();
-                    } else {
-                        const target = dmTarget.value.trim();
-                        if (target) {
-                            await client.from('direct_messages').insert([{ content: formatted, sender_email: currentUser?.email || 'زائر', receiver_email: target }]);
-                            fetchDM();
+                        await client.storage.from('audio-messages').upload(fileName, blob);
+                        const url = client.storage.from('audio-messages').getPublicUrl(fileName).data.publicUrl;
+                        const formatted = `[AUDIO]:${url}`;
+
+                        if (targetType === 'chat') {
+                            await client.from('messages').insert([{ content: formatted, sender_email: currentUser?.email || 'زائر' }]);
+                            fetchChat();
+                        } else if (targetType === 'dm') {
+                            const target = dmTarget.value.trim();
+                            if (target) {
+                                await client.from('direct_messages').insert([{ content: formatted, sender_email: currentUser?.email || 'زائر', receiver_email: target }]);
+                                fetchDM();
+                            }
+                        } else if (targetType === 'post') {
+                            await client.from('posts').insert([{ content: formatted, user_id: currentUser?.id }]);
+                            fetchPosts();
                         }
-                    }
-                    btn.style.background = '#28a745';
-                };
-                mediaRecorder.start();
-                btn.style.background = '#dc3545';
+                        btn.style.background = '#28a745';
+                    };
+                    mediaRecorder.start();
+                    btn.style.background = '#dc3545';
+                } catch (err) {
+                    alert("يرجى تفعيل الميكروفون.");
+                }
             } else {
                 mediaRecorder.stop();
             }
@@ -222,35 +241,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupMic('btn-chat-mic', 'chat');
     setupMic('btn-dm-mic', 'dm');
+    setupMic('btn-post-mic', 'post');
 
-    // --- تسجيل الفيديو المباشر من الكاميرا ---
+    // --- تسجيل الفيديو المباشر للكاميرا ---
     const videoModal = document.getElementById('video-modal');
     const videoPreview = document.getElementById('video-preview');
 
-    document.getElementById('btn-chat-cam').addEventListener('click', async () => {
-        try {
-            videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            videoPreview.srcObject = videoStream;
-            videoModal.style.display = 'flex';
+    function setupCamTrigger(btnId, targetType) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
 
-            chunks = [];
-            mediaRecorder = new MediaRecorder(videoStream);
-            mediaRecorder.ondataavailable = e => chunks.push(e.data);
-            mediaRecorder.onstop = async () => {
-                const blob = new Blob(chunks, { type: 'video/webm' });
-                const name = `cam_${Date.now()}.webm`;
-                await client.storage.from('chat-videos').upload(name, blob);
-                const url = client.storage.from('chat-videos').getPublicUrl(name).data.publicUrl;
+        btn.addEventListener('click', async () => {
+            if (targetType === 'dm' && !dmTarget.value.trim()) {
+                return alert("أدخل بريد المستلم أولاً.");
+            }
+            activeCamTarget = targetType;
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                videoPreview.srcObject = videoStream;
+                videoModal.style.display = 'flex';
 
-                await client.from('messages').insert([{ content: `[VIDEO]:${url}`, sender_email: currentUser?.email || 'زائر' }]);
-                fetchChat();
-                closeCam();
-            };
-            mediaRecorder.start();
-        } catch (err) {
-            alert("يرجى إعطاء إذن استخدام الكاميرا والميكروفون.");
-        }
-    });
+                chunks = [];
+                mediaRecorder = new MediaRecorder(videoStream);
+                mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                mediaRecorder.onstop = async () => {
+                    const blob = new Blob(chunks, { type: 'video/webm' });
+                    const fileName = `cam_${Date.now()}.webm`;
+
+                    await client.storage.from('chat-videos').upload(fileName, blob);
+                    const url = client.storage.from('chat-videos').getPublicUrl(fileName).data.publicUrl;
+                    const formatted = `[VIDEO]:${url}`;
+
+                    if (activeCamTarget === 'chat') {
+                        await client.from('messages').insert([{ content: formatted, sender_email: currentUser?.email || 'زائر' }]);
+                        fetchChat();
+                    } else if (activeCamTarget === 'dm') {
+                        const target = dmTarget.value.trim();
+                        await client.from('direct_messages').insert([{ content: formatted, sender_email: currentUser?.email || 'زائر', receiver_email: target }]);
+                        fetchDM();
+                    } else if (activeCamTarget === 'post') {
+                        await client.from('posts').insert([{ content: formatted, user_id: currentUser?.id }]);
+                        fetchPosts();
+                    }
+                    closeCam();
+                };
+                mediaRecorder.start();
+            } catch (err) {
+                alert("يرجى منح إذن استخدام الكاميرا والميكروفون.");
+            }
+        });
+    }
+
+    setupCamTrigger('btn-chat-cam', 'chat');
+    setupCamTrigger('btn-dm-cam', 'dm');
+    setupCamTrigger('btn-post-cam', 'post');
 
     document.getElementById('btn-stop-video').addEventListener('click', () => {
         if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
@@ -263,7 +307,6 @@ document.addEventListener('DOMContentLoaded', () => {
         videoModal.style.display = 'none';
     }
 
-    // التحقق المباشر من وجود جلسة
     (async () => {
         const { data: { user } } = await client.auth.getUser();
         if (user) initApp();

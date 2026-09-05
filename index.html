@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Loome Social Pro</title>
+    <title>Loome Social Pro - Auth</title>
     <!-- مكتبة الاتصال المباشر بقواعد بيانات Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -20,17 +20,41 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-primary); color: var(--text-main); display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
+        
+        /* واجهة تسجيل الدخول */
+        #auth-screen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--bg-primary);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .auth-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
         header { height: 56px; background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0; }
-        .header-title { font-size: 1rem; font-weight: bold; color: var(--accent-color); }
+        .header-title { font-size: 0.95rem; font-weight: bold; color: var(--accent-color); }
         .main-content { flex: 1; position: relative; overflow: hidden; }
         .view-panel { display: none; width: 100%; height: 100%; padding: 12px; overflow-y: auto; position: absolute; top: 0; left: 0; }
         .view-panel.active { display: flex; flex-direction: column; }
         .bottom-nav { height: 60px; background-color: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center; flex-shrink: 0; z-index: 100; }
         .nav-btn { background: transparent; border: none; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; gap: 3px; cursor: pointer; width: 25%; }
         .nav-btn.active { color: var(--accent-color); font-weight: bold; }
-        input[type="text"] { width: 100%; background-color: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px; border-radius: 8px; outline: none; font-size: 0.9rem; }
+        input[type="text"], input[type="email"], input[type="password"] { width: 100%; background-color: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px; border-radius: 8px; outline: none; font-size: 0.9rem; }
         .btn-primary { background-color: var(--accent-color); color: white; border: none; padding: 10px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-danger { background-color: var(--danger-color); color: white; border: none; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; }
+        .btn-danger { background-color: var(--danger-color); color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; }
         .btn-audio { background-color: #8b5cf6; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 1rem; cursor: pointer; }
         .chat-box { display: flex; flex-direction: column; height: 100%; gap: 10px; }
         .messages-list { flex: 1; background-color: var(--bg-secondary); border-radius: 10px; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--border-color); }
@@ -45,9 +69,25 @@
 </head>
 <body>
 
+    <!-- شاشة تسجيل الدخول وإنشاء الحساب -->
+    <div id="auth-screen">
+        <div class="auth-card">
+            <h2 style="text-align: center; color: var(--accent-color);">تسجيل الدخول</h2>
+            <input type="email" id="auth-email" placeholder="البريد الإلكتروني (Email)...">
+            <input type="password" id="auth-password" placeholder="كلمة السر (Password)...">
+            <button class="btn-primary" onclick="handleLogin()">تسجيل الدخول</button>
+            <button class="btn-primary" style="background-color: #475569;" onclick="handleSignUp()">إنشاء حساب جديد</button>
+            <div id="auth-error" style="color: var(--danger-color); font-size: 0.8rem; text-align: center;"></div>
+        </div>
+    </div>
+
+    <!-- الواجهة الرئيسية بعد تسجيل الدخول -->
     <header>
         <div class="header-title" id="page-title">الدردشة العامة</div>
-        <button class="btn-primary" style="padding: 4px 10px; font-size: 0.8rem; background: var(--success-color);" onclick="startContextVideo()">📹 بدء فيديو جماعي</button>
+        <div style="display: flex; gap: 6px; align-items: center;">
+            <button class="btn-primary" style="padding: 4px 10px; font-size: 0.8rem; background: var(--success-color);" onclick="startContextVideo()">📹 فيديو جماعي</button>
+            <button class="btn-danger" onclick="handleLogout()">خروج</button>
+        </div>
     </header>
 
     <div class="main-content">
@@ -71,7 +111,7 @@
         <div id="private-contacts" class="view-panel">
             <div class="card">
                 <h4 style="margin-bottom:8px;">محادثة خاصة جديدة</h4>
-                <input type="text" id="pm-user-id" placeholder="اكتب اسم أو ID المستلم..." style="margin-bottom:8px;">
+                <input type="email" id="pm-user-email" placeholder="اكتب بريد المستلم..." style="margin-bottom:8px;">
                 <button class="btn-primary" onclick="openPrivateChat()">فتح المحادثة الخاصة</button>
             </div>
         </div>
@@ -117,16 +157,64 @@
     </div>
 
     <script>
-        // بيانات Supabase الخاصة بمشروعك والمربوطة تلقائياً
         const SUPABASE_URL = 'https://gdmevluvrmexkkihcxce.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkbWV2bHV2cm1leGtraWhjeGNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NTI5ODIsImV4cCI6MjEwNDEyODk4Mn0.U1MA6q_GfuPpzkJCvMwTc07neAek1vsq5qWE44_eYQQ';
 
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let currentRoomId = 'public';
-        let myUsername = 'مستخدم_' + Math.floor(Math.random() * 1000);
+        let currentUser = null;
         let mediaRecorder = null, audioChunks = [], recordedAudioBlob = null;
         let localVideoStream = null;
+
+        // التحقق من الجلسة عند فتح التطبيق
+        window.addEventListener('DOMContentLoaded', async () => {
+            const { data: { session } } = await db.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                document.getElementById('auth-screen').style.display = 'none';
+                switchRoom('public', 'الدردشة العامة');
+            }
+        });
+
+        // التعامل مع تسجيل الدخول
+        async function handleLogin() {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const errDiv = document.getElementById('auth-error');
+            errDiv.innerText = '';
+
+            const { data, error } = await db.auth.signInWithPassword({ email, password });
+            if (error) {
+                errDiv.innerText = 'خطأ في تسجيل الدخول: ' + error.message;
+            } else {
+                currentUser = data.user;
+                document.getElementById('auth-screen').style.display = 'none';
+                switchRoom('public', 'الدردشة العامة');
+            }
+        }
+
+        // التعامل مع إنشاء حساب جديد
+        async function handleSignUp() {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const errDiv = document.getElementById('auth-error');
+            errDiv.innerText = '';
+
+            const { data, error } = await db.auth.signUp({ email, password });
+            if (error) {
+                errDiv.innerText = 'خطأ في إنشاء الحساب: ' + error.message;
+            } else {
+                alert('تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول.');
+            }
+        }
+
+        // تسجيل الخروج
+        async function handleLogout() {
+            await db.auth.signOut();
+            currentUser = null;
+            document.getElementById('auth-screen').style.display = 'flex';
+        }
 
         function switchView(id) {
             document.querySelectorAll('.view-panel').forEach(e => e.classList.remove('active'));
@@ -171,7 +259,8 @@
         function renderMessageUI(msg) {
             const container = document.getElementById('chat-msgs');
             const bubble = document.createElement('div');
-            bubble.className = `msg-bubble ${msg.sender === myUsername ? 'self' : ''}`;
+            const myEmail = currentUser ? currentUser.email : '';
+            bubble.className = `msg-bubble ${msg.sender === myEmail ? 'self' : ''}`;
             
             let html = `<div><strong>${msg.sender}:</strong> ${msg.content || ''}</div>`;
             if(msg.audio_url) html += `<audio controls src="${msg.audio_url}"></audio>`;
@@ -204,7 +293,7 @@
 
             const msgData = {
                 room_id: currentRoomId,
-                sender: myUsername,
+                sender: currentUser ? currentUser.email : 'مستخدم مجهول',
                 content: input.value.trim(),
                 audio_url: audioUrl
             };
@@ -248,7 +337,7 @@
                     const res = db.storage.from('chat-attachments').getPublicUrl(fileName);
                     await db.from('messages').insert([{
                         room_id: currentRoomId,
-                        sender: myUsername,
+                        sender: currentUser ? currentUser.email : 'مستخدم مجهول',
                         content: `مرفق ملف: ${file.name}`,
                         file_url: res.data.publicUrl
                     }]);
@@ -273,14 +362,14 @@
         }
 
         function openPrivateChat() {
-            const userInput = document.getElementById('pm-user-id').value.trim();
-            if(userInput) switchRoom('pm_' + userInput, 'محادثة خاصة: ' + userInput);
+            const userEmail = document.getElementById('pm-user-email').value.trim();
+            if(userEmail) switchRoom('pm_' + userEmail, 'محادثة خاصة: ' + userEmail);
         }
 
         async function startContextVideo() {
             await db.from('messages').insert([{
                 room_id: currentRoomId,
-                sender: myUsername,
+                sender: currentUser ? currentUser.email : 'مستخدم مجهول',
                 content: 'بدأ بث فيديو مباشر',
                 is_video: true
             }]);
@@ -300,9 +389,6 @@
             document.getElementById('groupVideoPlayer').srcObject = null;
             switchView('chat-view');
         }
-
-        // تشغيل التطبيق في الغرفة العامة عند الفتح
-        switchRoom('public', 'الدردشة العامة');
     </script>
 </body>
 </html>

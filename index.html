@@ -2,14 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق التواصل المتكامل الاحترافي</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تطبيق التواصل المتكامل</title>
     <style>
         :root {
             --bg-primary: #0f172a;
             --bg-secondary: #1e293b;
             --accent-color: #3b82f6;
-            --accent-hover: #2563eb;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --border-color: #334155;
@@ -20,86 +19,68 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             background-color: var(--bg-primary);
             color: var(--text-main);
             display: flex;
+            flex-direction: column;
             height: 100vh;
+            height: 100dvh;
             overflow: hidden;
         }
 
-        /* Sidebar Navigation */
-        .sidebar {
-            width: 240px;
-            background-color: var(--bg-secondary);
-            border-left: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            padding: 20px 10px;
-        }
-
-        .brand {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--accent-color);
-            margin-bottom: 30px;
-            text-align: center;
-        }
-
-        .nav-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            padding: 12px 15px;
-            text-align: right;
-            font-size: 0.95rem;
-            cursor: pointer;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            transition: all 0.2s ease;
-        }
-
-        .nav-btn:hover, .nav-btn.active {
-            background-color: var(--accent-color);
-            color: #fff;
-        }
-
-        /* Main Content Area */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
+        /* Top Header */
         header {
-            height: 60px;
+            height: 56px;
+            background-color: var(--bg-secondary);
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 20px;
-            background-color: var(--bg-secondary);
+            padding: 0 16px;
+            flex-shrink: 0;
+        }
+
+        .header-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--accent-color);
         }
 
         .quick-call-btn {
             background-color: var(--success-color);
             color: #fff;
             border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
             font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Main Content View Container */
+        .main-content {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
         }
 
         .view-panel {
             display: none;
-            flex: 1;
-            padding: 20px;
+            width: 100%;
+            height: 100%;
+            padding: 12px;
             overflow-y: auto;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
 
         .view-panel.active {
@@ -107,102 +88,133 @@
             flex-direction: column;
         }
 
-        /* Chat View */
-        .chat-container {
+        /* Bottom Navigation Bar for Mobile */
+        .bottom-nav {
+            height: 60px;
+            background-color: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.75rem;
+            gap: 3px;
+            cursor: pointer;
+            width: 25%;
+            padding: 6px 0;
+        }
+
+        .nav-btn .icon {
+            font-size: 1.2rem;
+        }
+
+        .nav-btn.active {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        /* Form Inputs & Controls */
+        input[type="text"], select, textarea {
+            width: 100%;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 12px;
+            border-radius: 8px;
+            outline: none;
+            font-size: 0.95rem;
+            margin-top: 4px;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            font-size: 0.95rem;
+        }
+
+        /* Public Chat Layout */
+        .chat-box {
             display: flex;
             flex-direction: column;
             height: 100%;
-            background-color: var(--bg-secondary);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-
-        .chat-messages {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
             gap: 10px;
         }
 
-        .message {
-            background-color: var(--border-color);
-            padding: 10px 14px;
-            border-radius: 8px;
-            max-width: 70%;
+        .messages-list {
+            flex: 1;
+            background-color: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 12px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border: 1px solid var(--border-color);
         }
 
-        .message.self {
+        .msg-bubble {
+            background-color: var(--border-color);
+            padding: 8px 12px;
+            border-radius: 12px;
+            max-width: 85%;
+            font-size: 0.9rem;
+            align-self: flex-start;
+        }
+
+        .msg-bubble.self {
             align-self: flex-end;
             background-color: var(--accent-color);
         }
 
-        .chat-input-area {
+        .chat-input-row {
             display: flex;
-            padding: 10px;
-            border-top: 1px solid var(--border-color);
-            gap: 10px;
+            gap: 8px;
         }
 
-        input[type="text"], select, textarea {
-            background-color: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 10px;
-            border-radius: 6px;
-            outline: none;
+        .chat-input-row input {
+            margin-top: 0;
         }
 
-        .chat-input-area input {
-            flex: 1;
+        .chat-input-row button {
+            width: auto;
+            padding: 0 18px;
         }
 
-        .btn-send {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 0 20px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        /* Private Messaging */
-        .pm-layout {
-            display: grid;
-            grid-template-columns: 250px 1fr;
-            gap: 20px;
-            height: 100%;
-        }
-
-        .pm-form {
+        /* Private Chat Mobile Layout */
+        .pm-card {
             background-color: var(--bg-secondary);
-            padding: 15px;
-            border-radius: 8px;
+            padding: 14px;
+            border-radius: 10px;
             border: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
+            margin-bottom: 12px;
         }
 
-        .pm-history {
-            background-color: var(--bg-secondary);
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            overflow-y: auto;
-        }
-
-        /* Embedded Video Call View */
-        .video-container {
+        /* Video Call Mobile Layout */
+        .video-wrapper {
             width: 100%;
             height: 100%;
-            border-radius: 8px;
+            border-radius: 10px;
             overflow: hidden;
-            background-color: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background: #000;
         }
 
         iframe {
@@ -211,210 +223,238 @@
             border: none;
         }
 
-        /* Game View */
-        .game-container {
+        /* Responsive Canvas Game */
+        .game-box {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100%;
-            gap: 15px;
+            gap: 12px;
         }
 
-        canvas {
+        #gameCanvas {
             background-color: var(--bg-secondary);
             border: 2px solid var(--accent-color);
-            border-radius: 8px;
-            cursor: crosshair;
+            border-radius: 10px;
+            max-width: 100%;
+            touch-action: none;
         }
 
-        .game-controls {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-
-        /* Notification Toast */
+        /* Toast Notifications */
         .toast {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
+            position: fixed;
+            top: 65px;
+            left: 50%;
+            transform: translateX(-50%);
             background-color: var(--accent-color);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
             display: none;
+            z-index: 200;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
     </style>
 </head>
 <body>
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="brand">منصة التواصل PRO</div>
-        <button class="nav-btn active" onclick="switchView('public-chat')">غرفة الدردشة العامة</button>
-        <button class="nav-btn" onclick="switchView('private-chat')">الرسائل الخاصة</button>
-        <button class="nav-btn" onclick="switchView('video-call')">اجتماع الفيديو المباشر</button>
-        <button class="nav-btn" onclick="switchView('game')">مركز الألعاب</button>
-    </div>
+    <!-- Header -->
+    <header>
+        <div class="header-title" id="page-title">الدردشة العامة</div>
+        <button class="quick-call-btn" onclick="switchView('video-call')">
+            <span>📹</span> فيديو مباشر
+        </button>
+    </header>
 
-    <!-- Main Content -->
+    <!-- Main Screens Area -->
     <div class="main-content">
-        <header>
-            <span id="current-view-title">غرفة الدردشة العامة</span>
-            <button class="quick-call-btn" onclick="switchView('video-call')">📹 بدء فيديو مباشر</button>
-        </header>
 
-        <!-- Public Chat Panel -->
+        <!-- 1. Public Chat Panel -->
         <div id="public-chat" class="view-panel active">
-            <div class="chat-container">
-                <div class="chat-messages" id="public-messages">
-                    <div class="message">مرحباً بك في الغرفة العامة!</div>
+            <div class="chat-box">
+                <div class="messages-list" id="public-msgs">
+                    <div class="msg-bubble">مرحباً بك في الغرفة العامة!</div>
                 </div>
-                <div class="chat-input-area">
-                    <input type="text" id="public-input" placeholder="اكتب رسالتك العامة هنا...">
-                    <button class="btn-send" onclick="sendPublicMessage()">إرسال</button>
+                <div class="chat-input-row">
+                    <input type="text" id="public-input" placeholder="اكتب رسالتك...">
+                    <button class="btn-primary" onclick="sendPublicMsg()">إرسال</button>
                 </div>
             </div>
         </div>
 
-        <!-- Private Chat Panel -->
+        <!-- 2. Private Chat Panel -->
         <div id="private-chat" class="view-panel">
-            <div class="pm-layout">
-                <div class="pm-form">
-                    <h3>إرسال خاص</h3>
-                    <label>اختر المستلم:</label>
+            <div class="pm-card">
+                <h3>إرسال رسالة خاصة</h3>
+                <div>
+                    <label style="font-size: 0.85rem; color: var(--text-muted);">المستلم:</label>
                     <select id="pm-recipient">
                         <option value="أحمد (مدير)">أحمد (مدير)</option>
                         <option value="سارة (دعم)">سارة (دعم)</option>
                         <option value="علي (مطور)">علي (مطور)</option>
                     </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.85rem; color: var(--text-muted);">الرسالة:</label>
+                    <textarea id="pm-text" rows="3" placeholder="اكتب رسالتك هنا..."></textarea>
+                </div>
+                <button class="btn-primary" onclick="sendPrivateMsg()">إرسال الآن</button>
+            </div>
 
-                    <label>الرسالة:</label>
-                    <textarea id="pm-text" rows="5" placeholder="اكتب رسالتك الخاصة..."></textarea>
-                    
-                    <button class="btn-send" style="padding: 10px;" onclick="sendPrivateMessage()">إرسال الرسالة</button>
-                </div>
-                <div class="pm-history">
-                    <h3>سجل المحادثات الخاصة</h3>
-                    <hr style="border-color: var(--border-color); margin: 10px 0;">
-                    <div id="pm-messages-list"></div>
-                </div>
+            <div class="pm-card" style="flex:1; overflow-y:auto;">
+                <h3>سجل الرسائل الخاصة</h3>
+                <div id="pm-list" style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;"></div>
             </div>
         </div>
 
-        <!-- Video Call Panel -->
-        <div id="video-call" class="view-panel">
-            <div class="video-container">
-                <!-- Using embedded Meet/Jitsi iframe directly for instant offline/online compatibility -->
-                <iframe src="https://meet.jit.si/ProAppIntegratedRoomRoom2026" allow="camera; microphone; fullscreen; display-capture"></iframe>
+        <!-- 3. Video Call Panel -->
+        <div id="video-call" class="view-panel" style="padding: 0;">
+            <div class="video-wrapper">
+                <iframe src="https://meet.jit.si/ProAppIntegratedRoomRoom2026#config.prejoinPageEnabled=false" allow="camera; microphone; fullscreen; display-capture"></iframe>
             </div>
         </div>
 
-        <!-- Game Panel -->
+        <!-- 4. Game Panel -->
         <div id="game" class="view-panel">
-            <div class="game-container">
-                <div class="game-controls">
-                    <span>النقاط: <strong id="score">0</strong></span>
-                    <button class="btn-send" onclick="startGame()">بدء / إعادة اللعب</button>
+            <div class="game-box">
+                <div style="display: flex; justify-content: space-between; width: 100%; max-width: 320px; align-items: center;">
+                    <span style="font-weight: bold;">النقاط: <span id="score-val" style="color:var(--accent-color)">0</span></span>
+                    <button class="btn-primary" style="width: auto; padding: 6px 14px;" onclick="startGame()">بدء اللعبة</button>
                 </div>
-                <canvas id="gameCanvas" width="500" height="350"></canvas>
+                <canvas id="gameCanvas" width="320" height="360"></canvas>
             </div>
         </div>
+
     </div>
 
-    <div class="toast" id="toast-notification">تنبيه!</div>
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-nav">
+        <button class="nav-btn active" id="btn-public" onclick="switchView('public-chat')">
+            <span class="icon">💬</span>
+            <span>العامة</span>
+        </button>
+        <button class="nav-btn" id="btn-private" onclick="switchView('private-chat')">
+            <span class="icon">🔒</span>
+            <span>خاص</span>
+        </button>
+        <button class="nav-btn" id="btn-video" onclick="switchView('video-call')">
+            <span class="icon">📹</span>
+            <span>فيديو</span>
+        </button>
+        <button class="nav-btn" id="btn-game" onclick="switchView('game')">
+            <span class="icon">🎮</span>
+            <span>الاستراحة</span>
+        </button>
+    </div>
+
+    <div class="toast" id="toast">تنبيه</div>
 
     <script>
-        // Switch Panels
+        // Tab Switcher Logic
         function switchView(viewId) {
-            document.querySelectorAll('.view-panel').forEach(panel => panel.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            
+            document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+
             document.getElementById(viewId).classList.add('active');
-            
-            const titles = {
-                'public-chat': 'غرفة الدردشة العامة',
+
+            const titleMap = {
+                'public-chat': 'الدردشة العامة',
                 'private-chat': 'الرسائل الخاصة',
                 'video-call': 'اجتماع الفيديو المباشر',
                 'game': 'مركز الألعاب'
             };
-            document.getElementById('current-view-title').innerText = titles[viewId];
-            
+            document.getElementById('page-title').innerText = titleMap[viewId];
+
+            const navMap = {
+                'public-chat': 'btn-public',
+                'private-chat': 'btn-private',
+                'video-call': 'btn-video',
+                'game': 'btn-game'
+            };
+            if(navMap[viewId]) {
+                document.getElementById(navMap[viewId]).classList.add('active');
+            }
+
             if(viewId === 'game') {
                 initGame();
             }
         }
 
-        // Public Chat Logic
-        function sendPublicMessage() {
+        // Public Chat Function
+        function sendPublicMsg() {
             const input = document.getElementById('public-input');
-            if(input.value.trim() === "") return;
-            
-            const msgList = document.getElementById('public-messages');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = "message self";
-            msgDiv.innerText = input.value;
-            msgList.appendChild(msgDiv);
-            
-            input.value = "";
-            msgList.scrollTop = msgList.scrollHeight;
+            if(!input.value.trim()) return;
+
+            const box = document.getElementById('public-msgs');
+            const bubble = document.createElement('div');
+            bubble.className = 'msg-bubble self';
+            bubble.innerText = input.value;
+            box.appendChild(bubble);
+
+            input.value = '';
+            box.scrollTop = box.scrollHeight;
         }
 
-        // Private Messaging Logic
-        function sendPrivateMessage() {
+        // Private Msg Function
+        function sendPrivateMsg() {
             const recipient = document.getElementById('pm-recipient').value;
             const text = document.getElementById('pm-text').value;
+            if(!text.trim()) return;
 
-            if(text.trim() === "") return;
+            const list = document.getElementById('pm-list');
+            const card = document.createElement('div');
+            card.style.backgroundColor = 'var(--bg-primary)';
+            card.style.padding = '8px 12px';
+            card.style.borderRadius = '6px';
+            card.style.fontSize = '0.85rem';
+            card.innerHTML = `<strong style="color:var(--accent-color)">إلى ${recipient}:</strong><p style="margin-top:2px;">${text}</p>`;
 
-            const list = document.getElementById('pm-messages-list');
-            const item = document.createElement('div');
-            item.style.marginBottom = "10px";
-            item.style.padding = "8px";
-            item.style.backgroundColor = "var(--bg-primary)";
-            item.style.borderRadius = "6px";
-            item.innerHTML = `<strong style="color:var(--accent-color)">إلى ${recipient}:</strong> <p>${text}</p>`;
-
-            list.prepend(item);
-            document.getElementById('pm-text').value = "";
-            showToast("تم إرسال الرسالة الخاصة بنجاح!");
+            list.prepend(card);
+            document.getElementById('pm-text').value = '';
+            showToast('تم إرسال الرسالة الخاصة!');
         }
 
-        // Interactive Game Engine (Canvas)
+        // Game Engine (Mobile Friendly)
         let canvas, ctx;
-        let target = { x: 50, y: 50, radius: 20 };
+        let target = { x: 50, y: 50, r: 22 };
         let score = 0;
-        let gameActive = false;
+        let isPlaying = false;
 
         function initGame() {
             canvas = document.getElementById('gameCanvas');
             ctx = canvas.getContext('2d');
-            
-            canvas.onclick = function(e) {
-                if(!gameActive) return;
-                const rect = canvas.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                const clickY = e.clientY - rect.top;
 
-                const dist = Math.hypot(clickX - target.x, clickY - target.y);
-                if(dist < target.radius) {
+            // Handle touch and click identically
+            const handleTap = (e) => {
+                if(!isPlaying) return;
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
+
+                const dist = Math.hypot(x - target.x, y - target.y);
+                if(dist <= target.r) {
                     score += 10;
-                    document.getElementById('score').innerText = score;
+                    document.getElementById('score-val').innerText = score;
                     moveTarget();
                 }
             };
-            
+
+            canvas.onclick = handleTap;
+            canvas.ontouchstart = (e) => { e.preventDefault(); handleTap(e); };
             drawTarget();
         }
 
         function startGame() {
             score = 0;
-            document.getElementById('score').innerText = score;
-            gameActive = true;
+            document.getElementById('score-val').innerText = score;
+            isPlaying = true;
             moveTarget();
-            showToast("بدأت اللعبة! اضغط على الدائرة الحمراء");
+            showToast('اضغط على الدائرة الحمراء!');
         }
 
         function moveTarget() {
@@ -427,18 +467,17 @@
             if(!ctx) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.beginPath();
-            ctx.arc(target.x, target.y, target.radius, 0, Math.PI * 2);
-            ctx.fillStyle = "#ef4444";
+            ctx.arc(target.x, target.y, target.r, 0, Math.PI * 2);
+            ctx.fillStyle = '#ef4444';
             ctx.fill();
             ctx.closePath();
         }
 
-        // Notification Helper
         function showToast(msg) {
-            const toast = document.getElementById('toast-notification');
-            toast.innerText = msg;
-            toast.style.display = "block";
-            setTimeout(() => { toast.style.display = "none"; }, 3000);
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 2500);
         }
     </script>
 </body>

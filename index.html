@@ -71,8 +71,27 @@
         .msg-info { font-size: 0.72rem; color: #2dd4bf; font-weight: bold; margin-bottom: 3px; }
         .msg-time { font-size: 0.65rem; color: var(--text-muted); text-align: left; margin-top: 4px; }
         
-        .audio-wrapper { width: 100%; max-width: 200px; margin-top: 4px; }
-        .audio-wrapper audio { width: 100%; height: 32px; border-radius: 16px; background: transparent; }
+        /* تحسين وعزل مشغل الصوت لمنع الخلفيات المشوهة */
+        .audio-container {
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 20px;
+            padding: 2px 6px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            width: 100%;
+            max-width: 240px;
+            overflow: hidden;
+        }
+        .audio-container audio {
+            width: 100%;
+            height: 32px;
+            outline: none;
+            border: none;
+            background: transparent;
+        }
+
         .chat-input-bar { padding: 8px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
         .reactions-quick { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
         .react-btn { background: rgba(0,0,0,0.3); border: none; border-radius: 12px; padding: 4px 8px; font-size: 0.85rem; cursor: pointer; color: #fff; flex-shrink: 0; }
@@ -372,9 +391,10 @@
 
             let html = `<div class="msg-info">${senderName} ${isUrgent ? '🚨 (بلاغ عاجل)' : ''}</div>`;
             if(contentText) html += `<div>${contentText}</div>`;
+            
             if(audioUrl) {
                 html += `
-                <div class="audio-wrapper">
+                <div class="audio-container">
                     <audio controls controlsList="nodownload" src="${audioUrl}"></audio>
                 </div>`;
             }
@@ -472,7 +492,6 @@
             }
         }
 
-        /* إدارة المهام (القسم) */
         function addNewTask() {
             const input = document.getElementById('task-title-input');
             const title = input.value.trim();
@@ -522,7 +541,6 @@
             });
         }
 
-        /* تصدير النص */
         function exportChatText() {
             const msgs = document.querySelectorAll('.msg-bubble');
             let exportData = `--- سجل المحادثات والقرارات: ${document.getElementById('current-dept-title').innerText} ---\n\n`;

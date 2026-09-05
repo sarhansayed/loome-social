@@ -71,6 +71,7 @@
         
         .msg-bubble { background-color: var(--bg-secondary); padding: 8px 12px; border-radius: 12px; max-width: 85%; font-size: 0.88rem; align-self: flex-start; border: 1px solid var(--border-color); word-break: break-word; }
         .msg-bubble.self { align-self: flex-end; background-color: #0f4c5c; border-color: #136f63; }
+        .msg-bubble.urgent { border: 2px solid var(--danger-color); background-color: rgba(239, 68, 68, 0.15); }
         .msg-info { font-size: 0.72rem; color: #2dd4bf; font-weight: bold; margin-bottom: 3px; }
         .msg-time { font-size: 0.65rem; color: var(--text-muted); text-align: left; margin-top: 4px; }
         
@@ -97,6 +98,12 @@
         .table { width: 100%; border-collapse: collapse; min-width: 320px; }
         .table th, .table td { padding: 8px; border: 1px solid var(--border-color); text-align: right; font-size: 0.8rem; }
         .table th { background: var(--bg-card); color: #2dd4bf; }
+
+        /* تنسيقات الميزات الجديدة */
+        .task-item { display: flex; align-items: center; justify-content: space-between; background: var(--bg-primary); padding: 8px 10px; border-radius: 6px; margin-bottom: 6px; border: 1px solid var(--border-color); }
+        .task-item.done { opacity: 0.6; text-decoration: line-through; }
+        .urgent-btn { background: var(--danger-color) !important; color: white !important; font-weight: bold; }
+        .export-btn { background: var(--bg-card); color: #2dd4bf; border: 1px solid #2dd4bf; padding: 4px 8px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -129,6 +136,7 @@
                 <button class="dept-btn" onclick="switchDepartment('general', '💬 القناة العامة')">💬 القناة العامة</button>
                 
                 <div style="margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border-color);">
+                    <button class="dept-btn" style="color: #38bdf8;" onclick="showPanel('tasks-panel')">📋 قائمة مهام القسم</button>
                     <button class="dept-btn" style="color: var(--warning-color);" onclick="showPanel('team-management')">👥 إدارة أعضاء الفريق</button>
                 </div>
             </div>
@@ -137,8 +145,11 @@
         <div class="content-area">
             <div id="chat-panel" class="chat-container">
                 <div class="chat-header">
-                    <h3 id="current-dept-title" style="font-size: 0.88rem; color: #2dd4bf;">🏭 إدارة الإنتاج والتخطيط</h3>
-                    <span style="font-size:0.68rem; color:var(--text-muted);">متصل الآن</span>
+                    <div>
+                        <h3 id="current-dept-title" style="font-size: 0.88rem; color: #2dd4bf;">🏭 إدارة الإنتاج والتخطيط</h3>
+                        <span style="font-size:0.68rem; color:var(--text-muted);">متصل الآن</span>
+                    </div>
+                    <button class="export-btn" onclick="exportChatText()">📥 تصدير السجل</button>
                 </div>
 
                 <div class="messages-list" id="chat-msgs"></div>
@@ -150,6 +161,7 @@
                         <button class="react-btn" onclick="addEmoji('⚠️')">⚠️</button>
                         <button class="react-btn" onclick="addEmoji('🧪')">🧪</button>
                         <button class="react-btn" onclick="addEmoji('📦')">📦</button>
+                        <button class="react-btn urgent-btn" onclick="sendUrgentAlert()">🚨 بلاغ عاجل</button>
                     </div>
                     <form onsubmit="event.preventDefault(); sendMessage();" class="input-row">
                         <label class="file-label" title="إرفاق ملف">
@@ -160,6 +172,22 @@
                         <input type="text" id="chat-input" placeholder="اكتب ملاحظة أو أمر...">
                         <button type="submit" class="action-btn">إرسال</button>
                     </form>
+                </div>
+            </div>
+
+            <!-- لوحة مهام القسم الجديدة -->
+            <div id="tasks-panel" class="panel">
+                <div class="card">
+                    <h4 style="color:#2dd4bf; margin-bottom:10px; font-size:0.9rem;">إضافة مَهمة جديدة للقسم الحالي</h4>
+                    <div class="form-group">
+                        <input type="text" id="task-title-input" class="form-control" placeholder="عنوان المَهمة المطلوب تنفيذها...">
+                        <button class="action-btn" style="width:100%;" onclick="addNewTask()">+ إضافة المَهمة</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h4 style="color:#2dd4bf; margin-bottom:10px; font-size:0.9rem;">مهام القسم (متابعة التنفيذ)</h4>
+                    <div id="dept-tasks-list"></div>
                 </div>
             </div>
 
@@ -228,6 +256,8 @@
             { id: 3, name: 'محمود حسن', role: 'أمين المخازن', dept: 'inventory' }
         ];
 
+        let deptTasks = {}; // تخزين المهام لكل قسم
+
         function generateUUID() {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
                 var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -247,10 +277,17 @@
             myUsername = savedName;
             myUserId = savedId;
 
+            // استعادة المهام المحفوظة
+            let savedTasks = localStorage.getItem('loome_dept_tasks');
+            if(savedTasks) {
+                try { deptTasks = JSON.parse(savedTasks); } catch(e){}
+            }
+
             document.getElementById('current-user-display').innerText = myUsername;
             renderTeamTable();
             loadMessages();
             subscribeRealtime();
+            renderTasks();
         }
 
         function changeUsername() {
@@ -275,6 +312,7 @@
             
             showPanel('chat-panel');
             loadMessages();
+            renderTasks();
             if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
         }
 
@@ -282,6 +320,7 @@
             document.getElementById('chat-panel').style.display = panelId === 'chat-panel' ? 'flex' : 'none';
             document.getElementById('team-management').classList.remove('active');
             document.getElementById('video-panel').classList.remove('active');
+            document.getElementById('tasks-panel').classList.remove('active');
 
             if(panelId !== 'chat-panel') {
                 document.getElementById(panelId).classList.add('active');
@@ -289,7 +328,7 @@
         }
 
         async function loadMessages() {
-            const { data, error } = await db.from('messages')
+            const { data } = await db.from('messages')
                 .select('*')
                 .or(`room_id.eq.${currentDept},room_id.is.null`)
                 .order('created_at', { ascending: true });
@@ -325,17 +364,22 @@
             }
 
             const isSelf = msg.user_id === myUserId;
-            bubble.className = `msg-bubble ${isSelf ? 'self' : ''}`;
-
             let contentText = msg.content || '';
             let senderName = isSelf ? myUsername : 'عضو في الفريق';
+            let isUrgent = false;
 
-            // تكييف نصوص الأسماء إن وجدت
+            if(contentText.startsWith('[URGENT]:')) {
+                isUrgent = true;
+                contentText = contentText.replace('[URGENT]:', '');
+            }
+
             if(contentText.startsWith('[NAME]:')) {
                 const parts = contentText.split('::');
                 senderName = parts[0].replace('[NAME]:', '');
                 contentText = parts[1] || '';
             }
+
+            bubble.className = `msg-bubble ${isSelf ? 'self' : ''} ${isUrgent ? 'urgent' : ''}`;
 
             let audioUrl = '';
             let fileUrl = '';
@@ -348,7 +392,7 @@
                 contentText = '';
             }
 
-            let html = `<div class="msg-info">${senderName}</div>`;
+            let html = `<div class="msg-info">${senderName} ${isUrgent ? '🚨 (بلاغ عاجل)' : ''}</div>`;
             if(contentText) html += `<div>${contentText}</div>`;
 
             if(audioUrl) {
@@ -382,6 +426,13 @@
             if(messageText) {
                 input.value = '';
                 await sendPayload(messageText);
+            }
+        }
+
+        async function sendUrgentAlert() {
+            const note = prompt('أدخل تفاصيل البلاغ العاجل:');
+            if(note && note.trim()) {
+                await sendPayload(`[URGENT]: ${note.trim()}`);
             }
         }
 
@@ -447,6 +498,78 @@
                     sendPayload(`[FILE]:${reader.result}`);
                 };
             }
+        }
+
+        /* إدارة المهام (القسم) */
+        function addNewTask() {
+            const input = document.getElementById('task-title-input');
+            const title = input.value.trim();
+            if(!title) return;
+
+            if(!deptTasks[currentDept]) deptTasks[currentDept] = [];
+            deptTasks[currentDept].push({ id: Date.now(), title, done: false });
+            
+            localStorage.setItem('loome_dept_tasks', JSON.stringify(deptTasks));
+            input.value = '';
+            renderTasks();
+        }
+
+        function toggleTask(taskId) {
+            if(deptTasks[currentDept]) {
+                const task = deptTasks[currentDept].find(t => t.id === taskId);
+                if(task) task.done = !task.done;
+                localStorage.setItem('loome_dept_tasks', JSON.stringify(deptTasks));
+                renderTasks();
+            }
+        }
+
+        function deleteTask(taskId) {
+            if(deptTasks[currentDept]) {
+                deptTasks[currentDept] = deptTasks[currentDept].filter(t => t.id !== taskId);
+                localStorage.setItem('loome_dept_tasks', JSON.stringify(deptTasks));
+                renderTasks();
+            }
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('dept-tasks-list');
+            if(!list) return;
+            list.innerHTML = '';
+
+            const tasks = deptTasks[currentDept] || [];
+            if(tasks.length === 0) {
+                list.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem;">لا توجد مهام حالية لهذا القسم.</div>';
+                return;
+            }
+
+            tasks.forEach(t => {
+                const item = document.createElement('div');
+                item.className = `task-item ${t.done ? 'done' : ''}`;
+                item.innerHTML = `
+                    <span style="font-size:0.85rem;" onclick="toggleTask(${t.id})">${t.done ? '✅' : '⬛'} ${t.title}</span>
+                    <button style="background:none; border:none; color:var(--danger-color); cursor:pointer; font-size:0.75rem;" onclick="deleteTask(${t.id})">حذف</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        /* تصدير النص */
+        function exportChatText() {
+            const msgs = document.querySelectorAll('.msg-bubble');
+            let exportData = `--- سجل المحادثات والقرارات: ${document.getElementById('current-dept-title').innerText} ---\n\n`;
+            
+            msgs.forEach(m => {
+                const info = m.querySelector('.msg-info')?.innerText || '';
+                const text = m.innerText.replace(info, '').trim();
+                exportData += `[${info}] : ${text}\n`;
+            });
+
+            const blob = new Blob([exportData], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Loome_${currentDept}_Log.txt`;
+            a.click();
         }
 
         function renderTeamTable() {

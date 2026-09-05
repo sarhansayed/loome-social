@@ -95,18 +95,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const { data: posts, error } = await client.from('posts').select('*').order('created_at', { ascending: false });
 
         if (error) {
-            postsContainer.innerHTML = "حدث خطأ أثناء تحميل المنشورات.";
+            postsContainer.innerHTML = "<p style='color:red;'>حدث خطأ أثناء تحميل المنشورات: " + error.message + "</p>";
             return;
         }
 
-        if (posts.length === 0) {
+        if (!posts || posts.length === 0) {
             postsContainer.innerHTML = "<p>لا توجد منشورات بعد. كن أول من ينشر!</p>";
             return;
         }
 
         postsContainer.innerHTML = posts.map(post => `
-            <div style="border: 1px solid #ddd; padding: 12px; margin-bottom: 10px; border-radius: 6px; background-color: #f9f9f9;">
-                <p style="margin: 0 0 8px 0; font-size: 16px;">${post.content}</p>
+            <div style="border: 1px solid #ddd; padding: 12px; margin-bottom: 10px; border-radius: 6px; background-color: #ffffff; text-align: right;">
+                <p style="margin: 0 0 8px 0; font-size: 16px; color: #333;">${post.content}</p>
                 <small style="color: #777;">${new Date(post.created_at).toLocaleString('ar-EG')}</small>
             </div>
         `).join('');
@@ -118,9 +118,15 @@ document.addEventListener('DOMContentLoaded', () => {
         btnPost.addEventListener('click', async () => {
             const input = document.getElementById('post-input');
             const content = input.value.trim();
-            if (!content) return;
+            if (!content) {
+                alert("يرجى كتابة نص المنشور أولاً");
+                return;
+            }
 
-            const { error } = await client.from('posts').insert([{ content }]);
+            const { data: { user } } = await client.auth.getUser();
+            const userId = user ? user.id : null;
+
+            const { error } = await client.from('posts').insert([{ content: content, user_id: userId }]);
             if (error) {
                 alert("فشل نشر المحتوى: " + error.message);
             } else {

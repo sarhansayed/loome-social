@@ -105,6 +105,12 @@
         .urgent-btn { background: var(--danger-color) !important; color: white !important; font-weight: bold; }
         .export-btn { background: var(--bg-card); color: #2dd4bf; border: 1px solid #2dd4bf; padding: 4px 8px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; }
         .delete-btn { background: transparent; border: none; color: var(--danger-color); cursor: pointer; font-size: 0.75rem; font-weight: bold; }
+
+        /* نافذة العرض المكبر للصور */
+        .preview-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; justify-content: center; align-items: center; padding: 20px; }
+        .preview-modal.active { display: flex; }
+        .preview-modal img { max-width: 95%; max-height: 90vh; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+        .close-modal { position: absolute; top: 15px; right: 20px; color: white; font-size: 2rem; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -161,12 +167,12 @@
                         <button class="react-btn urgent-btn" onclick="sendUrgentAlert()">🚨 بلاغ عاجل</button>
                     </div>
                     <form onsubmit="event.preventDefault(); sendMessage();" class="input-row">
-                        <label class="file-label" title="إرفاق صورة أو فيديو أو ملف">
+                        <label class="file-label" title="إرفاق صورة أو فيديو">
                             📎
                             <input type="file" id="chat-file" accept="image/*,video/*,application/pdf" style="display:none;" onchange="handleFileUpload(this)">
                         </label>
                         <button type="button" id="record-btn" class="mic-btn" onclick="toggleRecording()" title="تسجيل صوت">🎙️</button>
-                        <input type="text" id="chat-input" placeholder="اكتب ملاحظة أو شارك فيديو...">
+                        <input type="text" id="chat-input" placeholder="اكتب ملاحظة أو أرفق صورة...">
                         <button type="submit" class="action-btn">إرسال</button>
                     </form>
                 </div>
@@ -220,14 +226,11 @@
                 </div>
             </div>
 
-            <!-- غرفة التحدث المباشر والاجتماع (بدون حفظ فيديو لتسريع الأداء) -->
             <div id="video-panel" class="panel">
                 <div class="card" style="text-align:center;">
                     <h4 style="color:#2dd4bf; margin-bottom:8px;">🎙️ غرفة التحدث والاجتماع المباشر</h4>
                     <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px;">تحدث مباشرة وبدون أي تأخير مع أعضاء الفريق</p>
-
                     <video id="groupVideoPlayer" autoplay playsinline muted style="width:100%; max-height:240px; background:#000; border-radius:8px; object-fit:cover; margin-bottom:12px; border:1px solid var(--accent-color);"></video>
-
                     <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px;">
                         <button class="action-btn" id="toggle-mic-btn" style="background:var(--success-color);" onclick="startLiveAudioCall()">🔊 فتح المايك والتحدث المباشر</button>
                         <button class="action-btn" style="background:var(--danger-color);" onclick="stopCamera()">مغادرة الغرفة</button>
@@ -235,6 +238,12 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- نافذة تكبير الصور عند الضغط عليها -->
+    <div class="preview-modal" id="imageModal" onclick="closeImageModal()">
+        <span class="close-modal">&times;</span>
+        <img id="modalImg" src="" alt="صورة مكبرة">
     </div>
 
     <script>
@@ -373,9 +382,7 @@
             }
 
             bubble.className = `msg-bubble ${isSelf ? 'self' : ''} ${isUrgent ? 'urgent' : ''}`;
-            let audioUrl = '';
-            let videoUrl = '';
-            let fileUrl = '';
+            let audioUrl = '', videoUrl = '', fileUrl = '';
 
             if(contentText.startsWith('[AUDIO]:')) {
                 audioUrl = contentText.replace('[AUDIO]:', '').trim();
@@ -405,7 +412,6 @@
                 </div>`;
             }
 
-            /* تشغيل مقاطع الفيديو المرفوعة مباشرة في الشات */
             if(videoUrl) {
                 html += `
                 <div style="margin-top:6px;">
@@ -413,9 +419,13 @@
                 </div>`;
             }
 
+            /* إظهار الصورة مضغوطة بشكل ممتازة وقابلة للتكبير بنقرة واحدة */
             if(fileUrl) {
                 if(fileUrl.startsWith('data:image/')) {
-                    html += `<div style="margin-top:6px;"><img src="${fileUrl}" style="max-width:100%; max-height:200px; border-radius:8px;"></div>`;
+                    html += `
+                    <div style="margin-top:6px;">
+                        <img src="${fileUrl}" onclick="openImageModal('${fileUrl}')" style="max-width:100%; max-height:220px; border-radius:8px; cursor:pointer; border:1px solid var(--accent-color);" title="انقر لتكبير الصورة">
+                    </div>`;
                 } else {
                     html += `<a href="${fileUrl}" target="_blank" style="color:#60a5fa; margin-top:6px; display:inline-block; font-size:0.8rem; font-weight:bold;">📄 فتح الملف المرفق</a>`;
                 }
@@ -499,20 +509,67 @@
             }
         }
 
-        /* رفع وحفظ مقاطع الفيديو والملفات وعرضها بالشات */
+        /* معالجة وضغط الصور تلقائياً قبل الرفع لتفادي أي أخطاء أو بطء */
         async function handleFileUpload(input) {
             if(input.files && input.files[0]) {
                 const file = input.files[0];
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onloadend = () => {
-                    if(file.type.startsWith('video/')) {
-                        sendPayload(`[VIDEO]:${reader.result}`);
-                    } else {
-                        sendPayload(`[FILE]:${reader.result}`);
-                    }
-                };
+                
+                if(file.type.startsWith('image/')) {
+                    compressAndSendImage(file);
+                } else if(file.type.startsWith('video/')) {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onloadend = () => sendPayload(`[VIDEO]:${reader.result}`);
+                } else {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onloadend = () => sendPayload(`[FILE]:${reader.result}`);
+                }
+                input.value = '';
             }
+        }
+
+        /* دوال ضغط الصور الخفيفة داخل المتصفح مباشرة */
+        function compressAndSendImage(file) {
+            const img = new Image();
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = e => {
+                img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const max_size = 1000; // أقصى أبعاد مسموحة بالحجم المالي الخفيف
+
+                    if (width > height) {
+                        if (width > max_size) {
+                            height *= max_size / width;
+                            width = max_size;
+                        }
+                    } else {
+                        if (height > max_size) {
+                            width *= max_size / height;
+                            height = max_size;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7); // ضغط بجودة ممتازة وسلسة
+                    sendPayload(`[FILE]:${compressedBase64}`);
+                };
+            };
+        }
+
+        function openImageModal(src) {
+            document.getElementById('modalImg').src = src;
+            document.getElementById('imageModal').classList.add('active');
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').classList.remove('active');
         }
 
         function exportChatText() {
@@ -615,7 +672,6 @@
 
         function openVideoCall() { showPanel('video-panel'); }
 
-        /* التحدث المباشر بالصوت والكاميرا دون حفظ التسجيل لتخفيف الحجم */
         async function startLiveAudioCall() {
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });

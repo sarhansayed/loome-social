@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>تطبيق التواصل المتكامل</title>
+    <title>Loome Social</title>
     <style>
         :root {
             --bg-primary: #0f172a;
@@ -12,6 +12,7 @@
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --border-color: #334155;
+            --danger-color: #ef4444;
             --success-color: #10b981;
         }
 
@@ -19,7 +20,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -33,7 +34,6 @@
             overflow: hidden;
         }
 
-        /* Top Header */
         header {
             height: 56px;
             background-color: var(--bg-secondary);
@@ -51,21 +51,6 @@
             color: var(--accent-color);
         }
 
-        .quick-call-btn {
-            background-color: var(--success-color);
-            color: #fff;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        /* Main Content View Container */
         .main-content {
             flex: 1;
             position: relative;
@@ -88,7 +73,6 @@
             flex-direction: column;
         }
 
-        /* Bottom Navigation Bar for Mobile */
         .bottom-nav {
             height: 60px;
             background-color: var(--bg-secondary);
@@ -110,45 +94,43 @@
             font-size: 0.75rem;
             gap: 3px;
             cursor: pointer;
-            width: 25%;
-            padding: 6px 0;
+            width: 20%;
         }
 
-        .nav-btn .icon {
-            font-size: 1.2rem;
-        }
+        .nav-btn .icon { font-size: 1.2rem; }
+        .nav-btn.active { color: var(--accent-color); font-weight: bold; }
 
-        .nav-btn.active {
-            color: var(--accent-color);
-            font-weight: bold;
-        }
-
-        /* Form Inputs & Controls */
         input[type="text"], select, textarea {
             width: 100%;
             background-color: var(--bg-primary);
             border: 1px solid var(--border-color);
             color: var(--text-main);
-            padding: 12px;
+            padding: 10px;
             border-radius: 8px;
             outline: none;
-            font-size: 0.95rem;
-            margin-top: 4px;
+            font-size: 0.9rem;
         }
 
         .btn-primary {
             background-color: var(--accent-color);
             color: white;
             border: none;
-            padding: 12px;
+            padding: 10px 14px;
             border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
-            width: 100%;
-            font-size: 0.95rem;
         }
 
-        /* Public Chat Layout */
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
         .chat-box {
             display: flex;
             flex-direction: column;
@@ -164,195 +146,211 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
             border: 1px solid var(--border-color);
         }
 
         .msg-bubble {
             background-color: var(--border-color);
-            padding: 8px 12px;
-            border-radius: 12px;
+            padding: 10px;
+            border-radius: 10px;
             max-width: 85%;
             font-size: 0.9rem;
             align-self: flex-start;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
         .msg-bubble.self {
             align-self: flex-end;
-            background-color: var(--accent-color);
+            background-color: #1e3a8a;
         }
 
-        .chat-input-row {
+        .msg-header {
             display: flex;
+            justify-content: space-between;
+            align-items: center;
             gap: 8px;
         }
 
-        .chat-input-row input {
-            margin-top: 0;
+        .file-attach-btn {
+            background: #334155;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            font-size: 1.1rem;
         }
 
-        .chat-input-row button {
-            width: auto;
-            padding: 0 18px;
-        }
-
-        /* Private Chat Mobile Layout */
-        .pm-card {
-            background-color: var(--bg-secondary);
-            padding: 14px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
+        .file-badge {
+            background: rgba(255,255,255,0.1);
+            padding: 6px;
+            border-radius: 6px;
             display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 12px;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            color: #60a5fa;
+            font-size: 0.85rem;
+            margin-top: 4px;
         }
 
-        /* Video Call Mobile Layout */
-        .video-wrapper {
-            width: 100%;
-            height: 100%;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #000;
-        }
-
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        /* Responsive Canvas Game */
-        .game-box {
+        /* Native Video Styling */
+        .video-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            gap: 10px;
             height: 100%;
-            gap: 12px;
         }
 
-        #gameCanvas {
-            background-color: var(--bg-secondary);
-            border: 2px solid var(--accent-color);
+        #localVideo {
+            width: 100%;
+            max-height: 70%;
+            background: #000;
             border-radius: 10px;
-            max-width: 100%;
-            touch-action: none;
+            object-fit: cover;
         }
 
-        /* Toast Notifications */
-        .toast {
-            position: fixed;
-            top: 65px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: var(--accent-color);
-            color: #fff;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            display: none;
-            z-index: 200;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        /* Room Management Card */
+        .card {
+            background-color: var(--bg-secondary);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 10px;
+        }
+
+        .room-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
         }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
     <header>
         <div class="header-title" id="page-title">الدردشة العامة</div>
-        <button class="quick-call-btn" onclick="switchView('video-call')">
-            <span>📹</span> فيديو مباشر
-        </button>
+        <button class="btn-primary" style="padding: 4px 10px; font-size: 0.8rem;" onclick="switchView('video-call')">📹 فيديو</button>
     </header>
 
-    <!-- Main Screens Area -->
     <div class="main-content">
 
-        <!-- 1. Public Chat Panel -->
+        <!-- 1. Public Chat -->
         <div id="public-chat" class="view-panel active">
             <div class="chat-box">
                 <div class="messages-list" id="public-msgs">
-                    <div class="msg-bubble">مرحباً بك في الغرفة العامة!</div>
+                    <div class="msg-bubble">مرحباً بك في Loome Social!</div>
                 </div>
-                <div class="chat-input-row">
+                
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <label class="file-attach-btn" title="إرفاق ملف (PDF, Word, Excel)">
+                        📎
+                        <input type="file" id="public-file" accept=".pdf,.doc,.docx,.xls,.xlsx" style="display:none;" onchange="handleFileUpload(this, 'public')">
+                    </label>
                     <input type="text" id="public-input" placeholder="اكتب رسالتك...">
                     <button class="btn-primary" onclick="sendPublicMsg()">إرسال</button>
                 </div>
             </div>
         </div>
 
-        <!-- 2. Private Chat Panel -->
+        <!-- 2. Private Chat -->
         <div id="private-chat" class="view-panel">
-            <div class="pm-card">
-                <h3>إرسال رسالة خاصة</h3>
-                <div>
-                    <label style="font-size: 0.85rem; color: var(--text-muted);">المستلم:</label>
-                    <select id="pm-recipient">
-                        <option value="أحمد (مدير)">أحمد (مدير)</option>
-                        <option value="سارة (دعم)">سارة (دعم)</option>
-                        <option value="علي (مطور)">علي (مطور)</option>
-                    </select>
+            <div class="card">
+                <h4 style="margin-bottom:8px;">إرسال رسالة خاصة</h4>
+                <select id="pm-recipient" style="margin-bottom:8px;">
+                    <option value="أحمد (المدير)">أحمد (المدير)</option>
+                    <option value="سارة (دعم)">سارة (دعم)</option>
+                </select>
+                <textarea id="pm-text" rows="2" placeholder="اكتب الرسالة..." style="margin-bottom:8px;"></textarea>
+                
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <label class="file-attach-btn">
+                        📎 ملف
+                        <input type="file" id="pm-file" accept=".pdf,.doc,.docx,.xls,.xlsx" style="display:none;" onchange="handleFileUpload(this, 'private')">
+                    </label>
+                    <button class="btn-primary" onclick="sendPrivateMsg()">إرسال خاص</button>
                 </div>
-                <div>
-                    <label style="font-size: 0.85rem; color: var(--text-muted);">الرسالة:</label>
-                    <textarea id="pm-text" rows="3" placeholder="اكتب رسالتك هنا..."></textarea>
-                </div>
-                <button class="btn-primary" onclick="sendPrivateMsg()">إرسال الآن</button>
             </div>
 
-            <div class="pm-card" style="flex:1; overflow-y:auto;">
-                <h3>سجل الرسائل الخاصة</h3>
-                <div id="pm-list" style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;"></div>
+            <div class="card" style="flex:1; overflow-y:auto;">
+                <h4 style="margin-bottom:8px;">السجل الخاص</h4>
+                <div id="pm-list" style="display:flex; flex-direction:column; gap:8px;"></div>
             </div>
         </div>
 
-        <!-- 3. Video Call Panel -->
-        <div id="video-call" class="view-panel" style="padding: 0;">
-            <div class="video-wrapper">
-                <iframe src="https://meet.jit.si/ProAppIntegratedRoomRoom2026#config.prejoinPageEnabled=false" allow="camera; microphone; fullscreen; display-capture"></iframe>
+        <!-- 3. Rooms Management -->
+        <div id="rooms" class="view-panel">
+            <div class="card">
+                <h4 style="margin-bottom:8px;">إنشاء غرفة جديدة</h4>
+                <div style="display:flex; gap:6px;">
+                    <input type="text" id="new-room-name" placeholder="اسم الغرفة...">
+                    <button class="btn-primary" onclick="createRoom()">إنشاء</button>
+                </div>
+            </div>
+
+            <div class="card" style="flex:1;">
+                <h4 style="margin-bottom:8px;">الغرف المتاحة</h4>
+                <div id="rooms-list">
+                    <div class="room-item" id="room-1">
+                        <span>غرفة المناقشة العامة</span>
+                        <button class="btn-danger" onclick="deleteRoom('room-1')">حذف</button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- 4. Game Panel -->
+        <!-- 4. Native Video Call (WebRTC) -->
+        <div id="video-call" class="view-panel">
+            <div class="video-container">
+                <video id="localVideo" autoplay playsinline muted></video>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-primary" style="background:#10b981;" onclick="startNativeVideo()">بدء الكاميرا المباشرة</button>
+                    <button class="btn-danger" onclick="stopNativeVideo()">إيقاف</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Game Panel -->
         <div id="game" class="view-panel">
-            <div class="game-box">
-                <div style="display: flex; justify-content: space-between; width: 100%; max-width: 320px; align-items: center;">
-                    <span style="font-weight: bold;">النقاط: <span id="score-val" style="color:var(--accent-color)">0</span></span>
-                    <button class="btn-primary" style="width: auto; padding: 6px 14px;" onclick="startGame()">بدء اللعبة</button>
-                </div>
-                <canvas id="gameCanvas" width="320" height="360"></canvas>
+            <div style="text-align:center; padding-top:20px;">
+                <h3>استراحة الألعاب</h3>
+                <p style="color:var(--text-muted); margin:10px 0;">اضغط لبدء اللعبة التفاعلية</p>
+                <button class="btn-primary" onclick="alert('اللعبة جاهزة للبدء!')">تشغيل اللعبة</button>
             </div>
         </div>
 
     </div>
 
-    <!-- Bottom Navigation Bar -->
+    <!-- Bottom Navigation -->
     <div class="bottom-nav">
         <button class="nav-btn active" id="btn-public" onclick="switchView('public-chat')">
-            <span class="icon">💬</span>
-            <span>العامة</span>
+            <span class="icon">💬</span><span>العامة</span>
         </button>
         <button class="nav-btn" id="btn-private" onclick="switchView('private-chat')">
-            <span class="icon">🔒</span>
-            <span>خاص</span>
+            <span class="icon">🔒</span><span>خاص</span>
+        </button>
+        <button class="nav-btn" id="btn-rooms" onclick="switchView('rooms')">
+            <span class="icon">🚪</span><span>الغرف</span>
         </button>
         <button class="nav-btn" id="btn-video" onclick="switchView('video-call')">
-            <span class="icon">📹</span>
-            <span>فيديو</span>
+            <span class="icon">📹</span><span>فيديو</span>
         </button>
         <button class="nav-btn" id="btn-game" onclick="switchView('game')">
-            <span class="icon">🎮</span>
-            <span>الاستراحة</span>
+            <span class="icon">🎮</span><span>الألعاب</span>
         </button>
     </div>
 
-    <div class="toast" id="toast">تنبيه</div>
-
     <script>
-        // Tab Switcher Logic
+        let selectedFile = { public: null, private: null };
+
         function switchView(viewId) {
             document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
@@ -362,7 +360,8 @@
             const titleMap = {
                 'public-chat': 'الدردشة العامة',
                 'private-chat': 'الرسائل الخاصة',
-                'video-call': 'اجتماع الفيديو المباشر',
+                'rooms': 'إدارة الغرف',
+                'video-call': 'الفيديو المباشر',
                 'game': 'مركز الألعاب'
             };
             document.getElementById('page-title').innerText = titleMap[viewId];
@@ -370,114 +369,125 @@
             const navMap = {
                 'public-chat': 'btn-public',
                 'private-chat': 'btn-private',
+                'rooms': 'btn-rooms',
                 'video-call': 'btn-video',
                 'game': 'btn-game'
             };
-            if(navMap[viewId]) {
-                document.getElementById(navMap[viewId]).classList.add('active');
-            }
+            if(navMap[viewId]) document.getElementById(navMap[viewId]).classList.add('active');
+        }
 
-            if(viewId === 'game') {
-                initGame();
+        // File Attachment Handler
+        function handleFileUpload(input, type) {
+            if(input.files && input.files[0]) {
+                selectedFile[type] = input.files[0];
+                alert('تم إرفاق الملف: ' + input.files[0].name);
             }
         }
 
-        // Public Chat Function
+        // Send Public Message
         function sendPublicMsg() {
             const input = document.getElementById('public-input');
-            if(!input.value.trim()) return;
+            const file = selectedFile.public;
+            if(!input.value.trim() && !file) return;
 
+            const msgId = 'msg-' + Date.now();
             const box = document.getElementById('public-msgs');
             const bubble = document.createElement('div');
             bubble.className = 'msg-bubble self';
-            bubble.innerText = input.value;
+            bubble.id = msgId;
+
+            let content = `<div class="msg-header"><span>أنت</span> <button class="btn-danger" onclick="deleteMessage('${msgId}')">🗑️</button></div>`;
+            if(input.value.trim()) content += `<div>${input.value}</div>`;
+            if(file) {
+                const fileUrl = URL.createObjectURL(file);
+                content += `<a class="file-badge" href="${fileUrl}" download="${file.name}">📄 ${file.name} (تحميل)</a>`;
+            }
+
+            bubble.innerHTML = content;
             box.appendChild(bubble);
 
             input.value = '';
+            selectedFile.public = null;
+            document.getElementById('public-file').value = '';
             box.scrollTop = box.scrollHeight;
         }
 
-        // Private Msg Function
+        // Send Private Message
         function sendPrivateMsg() {
             const recipient = document.getElementById('pm-recipient').value;
             const text = document.getElementById('pm-text').value;
-            if(!text.trim()) return;
+            const file = selectedFile.private;
+            if(!text.trim() && !file) return;
 
+            const msgId = 'msg-' + Date.now();
             const list = document.getElementById('pm-list');
             const card = document.createElement('div');
-            card.style.backgroundColor = 'var(--bg-primary)';
-            card.style.padding = '8px 12px';
-            card.style.borderRadius = '6px';
-            card.style.fontSize = '0.85rem';
-            card.innerHTML = `<strong style="color:var(--accent-color)">إلى ${recipient}:</strong><p style="margin-top:2px;">${text}</p>`;
+            card.className = 'msg-bubble self';
+            card.style.width = '100%';
+            card.id = msgId;
 
+            let content = `<div class="msg-header"><span>إلى ${recipient}</span> <button class="btn-danger" onclick="deleteMessage('${msgId}')">🗑️</button></div>`;
+            if(text.trim()) content += `<div>${text}</div>`;
+            if(file) {
+                const fileUrl = URL.createObjectURL(file);
+                content += `<a class="file-badge" href="${fileUrl}" download="${file.name}">📄 ${file.name} (تحميل)</a>`;
+            }
+
+            card.innerHTML = content;
             list.prepend(card);
+
             document.getElementById('pm-text').value = '';
-            showToast('تم إرسال الرسالة الخاصة!');
+            selectedFile.private = null;
+            document.getElementById('pm-file').value = '';
         }
 
-        // Game Engine (Mobile Friendly)
-        let canvas, ctx;
-        let target = { x: 50, y: 50, r: 22 };
-        let score = 0;
-        let isPlaying = false;
-
-        function initGame() {
-            canvas = document.getElementById('gameCanvas');
-            ctx = canvas.getContext('2d');
-
-            // Handle touch and click identically
-            const handleTap = (e) => {
-                if(!isPlaying) return;
-                const rect = canvas.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-                const x = clientX - rect.left;
-                const y = clientY - rect.top;
-
-                const dist = Math.hypot(x - target.x, y - target.y);
-                if(dist <= target.r) {
-                    score += 10;
-                    document.getElementById('score-val').innerText = score;
-                    moveTarget();
-                }
-            };
-
-            canvas.onclick = handleTap;
-            canvas.ontouchstart = (e) => { e.preventDefault(); handleTap(e); };
-            drawTarget();
+        // Delete Message Feature
+        function deleteMessage(id) {
+            const msgEl = document.getElementById(id);
+            if(msgEl && confirm('هل تريد حذف هذه الرسالة؟')) {
+                msgEl.remove();
+            }
         }
 
-        function startGame() {
-            score = 0;
-            document.getElementById('score-val').innerText = score;
-            isPlaying = true;
-            moveTarget();
-            showToast('اضغط على الدائرة الحمراء!');
+        // Rooms Management Features
+        function createRoom() {
+            const input = document.getElementById('new-room-name');
+            if(!input.value.trim()) return;
+
+            const roomId = 'room-' + Date.now();
+            const list = document.getElementById('rooms-list');
+            const item = document.createElement('div');
+            item.className = 'room-item';
+            item.id = roomId;
+            item.innerHTML = `<span>${input.value}</span> <button class="btn-danger" onclick="deleteRoom('${roomId}')">حذف</button>`;
+
+            list.appendChild(item);
+            input.value = '';
         }
 
-        function moveTarget() {
-            target.x = Math.random() * (canvas.width - 60) + 30;
-            target.y = Math.random() * (canvas.height - 60) + 30;
-            drawTarget();
+        function deleteRoom(id) {
+            const roomEl = document.getElementById(id);
+            if(roomEl && confirm('هل أنت تأكد من حذف هذه الغرفة؟')) {
+                roomEl.remove();
+            }
         }
 
-        function drawTarget() {
-            if(!ctx) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.beginPath();
-            ctx.arc(target.x, target.y, target.r, 0, Math.PI * 2);
-            ctx.fillStyle = '#ef4444';
-            ctx.fill();
-            ctx.closePath();
+        // WebRTC Native Video Call Logic
+        let localStream = null;
+        async function startNativeVideo() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('localVideo').srcObject = localStream;
+            } catch (err) {
+                alert('تعذر الوصول للكاميرا: ' + err.message);
+            }
         }
 
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 2500);
+        function stopNativeVideo() {
+            if(localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                document.getElementById('localVideo').srcObject = null;
+            }
         }
     </script>
 </body>

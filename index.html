@@ -218,6 +218,7 @@
 
         let currentDept = 'production';
         let myUsername = 'المدير العام';
+        let myUserId = '';
         let mediaRecorder = null, audioChunks = [];
         let localStream = null;
 
@@ -227,13 +228,25 @@
             { id: 3, name: 'محمود حسن', role: 'أمين المخازن', dept: 'inventory' }
         ];
 
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
         function initApp() {
-            let saved = localStorage.getItem('loome_factory_user');
-            if(!saved) {
-                saved = 'مستخدم_' + Math.floor(100 + Math.random() * 900);
-                localStorage.setItem('loome_factory_user', saved);
+            let savedName = localStorage.getItem('loome_factory_username') || 'المدير العام';
+            let savedId = localStorage.getItem('loome_factory_uuid');
+            
+            if(!savedId) {
+                savedId = generateUUID();
+                localStorage.setItem('loome_factory_uuid', savedId);
             }
-            myUsername = saved;
+
+            myUsername = savedName;
+            myUserId = savedId;
+
             document.getElementById('current-user-display').innerText = myUsername;
             renderTeamTable();
             loadMessages();
@@ -244,7 +257,7 @@
             let name = prompt('أدخل اسمك في النظام:', myUsername);
             if(name && name.trim()) {
                 myUsername = name.trim();
-                localStorage.setItem('loome_factory_user', myUsername);
+                localStorage.setItem('loome_factory_username', myUsername);
                 document.getElementById('current-user-display').innerText = myUsername;
             }
         }
@@ -276,7 +289,7 @@
         }
 
         async function loadMessages() {
-            const { data } = await db.from('messages')
+            const { data, error } = await db.from('messages')
                 .select('*')
                 .or(`room_id.eq.${currentDept},room_id.is.null`)
                 .order('created_at', { ascending: true });
@@ -311,12 +324,19 @@
                 list.appendChild(bubble);
             }
 
-            // استخدام user_id لمعالجة خلل قاعدة البيانات
-            const sender = msg.user_id || msg.username || 'عضو';
-            const isSelf = sender === myUsername;
+            const isSelf = msg.user_id === myUserId;
             bubble.className = `msg-bubble ${isSelf ? 'self' : ''}`;
 
             let contentText = msg.content || '';
+            let senderName = isSelf ? myUsername : 'عضو في الفريق';
+
+            // تكييف نصوص الأسماء إن وجدت
+            if(contentText.startsWith('[NAME]:')) {
+                const parts = contentText.split('::');
+                senderName = parts[0].replace('[NAME]:', '');
+                contentText = parts[1] || '';
+            }
+
             let audioUrl = '';
             let fileUrl = '';
 
@@ -328,7 +348,7 @@
                 contentText = '';
             }
 
-            let html = `<div class="msg-info">${sender}</div>`;
+            let html = `<div class="msg-info">${senderName}</div>`;
             if(contentText) html += `<div>${contentText}</div>`;
 
             if(audioUrl) {
@@ -366,10 +386,10 @@
         }
 
         async function sendPayload(content) {
-            // إرسال البيانات باستخدام العمود المتوافق مع الجدول (user_id)
+            const fullContent = `[NAME]:${myUsername}::${content}`;
             const { error } = await db.from('messages').insert([{ 
-                user_id: myUsername, 
-                content: content, 
+                user_id: myUserId, 
+                content: fullContent, 
                 room_id: currentDept 
             }]);
             if(error) alert('خطأ في الإرسال: ' + error.message);

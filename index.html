@@ -3,192 +3,304 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Loome Social Fast</title>
+    <title>Loome Factory Suite - نظام تواصل مصنع مستحضرات التجميل</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-primary: #0f172a;
             --bg-secondary: #1e293b;
-            --accent-color: #3b82f6;
+            --bg-card: #334155;
+            --accent-color: #0d9488; /* Teal / Factory Professional */
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --border-color: #334155;
+            --border-color: #475569;
             --danger-color: #ef4444;
             --success-color: #10b981;
+            --warning-color: #f59e0b;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-primary); color: var(--text-main); display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
         
-        header { height: 56px; background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0; }
-        .header-title { font-size: 0.95rem; font-weight: bold; color: var(--accent-color); }
-        .user-tag { font-size: 0.75rem; color: var(--text-muted); background: var(--bg-primary); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color); }
+        /* Header */
+        header { height: 60px; background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0; }
+        .factory-title { font-size: 1.05rem; font-weight: bold; color: #2dd4bf; display: flex; align-items: center; gap: 6px; }
+        .user-badge { font-size: 0.75rem; color: #5eead4; background: rgba(13, 148, 136, 0.2); padding: 4px 10px; border-radius: 20px; border: 1px solid var(--accent-color); }
         
-        .main-content { flex: 1; position: relative; overflow: hidden; }
-        .view-panel { display: none; width: 100%; height: 100%; padding: 12px; overflow-y: auto; position: absolute; top: 0; left: 0; }
-        .view-panel.active { display: flex; flex-direction: column; }
+        /* Layout */
+        .main-container { flex: 1; display: flex; overflow: hidden; position: relative; }
         
-        .bottom-nav { height: 60px; background-color: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center; flex-shrink: 0; z-index: 100; }
-        .nav-btn { background: transparent; border: none; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; gap: 3px; cursor: pointer; width: 25%; }
-        .nav-btn.active { color: var(--accent-color); font-weight: bold; }
+        /* Sidebar Navigation for Departments */
+        .sidebar { width: 260px; background-color: var(--bg-secondary); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; flex-shrink: 0; }
+        .dept-header { padding: 12px; font-weight: bold; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); text-transform: uppercase; }
+        .dept-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+        .dept-btn { background: transparent; border: none; color: var(--text-main); padding: 10px 12px; border-radius: 8px; text-align: right; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 0.88rem; transition: background 0.2s; }
+        .dept-btn:hover, .dept-btn.active { background-color: var(--bg-card); color: #2dd4bf; font-weight: bold; }
+        .dept-icon { margin-left: 8px; font-size: 1.1rem; }
+
+        /* Main Workspace */
+        .content-area { flex: 1; display: flex; flex-direction: column; position: relative; background: #0b1329; }
         
-        input[type="text"] { width: 100%; background-color: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px; border-radius: 8px; outline: none; font-size: 0.9rem; }
-        .btn-primary { background-color: var(--accent-color); color: white; border: none; padding: 10px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-danger { background-color: var(--danger-color); color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; }
-        .btn-audio { background-color: #8b5cf6; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 1rem; cursor: pointer; }
+        /* Chat View */
+        .chat-container { display: flex; flex-direction: column; height: 100%; }
+        .chat-header { padding: 10px 16px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .messages-list { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
         
-        .chat-box { display: flex; flex-direction: column; height: 100%; gap: 10px; }
-        .messages-list { flex: 1; background-color: var(--bg-secondary); border-radius: 10px; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--border-color); }
+        /* Bubbles */
+        .msg-bubble { background-color: var(--bg-secondary); padding: 10px 14px; border-radius: 12px; max-width: 75%; font-size: 0.9rem; align-self: flex-start; display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--border-color); position: relative; }
+        .msg-bubble.self { align-self: flex-end; background-color: #0f4c5c; border-color: #136f63; }
+        .msg-info { font-size: 0.75rem; color: #2dd4bf; font-weight: bold; display: flex; justify-content: space-between; gap: 10px; margin-bottom: 2px; }
+        .msg-time { font-size: 0.65rem; color: var(--text-muted); align-self: flex-end; margin-top: 4px; }
         
-        .msg-bubble { background-color: var(--border-color); padding: 10px; border-radius: 10px; max-width: 85%; font-size: 0.9rem; align-self: flex-start; display: flex; flex-direction: column; gap: 4px; word-break: break-word; }
-        .msg-bubble.self { align-self: flex-end; background-color: #1e3a8a; }
-        .msg-time { font-size: 0.65rem; color: #cbd5e1; align-self: flex-end; margin-top: 2px; }
-        
-        .file-attach-btn { background: #334155; color: #fff; padding: 8px 12px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; font-size: 1.1rem; }
-        #groupVideoPlayer { width: 100%; max-height: 60%; background: #000; border-radius: 10px; object-fit: cover; }
-        .card { background-color: var(--bg-secondary); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 10px; }
-        .room-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 8px; }
+        /* Actions & Reactions */
+        .msg-actions { display: flex; gap: 10px; font-size: 0.75rem; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px; }
+        .action-link { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.75rem; }
+        .action-link:hover { color: #fff; }
+        .reactions-bar { display: flex; gap: 4px; margin-top: 4px; }
+        .react-btn { background: rgba(0,0,0,0.3); border: none; border-radius: 12px; padding: 2px 6px; font-size: 0.75rem; cursor: pointer; color: #fff; }
+
+        /* Form Inputs */
+        .chat-input-bar { padding: 12px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 8px; }
+        .input-row { display: flex; gap: 8px; align-items: center; }
+        input[type="text"] { flex: 1; background-color: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 14px; border-radius: 8px; outline: none; font-size: 0.9rem; }
+        .btn { background-color: var(--accent-color); color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+        .btn-danger { background-color: var(--danger-color); }
+        .btn-audio { background-color: #6366f1; }
+        .file-label { background: var(--bg-card); color: #fff; padding: 10px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border-color); }
+
+        /* Panels for Team Admin & Video */
+        .panel { display: none; padding: 20px; overflow-y: auto; height: 100%; }
+        .panel.active { display: block; }
+        .card { background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 16px; border-radius: 10px; margin-bottom: 16px; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .table th, .table td { padding: 10px; border: 1px solid var(--border-color); text-align: right; font-size: 0.85rem; }
+        .table th { background: var(--bg-card); color: #2dd4bf; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; height: 100%; position: absolute; z-index: 50; transform: translateX(100%); transition: transform 0.3s; }
+            .sidebar.open { transform: translateX(0); }
+            .msg-bubble { max-width: 90%; }
+        }
     </style>
 </head>
 <body>
 
+    <!-- Header -->
     <header>
-        <div>
-            <div class="header-title" id="page-title">الدردشة العامة</div>
-            <div class="user-tag" id="my-username-display">...</div>
+        <div class="factory-title">
+            <button class="btn" style="padding:4px 8px; background:transparent;" onclick="toggleSidebar()">☰</button>
+            🏢 Loome Cosmetics Factory
         </div>
-        <button class="btn-primary" style="padding: 6px 12px; font-size: 0.8rem; background: var(--success-color);" onclick="startContextVideo()">📹 فيديو جماعي</button>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span class="user-badge" id="current-user-display">مستثمر / مدير المصنع</span>
+            <button class="btn" style="background:#0284c7; padding:6px 12px; font-size:0.8rem;" onclick="openVideoCall()">📹 اجتماع Zoom</button>
+        </div>
     </header>
 
-    <div class="main-content">
-        <div id="chat-view" class="view-panel active">
-            <div class="chat-box">
-                <div class="messages-list" id="chat-msgs"></div>
-                <form onsubmit="event.preventDefault(); sendMessage();" style="display: flex; gap: 6px; align-items: center;">
-                    <label class="file-attach-btn" title="إرفاق ملف">
-                        📎
-                        <input type="file" id="chat-file" style="display:none;" onchange="handleFileUpload(this)">
-                    </label>
-                    <button type="button" id="record-btn" class="btn-audio" onclick="toggleRecording()" title="تسجيل صوت">🎙️</button>
-                    <input type="text" id="chat-input" placeholder="اكتب رسالتك...">
-                    <button type="submit" class="btn-primary">إرسال</button>
-                </form>
-            </div>
-        </div>
-
-        <div id="private-contacts" class="view-panel">
-            <div class="card">
-                <h4 style="margin-bottom:8px;">محادثة خاصة جديدة</h4>
-                <input type="text" id="pm-user-id" placeholder="اسم المستلم..." style="margin-bottom:8px;">
-                <button class="btn-primary" onclick="openPrivateChat()">فتح المحادثة الخاصة</button>
-            </div>
-        </div>
-
-        <div id="rooms" class="view-panel">
-            <div class="card">
-                <h4 style="margin-bottom:8px;">إنشاء غرفة منفصلة</h4>
-                <div style="display:flex; gap:6px;">
-                    <input type="text" id="new-room-name" placeholder="اسم الغرفة...">
-                    <button class="btn-primary" onclick="createRoom()">إنشاء</button>
+    <div class="main-container">
+        
+        <!-- Sidebar Navigation (إدارات المصنع) -->
+        <div class="sidebar" id="sidebar">
+            <div class="dept-header">إدارات المصنع والأقسام</div>
+            <div class="dept-list">
+                <button class="dept-btn active" onclick="switchDepartment('production', '🏭 إدارة الإنتاج والتخطيط')">
+                    <span><span class="dept-icon">🏭</span> الإنتاج والتخطيط</span>
+                </button>
+                <button class="dept-btn" onclick="switchDepartment('qc_qa', '🧪 الجودة والمعامل (QC/QA)')">
+                    <span><span class="dept-icon">🧪</span> الجودة والمعامل</span>
+                </button>
+                <button class="dept-btn" onclick="switchDepartment('inventory', '📦 المخازن والمشتريات')">
+                    <span><span class="dept-icon">📦</span> المخازن والمشتريات</span>
+                </button>
+                <button class="dept-btn" onclick="switchDepartment('admin_hr', '👔 الشؤون الإدارية (HR)')">
+                    <span><span class="dept-icon">👔</span> الشؤون الإدارية</span>
+                </button>
+                <button class="dept-btn" onclick="switchDepartment('finance', '💰 الإدارة المالية')">
+                    <span><span class="dept-icon">💰</span> الإدارة المالية</span>
+                </button>
+                <button class="dept-btn" onclick="switchDepartment('general', '💬 القناة العامة للمصنع')">
+                    <span><span class="dept-icon">💬</span> القناة العامة</span>
+                </button>
+                
+                <div style="margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border-color);">
+                    <button class="dept-btn" style="color: var(--warning-color);" onclick="showPanel('team-management')">
+                        <span><span class="dept-icon">👥</span> إدارة أعضاء الفريق</span>
+                    </button>
                 </div>
             </div>
-            <div class="card" style="flex:1;">
-                <h4 style="margin-bottom:8px;">الغرف المتاحة</h4>
-                <div id="rooms-list">
-                    <div class="room-item">
-                        <button style="background:none; border:none; color:var(--accent-color); font-weight:bold;" onclick="switchRoom('public', 'الدردشة العامة')">💬 الغرفة العامة</button>
+        </div>
+
+        <!-- Main Workspace View -->
+        <div class="content-area">
+            
+            <!-- Chat Panel -->
+            <div id="chat-panel" class="chat-container">
+                <div class="chat-header">
+                    <h3 id="current-dept-title" style="font-size: 1rem; color: #2dd4bf;">🏭 إدارة الإنتاج والتخطيط</h3>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">مشفّر وخاص بالمصنع</span>
+                </div>
+
+                <div class="messages-list" id="chat-msgs"></div>
+
+                <div class="chat-input-bar">
+                    <div style="display:flex; gap:6px;">
+                        <button class="react-btn" onclick="addEmoji('👍')">👍</button>
+                        <button class="react-btn" onclick="addEmoji('✅')">✅</button>
+                        <button class="react-btn" onclick="addEmoji('⚠️')">⚠️</button>
+                        <button class="react-btn" onclick="addEmoji('🧪')">🧪</button>
+                        <button class="react-btn" onclick="addEmoji('📦')">📦</button>
+                    </div>
+                    <form onsubmit="event.preventDefault(); sendMessage();" class="input-row">
+                        <label class="file-label" title="إرفاق ملف/صورة تحاليل/فاتورة">
+                            📎
+                            <input type="file" id="chat-file" style="display:none;" onchange="handleFileUpload(this)">
+                        </label>
+                        <button type="button" id="record-btn" class="btn btn-audio" onclick="toggleRecording()">🎙️</button>
+                        <input type="text" id="chat-input" placeholder="اكتب ملاحظة أو أمر تشغيل...">
+                        <button type="submit" class="btn">إرسال</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Team Management Panel (إضافة وحذف الأعضاء) -->
+            <div id="team-management" class="panel">
+                <div class="card">
+                    <h3 style="color:#2dd4bf; margin-bottom:12px;">إضافة عضو جديد لفريق المصنع</h3>
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:12px;">
+                        <input type="text" id="new-user-name" placeholder="اسم الموظف...">
+                        <input type="text" id="new-user-role" placeholder="المسمى الوظيفي (مثال: كيميائي معمل)...">
+                        <select id="new-user-dept" style="background:var(--bg-primary); color:#fff; border:1px solid var(--border-color); padding:10px; border-radius:8px;">
+                            <option value="production">إدارة الإنتاج والتخطيط</option>
+                            <option value="qc_qa">الجودة والمعامل</option>
+                            <option value="inventory">المخازن والمشتريات</option>
+                            <option value="admin_hr">الشؤون الإدارية</option>
+                            <option value="finance">الإدارة المالية</option>
+                        </select>
+                    </div>
+                    <button class="btn" onclick="addNewMember()">+ إضافة الموظف للنظام</button>
+                </div>
+
+                <div class="card">
+                    <h3 style="color:#2dd4bf; margin-bottom:12px;">قائمة فريق العمل الحالي والصلاحيات</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>اسم الموظف</th>
+                                <th>المسمى الوظيفي</th>
+                                <th>القسم التابع له</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="team-table-body">
+                            <!-- Team members will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Video Meeting Panel (بديل Zoom) -->
+            <div id="video-panel" class="panel">
+                <div class="card" style="text-align:center;">
+                    <h3 style="color:#2dd4bf; margin-bottom:10px;">غرفة الاجتماعات المرئية (Loome Live)</h3>
+                    <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:15px;">اجتماعات إدارية لمتابعة صالة الإنتاج والمعامل</p>
+                    <video id="groupVideoPlayer" autoplay playsinline muted style="width:100%; max-height:400px; background:#000; border-radius:10px; object-fit:cover; margin-bottom:15px;"></video>
+                    <div style="display:flex; justify-content:center; gap:10px;">
+                        <button class="btn" style="background:var(--success-color);" onclick="startCamera()">تفعيل الكاميرا والمايك</button>
+                        <button class="btn btn-danger" onclick="stopCamera()">إنهاء البث</button>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div id="video-call" class="view-panel">
-            <div style="display:flex; flex-direction:column; align-items:center; gap:10px; height:100%;">
-                <div style="font-size:0.85rem; color:var(--text-muted);">البث الجماعي المباشر</div>
-                <video id="groupVideoPlayer" autoplay playsinline muted></video>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-primary" style="background:var(--success-color);" onclick="toggleCameraStream()">تفعيل الكاميرا/المايك</button>
-                    <button class="btn-danger" onclick="stopVideoSession()">إغلاق البث</button>
-                </div>
-            </div>
         </div>
-    </div>
-
-    <div class="bottom-nav">
-        <button class="nav-btn active" id="btn-public" onclick="switchRoom('public', 'الدردشة العامة')"><span>💬</span><span>العامة</span></button>
-        <button class="nav-btn" id="btn-private" onclick="switchView('private-contacts')"><span>🔒</span><span>خاص</span></button>
-        <button class="nav-btn" id="btn-rooms" onclick="switchView('rooms')"><span>🚪</span><span>الغرف</span></button>
-        <button class="nav-btn" id="btn-video" onclick="switchView('video-call')"><span>📹</span><span>الفيديو</span></button>
     </div>
 
     <script>
         const SUPABASE_URL = 'https://gdmevluvrmexkkihcxce.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkbWV2bHV2cm1leGtraWhjeGNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NTI5ODIsImV4cCI6MjEwNDEyODk4Mn0.U1MA6q_GfuPpzkJCvMwTc07neAek1vsq5qWE44_eYQQ';
-
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let currentRoomId = 'public';
-        let myUsername = '';
+        let currentDept = 'production';
+        let myUsername = 'المدير العام';
         let mediaRecorder = null, audioChunks = [], recordedAudioBlob = null;
-        let localVideoStream = null;
+        let localStream = null;
 
-        function initUser() {
-            let savedName = localStorage.getItem('loome_username');
-            if(!savedName) {
-                savedName = 'مستخدم_' + Math.floor(100 + Math.random() * 900);
-                localStorage.setItem('loome_username', savedName);
-            }
-            myUsername = savedName;
-            document.getElementById('my-username-display').innerText = myUsername;
-        }
+        // Sample initial team database
+        let teamMembers = [
+            { id: 1, name: 'أحمد محمود', role: 'مدير إنتاج', dept: 'production' },
+            { id: 2, name: 'د. سارة علي', role: 'مدير الجودة QC', dept: 'qc_qa' },
+            { id: 3, name: 'محمود حسن', role: 'أمين المخازن', dept: 'inventory' }
+        ];
 
-        function switchView(id) {
-            document.querySelectorAll('.view-panel').forEach(e => e.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
-
-        function switchRoom(roomId, title) {
-            currentRoomId = roomId;
-            document.getElementById('page-title').innerText = title;
-            switchView('chat-view');
-            document.getElementById('chat-msgs').innerHTML = '';
+        function initApp() {
+            let saved = localStorage.getItem('loome_factory_user');
+            if(saved) myUsername = saved;
+            document.getElementById('current-user-display').innerText = myUsername;
+            renderTeamTable();
             loadMessages();
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        function switchDepartment(deptKey, title) {
+            currentDept = deptKey;
+            document.getElementById('current-dept-title').innerText = title;
+            document.querySelectorAll('.dept-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            showPanel('chat-panel');
+            loadMessages();
+            if(window.innerWidth <= 768) toggleSidebar();
+        }
+
+        function showPanel(panelId) {
+            document.getElementById('chat-panel').style.display = panelId === 'chat-panel' ? 'flex' : 'none';
+            document.getElementById('team-management').classList.remove('active');
+            document.getElementById('video-panel').classList.remove('active');
+
+            if(panelId !== 'chat-panel') {
+                document.getElementById(panelId).classList.add('active');
+            }
         }
 
         async function loadMessages() {
             const { data } = await db.from('messages').select('*').order('created_at', { ascending: true });
+            const list = document.getElementById('chat-msgs');
+            list.innerHTML = '';
             if(data) {
-                document.getElementById('chat-msgs').innerHTML = '';
                 data.forEach(msg => {
-                    if(!msg.room_id || msg.room_id === currentRoomId) renderMessageUI(msg);
+                    if(msg.room_id === currentDept || (!msg.room_id && currentDept === 'production')) {
+                        renderMessageUI(msg);
+                    }
                 });
             }
         }
 
-        // الاستماع الفوري السريع
-        db.channel('public:messages')
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-              if(!payload.new.room_id || payload.new.room_id === currentRoomId) {
-                  renderMessageUI(payload.new);
-              }
-          }).subscribe();
-
-        function formatTime(dateStr) {
-            return (dateStr ? new Date(dateStr) : new Date()).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-        }
+        db.channel('factory:messages').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
+            if (payload.eventType === 'DELETE') {
+                const el = document.getElementById('msg-' + payload.old.id);
+                if (el) el.remove();
+            } else if(payload.new.room_id === currentDept) {
+                renderMessageUI(payload.new);
+            }
+        }).subscribe();
 
         function renderMessageUI(msg) {
-            const container = document.getElementById('chat-msgs');
+            const list = document.getElementById('chat-msgs');
             const msgKey = msg.id ? 'msg-' + msg.id : 'msg-temp-' + Date.now();
-            if(document.getElementById(msgKey)) return;
+            let bubble = document.getElementById(msgKey);
 
-            const bubble = document.createElement('div');
-            bubble.id = msgKey;
-            
-            const senderName = msg.username || msg.user_id || 'مستخدم';
-            bubble.className = `msg-bubble ${senderName === myUsername ? 'self' : ''}`;
-            
+            if(!bubble) {
+                bubble = document.createElement('div');
+                bubble.id = msgKey;
+                list.appendChild(bubble);
+            }
+
+            const isSelf = msg.username === myUsername;
+            bubble.className = `msg-bubble ${isSelf ? 'self' : ''}`;
+
             let contentText = msg.content || '';
             let audioUrl = msg.audio_url;
             let fileUrl = msg.file_url;
@@ -201,56 +313,81 @@
                 contentText = '';
             }
 
-            let html = `<div><strong>${senderName}:</strong> ${contentText}</div>`;
-            if(audioUrl) html += `<audio controls src="${audioUrl}" style="max-width:100%; margin-top:6px;"></audio>`;
-            if(fileUrl) html += `<a href="${fileUrl}" target="_blank" style="color:#60a5fa; margin-top:6px; display:inline-block; font-weight:bold;">📄 فتح / تحميل الملف</a>`;
-            html += `<div class="msg-time">${formatTime(msg.created_at)}</div>`;
+            let html = `
+                <div class="msg-info">
+                    <span>${msg.username || 'عضو مصنع'}</span>
+                </div>
+                <div>${contentText}</div>
+            `;
 
+            if(audioUrl) html += `<audio controls src="${audioUrl}" style="max-width:100%; margin-top:6px;"></audio>`;
+            if(fileUrl) html += `<a href="${fileUrl}" target="_blank" style="color:#60a5fa; margin-top:6px; display:inline-block; font-weight:bold;">📄 المرفق / التقرير</a>`;
+
+            html += `
+                <div class="reactions-bar">
+                    <button class="react-btn" onclick="reactToMsg('${msg.id}', '❤️')">❤️</button>
+                    <button class="react-btn" onclick="reactToMsg('${msg.id}', '👍')">👍</button>
+                    <button class="react-btn" onclick="reactToMsg('${msg.id}', '✅')">✅</button>
+                </div>
+            `;
+
+            if(isSelf && msg.id) {
+                html += `
+                    <div class="msg-actions">
+                        ${contentText ? `<button class="action-link" onclick="editMsg('${msg.id}', \`${contentText}\`)">✏️ تعديل</button>` : ''}
+                        <button class="action-link" style="color:var(--danger-color);" onclick="deleteMsg('${msg.id}')">🗑️ حذف</button>
+                    </div>
+                `;
+            }
+
+            html += `<div class="msg-time">${new Date(msg.created_at || Date.now()).toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'})}</div>`;
             bubble.innerHTML = html;
-            container.appendChild(bubble);
-            container.scrollTop = container.scrollHeight;
+            list.scrollTop = list.scrollHeight;
         }
 
         async function sendMessage() {
             const input = document.getElementById('chat-input');
             const messageText = input.value.trim();
-            if(!messageText && !recordedAudioBlob) return;
 
-            let audioUrl = null;
-
-            // رفع المقطع الصوتي بسرعة فائقة عبر تحويله إلى DataURL مباشر لتجنب التأخير
             if(recordedAudioBlob) {
                 const reader = new FileReader();
                 reader.readAsDataURL(recordedAudioBlob);
                 reader.onloadend = async () => {
-                    const base64Audio = reader.result;
-                    sendPayload(`[AUDIO]:${base64Audio}`);
+                    sendPayload(`[AUDIO]:${reader.result}`);
                 };
                 recordedAudioBlob = null;
                 return;
             }
 
-            if(messageText) sendPayload(messageText);
-            input.value = '';
+            if(messageText) {
+                sendPayload(messageText);
+                input.value = '';
+            }
         }
 
-        async function sendPayload(contentToSend) {
-            // عرض فوري بالواجهة لتجربة سريعة جداً
-            renderMessageUI({
-                username: myUsername,
-                content: contentToSend,
-                room_id: currentRoomId,
-                created_at: new Date().toISOString()
-            });
+        async function sendPayload(content) {
+            renderMessageUI({ username: myUsername, content: content, room_id: currentDept, created_at: new Date().toISOString() });
+            await db.from('messages').insert([{ username: myUsername, content: content, room_id: currentDept }]);
+        }
 
-            // إرسال البيانات بأسماء الأعمدة الصحيحة تماماً (username فقط)
-            const { error } = await db.from('messages').insert([{
-                username: myUsername,
-                content: contentToSend,
-                room_id: currentRoomId
-            }]);
+        async function editMsg(id, oldText) {
+            const newText = prompt('تعديل الرسالة/أمر التشغيل:', oldText);
+            if(newText && newText !== oldText) {
+                await db.from('messages').update({ content: newText }).eq('id', id);
+                loadMessages();
+            }
+        }
 
-            if(error) alert('خطأ في الإرسال: ' + error.message);
+        async function deleteMsg(id) {
+            if(confirm('هل تريد حذف هذه الرسالة من القناة؟')) {
+                await db.from('messages').delete().eq('id', id);
+                const el = document.getElementById('msg-' + id);
+                if(el) el.remove();
+            }
+        }
+
+        function addEmoji(emoji) {
+            document.getElementById('chat-input').value += ' ' + emoji;
         }
 
         async function toggleRecording() {
@@ -258,7 +395,7 @@
             if (mediaRecorder && mediaRecorder.state === "recording") {
                 mediaRecorder.stop();
                 btn.innerText = "🎙️";
-                btn.style.backgroundColor = "#8b5cf6";
+                btn.style.backgroundColor = "#6366f1";
             } else {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -267,71 +404,88 @@
                     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                     mediaRecorder.onstop = () => {
                         recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        sendMessage(); // إرسال تلقائي فوري بعد الانتهاء من التسجيل
+                        sendMessage();
                     };
                     mediaRecorder.start();
                     btn.innerText = "⏹️";
                     btn.style.backgroundColor = "#ef4444";
-                } catch (e) { alert('الرجاء السماح بالوصول للميكروفون'); }
+                } catch (e) { alert('الرجاء إعطاء صلاحية المايك لتسجيل الصوت'); }
             }
         }
 
         async function handleFileUpload(input) {
             if(input.files && input.files[0]) {
                 const file = input.files[0];
-                const fileName = `chat_${Date.now()}_${file.name}`;
+                const fileName = `factory_${Date.now()}_${file.name}`;
                 const { data, error } = await db.storage.from('chat-files').upload(fileName, file);
-                
-                if(error) alert('فشل رفع الملف: ' + error.message);
-                else if(data) {
+                if(!error) {
                     const res = db.storage.from('chat-files').getPublicUrl(fileName);
                     sendPayload(`[FILE]:${res.data.publicUrl}`);
                 }
             }
         }
 
-        function createRoom() {
-            const nameInput = document.getElementById('new-room-name');
-            if(!nameInput.value.trim()) return;
-            const roomId = 'room-' + Date.now();
-            const roomName = nameInput.value.trim();
-
-            const list = document.getElementById('rooms-list');
-            const item = document.createElement('div');
-            item.className = 'room-item';
-            item.innerHTML = `<button style="background:none; border:none; color:var(--accent-color); font-weight:bold;" onclick="switchRoom('${roomId}', '${roomName}')">🔒 ${roomName}</button>`;
-            list.appendChild(item);
-            
-            nameInput.value = '';
-            switchRoom(roomId, roomName);
+        // Team Management Functions (إضافة/حذف الأعضاء)
+        function renderTeamTable() {
+            const tbody = document.getElementById('team-table-body');
+            tbody.innerHTML = '';
+            teamMembers.forEach(m => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${m.name}</strong></td>
+                    <td>${m.role}</td>
+                    <td>${getDeptLabel(m.dept)}</td>
+                    <td><button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="removeMember(${m.id})">إزالة العضو</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
 
-        function openPrivateChat() {
-            const userInput = document.getElementById('pm-user-id').value.trim();
-            if(userInput) switchRoom('pm_' + userInput, 'خاص: ' + userInput);
+        function getDeptLabel(key) {
+            const map = { production: 'الإنتاج', qc_qa: 'الجودة', inventory: 'المخازن', admin_hr: 'HR', finance: 'المالية' };
+            return map[key] || key;
         }
 
-        async function startContextVideo() {
-            sendPayload('بدأ بث فيديو مباشر');
-            switchView('video-call');
-            toggleCameraStream();
+        function addNewMember() {
+            const name = document.getElementById('new-user-name').value.trim();
+            const role = document.getElementById('new-user-role').value.trim();
+            const dept = document.getElementById('new-user-dept').value;
+
+            if(!name || !role) return alert('برجاء إدخال اسم الموظف والمسمى الوظيفي');
+
+            teamMembers.push({ id: Date.now(), name, role, dept });
+            renderTeamTable();
+            document.getElementById('new-user-name').value = '';
+            document.getElementById('new-user-role').value = '';
+            alert(`تمت إضافة الموظف (${name}) وإرسال رابط الوصول إليه بنجاح.`);
         }
 
-        async function toggleCameraStream() {
+        function removeMember(id) {
+            if(confirm('هل أنت تأكد من سحب صلاحيات هذا الموظف وإزالته من النظام؟')) {
+                teamMembers = teamMembers.filter(m => m.id !== id);
+                renderTeamTable();
+            }
+        }
+
+        // Video Meeting Functions
+        function openVideoCall() {
+            showPanel('video-panel');
+        }
+
+        async function startCamera() {
             try {
-                localVideoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                document.getElementById('groupVideoPlayer').srcObject = localVideoStream;
-            } catch(e) { alert('الرجاء تفعيل الكاميرا والمايك'); }
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('groupVideoPlayer').srcObject = localStream;
+            } catch(e) { alert('تعذر الوصول للكاميرا/المايك'); }
         }
 
-        function stopVideoSession() {
-            if(localVideoStream) localVideoStream.getTracks().forEach(t => t.stop());
+        function stopCamera() {
+            if(localStream) localStream.getTracks().forEach(t => t.stop());
             document.getElementById('groupVideoPlayer').srcObject = null;
-            switchView('chat-view');
+            showPanel('chat-panel');
         }
 
-        initUser();
-        switchRoom('public', 'الدردشة العامة');
+        initApp();
     </script>
 </body>
 </html>

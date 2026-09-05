@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -30,17 +29,17 @@
             display: flex; 
             align-items: center; 
             justify-content: space-between; 
-            padding: 0 8px; 
+            padding: 0 10px; 
             flex-shrink: 0; 
         }
         
-        .header-right { display: flex; align-items: center; gap: 6px; }
-        .menu-toggle { background: transparent; border: none; color: #fff; font-size: 1.4rem; padding: 4px 8px; cursor: pointer; }
-        .factory-title { font-size: 0.85rem; font-weight: bold; color: #2dd4bf; }
+        .header-right { display: flex; align-items: center; gap: 8px; }
+        .menu-toggle { background: transparent; border: none; color: #fff; font-size: 1.4rem; padding: 4px; cursor: pointer; }
+        .factory-title { font-size: 0.9rem; font-weight: bold; color: #2dd4bf; }
         
         .header-left { display: flex; align-items: center; gap: 6px; }
-        .user-badge { font-size: 0.7rem; color: #5eead4; background: rgba(13, 148, 136, 0.2); padding: 3px 6px; border-radius: 12px; border: 1px solid var(--accent-color); cursor: pointer; }
-        .zoom-btn { background: #0284c7; color: white; border: none; padding: 5px 8px; font-size: 0.75rem; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .user-badge { font-size: 0.75rem; color: #5eead4; background: rgba(13, 148, 136, 0.2); padding: 4px 8px; border-radius: 12px; border: 1px solid var(--accent-color); cursor: pointer; }
+        .zoom-btn { background: #0284c7; color: white; border: none; padding: 6px 10px; font-size: 0.75rem; font-weight: bold; border-radius: 6px; cursor: pointer; }
 
         .main-container { flex: 1; display: flex; overflow: hidden; position: relative; }
         .overlay { display: none; position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); z-index: 40; }
@@ -60,29 +59,26 @@
         }
         .sidebar.open { transform: translateX(0); }
         
-        .dept-header { padding: 12px; font-weight: bold; font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .dept-header { padding: 12px; font-weight: bold; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
         .dept-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
         .dept-btn { background: transparent; border: none; color: var(--text-main); padding: 10px 12px; border-radius: 8px; text-align: right; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; width: 100%; }
         .dept-btn:hover, .dept-btn.active { background-color: var(--bg-card); color: #2dd4bf; font-weight: bold; }
 
         .content-area { flex: 1; display: flex; flex-direction: column; position: relative; background: #0b1329; width: 100%; overflow: hidden; }
         .chat-container { display: flex; flex-direction: column; height: 100%; width: 100%; }
-        .chat-header { padding: 8px 12px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .chat-header { padding: 10px 12px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         .messages-list { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         
-        /* ضبط استجابة فقاعات الرسائل وإخفاء الخروج المسبق */
-        .msg-bubble { background-color: var(--bg-secondary); padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 0.88rem; align-self: flex-start; border: 1px solid var(--border-color); word-break: break-word; overflow: hidden; }
+        .msg-bubble { background-color: var(--bg-secondary); padding: 8px 12px; border-radius: 12px; max-width: 85%; font-size: 0.88rem; align-self: flex-start; border: 1px solid var(--border-color); word-wrap: break-word; overflow: hidden; }
         .msg-bubble.self { align-self: flex-end; background-color: #0f4c5c; border-color: #136f63; }
-        .msg-info { font-size: 0.72rem; color: #2dd4bf; font-weight: bold; margin-bottom: 2px; }
+        .msg-info { font-size: 0.72rem; color: #2dd4bf; font-weight: bold; margin-bottom: 3px; }
         .msg-time { font-size: 0.65rem; color: var(--text-muted); text-align: left; margin-top: 4px; }
         
-        /* تنسيق مشغل الصوت المخصص الجميل الخفيف */
-        .audio-player-custom { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.2); padding: 6px; border-radius: 8px; margin-top: 4px; max-width: 100%; }
-        .audio-player-custom audio { width: 180px; height: 32px; border-radius: 4px; }
+        .chat-audio-player { width: 100%; max-width: 240px; height: 36px; margin-top: 4px; outline: none; border-radius: 20px; }
 
         .chat-input-bar { padding: 8px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
         .reactions-quick { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
-        .react-btn { background: rgba(0,0,0,0.3); border: none; border-radius: 12px; padding: 3px 8px; font-size: 0.8rem; cursor: pointer; color: #fff; flex-shrink: 0; }
+        .react-btn { background: rgba(0,0,0,0.3); border: none; border-radius: 12px; padding: 4px 8px; font-size: 0.85rem; cursor: pointer; color: #fff; flex-shrink: 0; }
 
         .input-row { display: flex; gap: 6px; align-items: center; width: 100%; }
         input[type="text"] { flex: 1; background-color: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 10px; border-radius: 8px; outline: none; font-size: 0.85rem; min-width: 0; }
@@ -160,7 +156,7 @@
                             <input type="file" id="chat-file" style="display:none;" onchange="handleFileUpload(this)">
                         </label>
                         <button type="button" id="record-btn" class="action-btn" style="background:#6366f1;" onclick="toggleRecording()">🎙️</button>
-                        <input type="text" id="chat-input" placeholder="اكتب رسالتك...">
+                        <input type="text" id="chat-input" placeholder="اكتب ملاحظة أو أمر...">
                         <button type="submit" class="action-btn">إرسال</button>
                     </form>
                 </div>
@@ -221,7 +217,7 @@
 
         let currentDept = 'production';
         let myUsername = 'المدير العام';
-        let mediaRecorder = null, audioChunks = [], recordedAudioBlob = null;
+        let mediaRecorder = null, audioChunks = [];
         let localStream = null;
 
         let teamMembers = [
@@ -332,19 +328,15 @@
                 contentText = '';
             }
 
-            let html = `
-                <div class="msg-info">${sender}</div>
-                <div>${contentText}</div>
-            `;
+            let html = `<div class="msg-info">${sender}</div>`;
+            if(contentText) html += `<div>${contentText}</div>`;
 
             if(audioUrl) {
-                html += `
-                <div class="audio-player-custom">
-                    <span>🎵</span>
-                    <audio controls controlsList="nodownload noplaybackrate" src="${audioUrl}"></audio>
-                </div>`;
+                html += `<div><audio class="chat-audio-player" controls controlsList="nodownload" src="${audioUrl}"></audio></div>`;
             }
-            if(fileUrl) html += `<a href="${fileUrl}" target="_blank" style="color:#60a5fa; margin-top:4px; display:inline-block; font-size:0.8rem; font-weight:bold;">📄 الملف المرفق</a>`;
+            if(fileUrl) {
+                html += `<a href="${fileUrl}" target="_blank" style="color:#60a5fa; margin-top:4px; display:inline-block; font-size:0.8rem; font-weight:bold;">📄 عرض الملف المرفق</a>`;
+            }
 
             if(isSelf && msg.id) {
                 html += `
@@ -362,16 +354,6 @@
         async function sendMessage() {
             const input = document.getElementById('chat-input');
             const messageText = input.value.trim();
-
-            if(recordedAudioBlob) {
-                const reader = new FileReader();
-                reader.readAsDataURL(recordedAudioBlob);
-                reader.onloadend = async () => {
-                    sendPayload(`[AUDIO]:${reader.result}`);
-                };
-                recordedAudioBlob = null;
-                return;
-            }
 
             if(messageText) {
                 sendPayload(messageText);
@@ -409,17 +391,30 @@
             } else {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+                    mediaRecorder = new MediaRecorder(stream);
                     audioChunks = [];
                     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                    mediaRecorder.onstop = () => {
-                        recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        sendMessage();
+                    
+                    mediaRecorder.onstop = async () => {
+                        btn.innerText = "⏳";
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                        const fileName = `voice_${Date.now()}.mp3`;
+                        
+                        // رفع التسجيل للسيرفر مباشرة لمنع التشوه
+                        const { data, error } = await db.storage.from('chat-files').upload(fileName, audioBlob);
+                        if(!error) {
+                            const res = db.storage.from('chat-files').getPublicUrl(fileName);
+                            sendPayload(`[AUDIO]:${res.data.publicUrl}`);
+                        } else {
+                            alert('تعذر رفع الصوت، يرجى المحاولة مرة أخرى');
+                        }
+                        btn.innerText = "🎙️";
                     };
+
                     mediaRecorder.start();
                     btn.innerText = "⏹️";
                     btn.style.backgroundColor = "#ef4444";
-                } catch (e) { alert('برجاء تفعيل صلاحية تسجيل الصوت'); }
+                } catch (e) { alert('برجاء تفعيل صلاحية تسجيل الصوت من إعدادات المتصفح'); }
             }
         }
 

@@ -3,147 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loome Social - لومي سبيس</title>
+    <title>Loome Social</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script src="app.js" defer></script>
     <style>
-        :root {
-            --bg-main: #f0f2f5;
-            --panel-bg: #ffffff;
-            --primary: #0084ff;
-            --text-dark: #1c1e21;
-            --border-color: #e4e6eb;
-        }
+        :root { --bg: #f0f2f5; --panel: #ffffff; --primary: #0084ff; --border: #e4e6eb; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+        html, body { height: 100%; width: 100%; background: var(--bg); overflow: hidden; }
+        .app-container { width: 100%; height: 100%; display: flex; flex-direction: column; background: var(--panel); }
+        
+        .auth-box { width: 90%; max-width: 400px; margin: auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .auth-box input, .auth-box button { width: 100%; padding: 10px; margin-bottom: 8px; border-radius: 6px; border: 1px solid var(--border); }
+        .auth-box button { background: var(--primary); color: white; font-weight: bold; border: none; cursor: pointer; }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-        html, body { height: 100%; width: 100%; background-color: var(--bg-main); color: var(--text-dark); overflow: hidden; }
-
-        .app-container { width: 100%; height: 100%; background: var(--panel-bg); display: flex; flex-direction: column; }
-
-        /* Auth Screen */
-        .auth-box { width: 90%; max-width: 400px; margin: auto; padding: 25px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .auth-box input, .auth-box button { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 15px; }
-        .auth-box button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
-
-        /* Main Dashboard Responsive */
         .main-dashboard { display: flex; width: 100%; height: 100%; flex-direction: column; }
-
-        /* Navigation Bar for Mobile */
-        .sidebar { width: 100%; background: #ffffff; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: row; justify-content: space-around; align-items: center; padding: 8px 5px; order: 2; }
-        .brand { display: none; }
-        .nav-btn { flex: 1; padding: 8px 4px; border: none; background: transparent; border-radius: 6px; text-align: center; font-size: 12px; color: var(--text-dark); cursor: pointer; white-space: nowrap; }
-        .nav-btn.active, .nav-btn:hover { background: #e7f3ff; color: var(--primary); font-weight: bold; }
-        .btn-logout { background: #ffebe9; color: #d93025; font-weight: bold; flex: 0.6; }
-
-        /* Content Area */
-        .content-area { flex: 1; display: flex; flex-direction: column; background: #ffffff; width: 100%; height: calc(100% - 50px); order: 1; overflow: hidden; }
-        .tab-content { display: none; flex-direction: column; height: 100%; padding: 12px; }
+        .sidebar { width: 100%; border-bottom: 1px solid var(--border); display: flex; justify-content: space-around; padding: 8px; order: 2; }
+        .nav-btn { flex: 1; padding: 8px; border: none; background: transparent; cursor: pointer; border-radius: 6px; }
+        .nav-btn.active { background: #e7f3ff; color: var(--primary); font-weight: bold; }
+        
+        .content-area { flex: 1; display: flex; flex-direction: column; order: 1; overflow: hidden; }
+        .tab-content { display: none; flex-direction: column; height: 100%; padding: 10px; }
         .tab-content.active { display: flex; }
 
-        /* Chat UI Responsive Fix */
-        .chat-header { padding-bottom: 8px; border-bottom: 1px solid var(--border-color); margin-bottom: 8px; font-size: 16px; font-weight: bold; }
-        .chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: #f9f9fb; border-radius: 8px; }
+        .chat-header { padding-bottom: 8px; border-bottom: 1px solid var(--border); font-weight: bold; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: #f9f9fb; margin: 8px 0; border-radius: 8px; }
+        .message-bubble { max-width: 80%; padding: 8px 12px; border-radius: 12px; word-break: break-word; font-size: 14px; }
+        .msg-me { background: var(--primary); color: white; align-self: flex-end; }
+        .msg-other { background: #e4e6eb; color: #000; align-self: flex-start; }
         
-        .message-bubble { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 14px; line-height: 1.4; word-break: break-word; }
-        .msg-other { background: #e4e6eb; color: var(--text-dark); align-self: flex-start; border-bottom-right-radius: 2px; }
-        .msg-me { background: var(--primary); color: white; align-self: flex-end; border-bottom-left-radius: 2px; }
-        .msg-author { font-size: 10px; margin-bottom: 2px; font-weight: bold; opacity: 0.85; }
-        
-        .chat-input-area { display: flex; gap: 6px; margin-top: 8px; align-items: center; }
-        .chat-input-area input { flex: 1; padding: 10px 12px; border-radius: 20px; border: 1px solid var(--border-color); outline: none; font-size: 14px; }
-        .chat-input-area button { padding: 10px 16px; border-radius: 20px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; white-space: nowrap; }
-        
-        .btn-mic-style { background: #28a745 !important; width: 40px; height: 40px; border-radius: 50% !important; padding: 0 !important; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .chat-input-area { display: flex; gap: 4px; align-items: center; }
+        .chat-input-area input[type="text"] { flex: 1; padding: 8px 12px; border-radius: 20px; border: 1px solid var(--border); outline: none; }
+        .icon-btn { width: 36px; height: 36px; border-radius: 50%; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .btn-send { padding: 8px 14px; border-radius: 20px; border: none; background: var(--primary); color: white; cursor: pointer; font-weight: bold; }
 
-        /* Posts Styling */
-        .posts-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-        .post-card { background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; }
+        /* معاينة وتسجيل الفيديو */
+        #video-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
+        #video-preview { width: 90%; max-width: 400px; border-radius: 8px; }
 
-        /* Desktop Adjustments */
         @media (min-width: 768px) {
             .main-dashboard { flex-direction: row; }
-            .sidebar { width: 220px; height: 100%; border-bottom: none; border-left: 1px solid var(--border-color); flex-direction: column; justify-content: space-between; padding: 20px 15px; order: 1; }
-            .content-area { width: calc(100% - 220px); height: 100%; order: 2; }
-            .brand { display: block; font-size: 18px; font-weight: bold; color: var(--primary); margin-bottom: 20px; text-align: center; }
-            .nav-btn { text-align: right; font-size: 14px; padding: 12px; margin-bottom: 8px; width: 100%; flex: initial; }
-            .btn-logout { flex: initial; }
-            .message-bubble { max-width: 70%; }
+            .sidebar { width: 200px; border-left: 1px solid var(--border); border-bottom: none; flex-direction: column; justify-content: start; order: 1; }
+            .content-area { flex: 1; order: 2; }
+            .nav-btn { width: 100%; text-align: right; margin-bottom: 5px; }
         }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <!-- شاشة الدخول -->
     <div id="auth-container" class="auth-box">
-        <h2 id="auth-title" style="text-align: center; margin-bottom: 15px;">تسجيل الدخول</h2>
-        <div id="auth-error" style="color:red; margin-bottom:10px; display:none;"></div>
+        <h3 id="auth-title" style="text-align: center; margin-bottom: 10px;">تسجيل الدخول</h3>
+        <div id="auth-error" style="color:red; display:none;"></div>
         <form id="auth-form">
             <input type="email" id="email" placeholder="البريد الإلكتروني" required>
             <input type="password" id="password" placeholder="كلمة المرور" required>
             <button type="submit" id="btn-submit">تسجيل الدخول</button>
         </form>
         <button id="btn-anon" style="background:#6c757d;">الدخول كزائر</button>
-        <p style="text-align: center; margin-top: 10px;">
-            <span id="toggle-msg">ليس لديك حساب؟</span>
-            <a href="#" id="toggle-auth">إنشاء حساب</a>
-        </p>
     </div>
 
-    <!-- لوحة التحكم الرئيسية -->
+    <!-- نافذة تسجيل الفيديو -->
+    <div id="video-modal">
+        <video id="video-preview" autoplay muted playsinline></video>
+        <div style="margin-top: 10px; display: flex; gap: 10px;">
+            <button id="btn-stop-video" style="background:#dc3545; color:white; border:none; padding:8px 16px; border-radius:20px; font-weight:bold;">⏹️ إيقاف وإرسال</button>
+            <button id="btn-cancel-video" style="background:#6c757d; color:white; border:none; padding:8px 16px; border-radius:20px;">إلغاء</button>
+        </div>
+    </div>
+
     <div id="main-content" class="main-dashboard" style="display: none;">
-        <!-- الشريط الجانبي / شريط التنقل السفلي للهاتف -->
         <div class="sidebar">
-            <div style="width: 100%;">
-                <div class="brand">🚀 Loome</div>
-                <button class="nav-btn active" onclick="switchTab('tab-chat', this)">💬 الدردشة</button>
-                <button class="nav-btn" onclick="switchTab('tab-posts', this)">📑 المنشورات</button>
-                <button class="nav-btn" onclick="switchTab('tab-dm', this)">✉️ الخاص</button>
-            </div>
-            <button id="btn-logout" class="nav-btn btn-logout">🚪 خروج</button>
+            <button class="nav-btn active" onclick="switchTab('tab-chat', this)">💬 الدردشة</button>
+            <button class="nav-btn" onclick="switchTab('tab-dm', this)">✉️ الخاص</button>
+            <button class="nav-btn" onclick="switchTab('tab-posts', this)">📑 المنشورات</button>
+            <button id="btn-logout" class="nav-btn" style="color:red; margin-top:auto;">🚪 خروج</button>
         </div>
 
-        <!-- منطقة المحتوى -->
         <div class="content-area">
-            <!-- تبويب الدردشة الجماعية -->
+            <!-- 1. الدردشة الجماعية -->
             <div id="tab-chat" class="tab-content active">
                 <div class="chat-header">💬 غرفة الدردشة الجماعية</div>
-                <div id="chat-box" class="chat-messages">
-                    <p style="text-align: center; color: #888;">جاري تحميل المحادثات...</p>
-                </div>
+                <div id="chat-box" class="chat-messages"></div>
                 <div class="chat-input-area">
-                    <input type="text" id="chat-input" placeholder="اكتب رسالتك هنا...">
-                    <button id="btn-mic" class="btn-mic-style" title="تسجيل صوت">🎤</button>
-                    <button id="btn-send-chat">إرسال</button>
+                    <input type="text" id="chat-input" placeholder="اكتب رسالتك...">
+                    <button class="icon-btn" style="background:#28a745;" id="btn-chat-mic" title="تسجيل صوت">🎤</button>
+                    <button class="icon-btn" style="background:#ff9800;" id="btn-chat-cam" title="تسجيل فيديو">📹</button>
+                    <label class="icon-btn" style="background:#6c757d;" title="إرفاق صورة/فيديو">
+                        📁 <input type="file" id="chat-file-input" accept="image/*,video/*" style="display:none;">
+                    </label>
+                    <button class="btn-send" id="btn-send-chat">إرسال</button>
                 </div>
             </div>
 
-            <!-- تبويب المنشورات -->
-            <div id="tab-posts" class="tab-content">
-                <div class="chat-header">📑 المنشورات العامة</div>
-                <div style="display: flex; gap: 8px;">
-                    <input type="text" id="post-input" placeholder="بماذا تفكر اليوم؟" style="flex:1; padding: 10px; border-radius: 8px; border:1px solid #ccc;">
-                    <button id="btn-post" style="padding: 10px 16px; background: var(--primary); color:white; border:none; border-radius:8px; cursor:pointer;">نشر</button>
-                </div>
-                <div id="posts-container" class="posts-list">
-                    <p>جاري تحميل المنشورات...</p>
-                </div>
-            </div>
-
-            <!-- تبويب الرسائل الخاصة -->
+            <!-- 2. الرسائل الخاصة -->
             <div id="tab-dm" class="tab-content">
                 <div class="chat-header">✉️ الرسائل الخاصة</div>
-                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-                    <input type="email" id="dm-recipient-email" placeholder="بريد المستلم (example@domain.com)" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
-                </div>
-                <div id="dm-chat-box" class="chat-messages" style="flex: 1;">
-                    <p style="text-align: center; color: #888;">أدخل بريد المستلم لرؤية المحادثة الخاصة معه</p>
-                </div>
+                <input type="email" id="dm-target-email" placeholder="بريد المستلم..." style="padding:8px; border-radius:6px; border:1px solid var(--border); margin-bottom:8px;">
+                <div id="dm-box" class="chat-messages"></div>
                 <div class="chat-input-area">
-                    <input type="text" id="dm-input" placeholder="اكتب رسالة خاصة...">
-                    <button id="btn-send-dm">إرسال خاص</button>
+                    <input type="text" id="dm-input" placeholder="رسالة خاصة...">
+                    <button class="icon-btn" style="background:#28a745;" id="btn-dm-mic" title="تسجيل صوت">🎤</button>
+                    <label class="icon-btn" style="background:#6c757d;" title="إرفاق صورة/فيديو">
+                        📁 <input type="file" id="dm-file-input" accept="image/*,video/*" style="display:none;">
+                    </label>
+                    <button class="btn-send" id="btn-send-dm">إرسال</button>
                 </div>
+            </div>
+
+            <!-- 3. المنشورات -->
+            <div id="tab-posts" class="tab-content">
+                <div class="chat-header">📑 المنشورات العامة</div>
+                <div class="chat-input-area" style="margin-bottom:8px;">
+                    <input type="text" id="post-input" placeholder="بماذا تفكر؟">
+                    <label class="icon-btn" style="background:#6c757d;" title="إرفاق صورة/فيديو">
+                        📁 <input type="file" id="post-file-input" accept="image/*,video/*" style="display:none;">
+                    </label>
+                    <button class="btn-send" id="btn-send-post">نشر</button>
+                </div>
+                <div id="post-file-status" style="font-size:12px; color:#28a745;"></div>
+                <div id="posts-box" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:10px;"></div>
             </div>
         </div>
     </div>
@@ -151,9 +130,8 @@
 
 <script>
     function switchTab(tabId, btn) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-        
+        document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         if(btn) btn.classList.add('active');
     }

@@ -69,23 +69,37 @@
         .chat-header { padding: 10px 12px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         .messages-list { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         
-        .msg-bubble { background-color: var(--bg-secondary); padding: 8px 12px; border-radius: 12px; max-width: 88%; font-size: 0.88rem; align-self: flex-start; border: 1px solid var(--border-color); word-break: break-word; position: relative; }
+        .msg-bubble { background-color: var(--bg-secondary); padding: 8px 12px; border-radius: 12px; max-width: 88%; font-size: 0.88rem; align-self: flex-start; border: 1px solid var(--border-color); word-break: break-word; position: relative; cursor: pointer; }
         .msg-bubble.self { align-self: flex-end; background-color: #0f4c5c; border-color: #136f63; }
         .msg-bubble.urgent { border: 2px solid var(--danger-color); background-color: rgba(239, 68, 68, 0.15); }
         .msg-info { font-size: 0.72rem; color: #2dd4bf; font-weight: bold; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .msg-actions { display: flex; gap: 6px; align-items: center; }
+        .reply-btn { background: transparent; border: none; color: #38bdf8; cursor: pointer; font-size: 0.72rem; font-weight: bold; }
         .msg-time { font-size: 0.65rem; color: var(--text-muted); text-align: left; margin-top: 4px; }
         
-        .audio-player-box { margin-top: 6px; background: #0f172a; border-radius: 12px; padding: 6px 8px; border: 1px solid var(--accent-color); display: flex; align-items: center; gap: 6px; width: 100%; max-width: 250px; }
-        .audio-player-box audio { width: 100%; height: 36px; outline: none; }
+        /* صندوق الاقتباس داخل الرسالة المترودة عليها */
+        .reply-quote { background: rgba(0, 0, 0, 0.3); border-right: 3px solid var(--accent-color); padding: 4px 8px; border-radius: 4px; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px; }
+        .reply-quote-author { font-weight: bold; color: #2dd4bf; font-size: 0.72rem; }
+
+        .audio-player-box { margin-top: 6px; background: #0f172a; border-radius: 12px; padding: 4px 6px; border: 1px solid var(--accent-color); display: flex; align-items: center; gap: 6px; width: 100%; max-width: 260px; }
+        .audio-player-box audio { width: 100%; height: 32px; outline: none; }
 
         .chat-input-bar { padding: 8px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+        
+        /* شريط التنبيه المعاين عند الرد على رسالة */
+        .reply-preview-bar { display: none; background: var(--bg-card); padding: 6px 10px; border-radius: 6px; border-right: 3px solid #2dd4bf; justify-content: space-between; align-items: center; font-size: 0.8rem; }
+        .reply-preview-bar.active { display: flex; }
+        .cancel-reply { background: none; border: none; color: var(--danger-color); font-weight: bold; cursor: pointer; font-size: 0.9rem; }
+
         .reactions-quick { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
         .react-btn { background: rgba(0,0,0,0.3); border: none; border-radius: 12px; padding: 4px 8px; font-size: 0.85rem; cursor: pointer; color: #fff; flex-shrink: 0; }
+        
         .input-row { display: flex; gap: 6px; align-items: center; width: 100%; }
         input[type="text"] { flex: 1; background-color: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 10px; border-radius: 8px; outline: none; font-size: 0.85rem; min-width: 0; }
         
         .action-btn { background-color: var(--accent-color); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; flex-shrink: 0; }
-        .mic-btn { background-color: #6366f1; font-size: 0.95rem; width: 38px; height: 38px; border-radius: 8px; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        
+        .mic-btn { background-color: #6366f1; font-size: 0.9rem; width: 36px; height: 36px; border-radius: 8px; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .mic-btn.recording { background-color: var(--danger-color); animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
@@ -104,9 +118,8 @@
         .task-item.done { opacity: 0.6; text-decoration: line-through; }
         .urgent-btn { background: var(--danger-color) !important; color: white !important; font-weight: bold; }
         .export-btn { background: var(--bg-card); color: #2dd4bf; border: 1px solid #2dd4bf; padding: 4px 8px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; }
-        .delete-btn { background: transparent; border: none; color: var(--danger-color); cursor: pointer; font-size: 0.75rem; font-weight: bold; }
+        .delete-btn { background: transparent; border: none; color: var(--danger-color); cursor: pointer; font-size: 0.72rem; font-weight: bold; }
 
-        /* نافذة العرض المكبر للصور */
         .preview-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; justify-content: center; align-items: center; padding: 20px; }
         .preview-modal.active { display: flex; }
         .preview-modal img { max-width: 95%; max-height: 90vh; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
@@ -157,7 +170,17 @@
                     <button class="export-btn" onclick="exportChatText()">📥 تصدير السجل</button>
                 </div>
                 <div class="messages-list" id="chat-msgs"></div>
+                
                 <div class="chat-input-bar">
+                    <!-- الشريط المعاين عند وجود رد على رسالة -->
+                    <div class="reply-preview-bar" id="reply-preview">
+                        <div>
+                            <span style="color:#2dd4bf; font-weight:bold; font-size:0.75rem;" id="reply-author">الرد على...</span>
+                            <div style="color:var(--text-muted); font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;" id="reply-text-preview"></div>
+                        </div>
+                        <button class="cancel-reply" onclick="cancelReply()">✕</button>
+                    </div>
+
                     <div class="reactions-quick">
                         <button class="react-btn" onclick="addEmoji('👍')">👍</button>
                         <button class="react-btn" onclick="addEmoji('✅')">✅</button>
@@ -169,10 +192,10 @@
                     <form onsubmit="event.preventDefault(); sendMessage();" class="input-row">
                         <label class="file-label" title="إرفاق صورة أو فيديو">
                             📎
-                            <input type="file" id="chat-file" accept="image/*,video/*,application/pdf" style="display:none;" onchange="handleFileUpload(this)">
+                            <input type="file" id="chat-file" accept="image/*,video/*,audio/*,application/pdf" style="display:none;" onchange="handleFileUpload(this)">
                         </label>
                         <button type="button" id="record-btn" class="mic-btn" onclick="toggleRecording()" title="تسجيل صوت">🎙️</button>
-                        <input type="text" id="chat-input" placeholder="اكتب ملاحظة أو أرفق صورة...">
+                        <input type="text" id="chat-input" placeholder="اكتب ملاحظة أو اضغط على رسالة للرد...">
                         <button type="submit" class="action-btn">إرسال</button>
                     </form>
                 </div>
@@ -240,7 +263,6 @@
         </div>
     </div>
 
-    <!-- نافذة تكبير الصور عند الضغط عليها -->
     <div class="preview-modal" id="imageModal" onclick="closeImageModal()">
         <span class="close-modal">&times;</span>
         <img id="modalImg" src="" alt="صورة مكبرة">
@@ -256,6 +278,7 @@
         let myUserId = '';
         let mediaRecorder = null, audioChunks = [];
         let localStream = null;
+        let activeReplyTarget = null; // تخزين بيانات الرسالة المراد الرد عليها
 
         let teamMembers = [
             { id: 1, name: 'أحمد محمود', role: 'مدير إنتاج', dept: 'production' },
@@ -315,6 +338,7 @@
             document.querySelectorAll('.dept-btn').forEach(b => b.classList.remove('active'));
             if(evt && evt.currentTarget) evt.currentTarget.classList.add('active');
             
+            cancelReply();
             showPanel('chat-panel');
             loadMessages();
             renderTasks();
@@ -370,11 +394,23 @@
             let contentText = msg.content || '';
             let senderName = isSelf ? myUsername : 'عضو في الفريق';
             let isUrgent = false;
+            let replyData = null;
 
             if(contentText.startsWith('[URGENT]:')) {
                 isUrgent = true;
                 contentText = contentText.replace('[URGENT]:', '');
             }
+
+            /* استخراج تفاصيل الرد المقتبس إن وجد */
+            if(contentText.startsWith('[REPLY_TO]:')) {
+                try {
+                    const parts = contentText.split('::[MSG]:');
+                    const replyMeta = parts[0].replace('[REPLY_TO]:', '');
+                    replyData = JSON.parse(replyMeta);
+                    contentText = parts[1] || '';
+                } catch(e){}
+            }
+
             if(contentText.startsWith('[NAME]:')) {
                 const parts = contentText.split('::');
                 senderName = parts[0].replace('[NAME]:', '');
@@ -382,29 +418,52 @@
             }
 
             bubble.className = `msg-bubble ${isSelf ? 'self' : ''} ${isUrgent ? 'urgent' : ''}`;
+            
             let audioUrl = '', videoUrl = '', fileUrl = '';
 
             if(contentText.startsWith('[AUDIO]:')) {
                 audioUrl = contentText.replace('[AUDIO]:', '').trim();
-                contentText = '';
+                contentText = '🎤 رسالة صوتية';
             } else if(contentText.startsWith('[VIDEO]:')) {
                 videoUrl = contentText.replace('[VIDEO]:', '').trim();
-                contentText = '';
+                contentText = '🎥 مقطع فيديو';
             } else if(contentText.startsWith('[FILE]:')) {
                 fileUrl = contentText.replace('[FILE]:', '').trim();
-                contentText = '';
+                contentText = fileUrl.startsWith('data:image/') ? '📷 صورة مرفقة' : '📄 ملف مرفق';
             }
 
-            let deleteBtnHtml = msg.id ? `<button class="delete-btn" onclick="deleteMsg('${msg.id}')">🗑️ حذف</button>` : '';
+            // إمكانية النقر للرد
+            const summaryForReply = contentText;
+            const authorForReply = senderName;
+            bubble.onclick = (e) => {
+                if(e.target.tagName !== 'BUTTON' && e.target.tagName !== 'IMG' && e.target.tagName !== 'AUDIO' && e.target.tagName !== 'VIDEO') {
+                    setReplyTarget(senderName, summaryForReply);
+                }
+            };
+
+            let deleteBtnHtml = msg.id ? `<button class="delete-btn" onclick="deleteMsg('${msg.id}', event)">🗑️ حذف</button>` : '';
 
             let html = `
                 <div class="msg-info">
                     <span>${senderName} ${isUrgent ? '🚨 (بلاغ عاجل)' : ''}</span>
-                    ${deleteBtnHtml}
+                    <div class="msg-actions">
+                        <button class="reply-btn" onclick="setReplyTarget('${senderName}', '${summaryForReply.replace(/'/g, "\\'")}')">↩️ رد</button>
+                        ${deleteBtnHtml}
+                    </div>
                 </div>`;
 
-            if(contentText) html += `<div>${contentText}</div>`;
-            
+            if(replyData) {
+                html += `
+                <div class="reply-quote">
+                    <div class="reply-quote-author">رد على: ${replyData.author}</div>
+                    <div>${replyData.text}</div>
+                </div>`;
+            }
+
+            if(contentText && !audioUrl && !videoUrl && !fileUrl) {
+                html += `<div>${contentText}</div>`;
+            }
+
             if(audioUrl) {
                 html += `
                 <div class="audio-player-box">
@@ -419,7 +478,6 @@
                 </div>`;
             }
 
-            /* إظهار الصورة مضغوطة بشكل ممتازة وقابلة للتكبير بنقرة واحدة */
             if(fileUrl) {
                 if(fileUrl.startsWith('data:image/')) {
                     html += `
@@ -434,6 +492,20 @@
             html += `<div class="msg-time">${new Date(msg.created_at || Date.now()).toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'})}</div>`;
             bubble.innerHTML = html;
             list.scrollTop = list.scrollHeight;
+        }
+
+        /* دوال معالجة وإلغاء الرد */
+        function setReplyTarget(author, text) {
+            activeReplyTarget = { author, text };
+            document.getElementById('reply-author').innerText = 'الرد على: ' + author;
+            document.getElementById('reply-text-preview').innerText = text;
+            document.getElementById('reply-preview').classList.add('active');
+            document.getElementById('chat-input').focus();
+        }
+
+        function cancelReply() {
+            activeReplyTarget = null;
+            document.getElementById('reply-preview').classList.remove('active');
         }
 
         async function sendMessage() {
@@ -453,7 +525,14 @@
         }
 
         async function sendPayload(content) {
-            const fullContent = `[NAME]:${myUsername}::${content}`;
+            let finalPayload = content;
+            if(activeReplyTarget) {
+                const replyJson = JSON.stringify(activeReplyTarget);
+                finalPayload = `[REPLY_TO]:${replyJson}::[MSG]:${content}`;
+                cancelReply();
+            }
+
+            const fullContent = `[NAME]:${myUsername}::${finalPayload}`;
             const { error } = await db.from('messages').insert([{ 
                 user_id: myUserId, 
                 content: fullContent, 
@@ -462,7 +541,8 @@
             if(error) alert('خطأ في الإرسال: ' + error.message);
         }
 
-        async function deleteMsg(id) {
+        async function deleteMsg(id, event) {
+            if(event) event.stopPropagation();
             if(confirm('هل تريد حذف هذه الرسالة نهائياً؟')) {
                 const { error } = await db.from('messages').delete().eq('id', id);
                 if(!error) {
@@ -487,13 +567,17 @@
             } else {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
+                    let options = { mimeType: 'audio/webm' };
+                    if (!MediaRecorder.isTypeSupported('audio/webm')) {
+                        options = { mimeType: 'audio/mp4' };
+                    }
+                    mediaRecorder = new MediaRecorder(stream, options);
                     audioChunks = [];
                     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                     
                     mediaRecorder.onstop = () => {
                         btn.innerText = "⏳";
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
                         const reader = new FileReader();
                         reader.readAsDataURL(audioBlob);
                         reader.onloadend = () => {
@@ -509,17 +593,26 @@
             }
         }
 
-        /* معالجة وضغط الصور تلقائياً قبل الرفع لتفادي أي أخطاء أو بطء */
         async function handleFileUpload(input) {
             if(input.files && input.files[0]) {
                 const file = input.files[0];
                 
+                if(file.size > 15 * 1024 * 1024) {
+                    alert('حجم الملف كبير جداً، يرجى اختيار فيديو أو ملف بحجم أقل من 15 ميجابايت.');
+                    input.value = '';
+                    return;
+                }
+
                 if(file.type.startsWith('image/')) {
                     compressAndSendImage(file);
                 } else if(file.type.startsWith('video/')) {
                     const reader = new FileReader();
                     reader.readAsDataURL(file);
                     reader.onloadend = () => sendPayload(`[VIDEO]:${reader.result}`);
+                } else if(file.type.startsWith('audio/')) {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onloadend = () => sendPayload(`[AUDIO]:${reader.result}`);
                 } else {
                     const reader = new FileReader();
                     reader.readAsDataURL(file);
@@ -529,7 +622,6 @@
             }
         }
 
-        /* دوال ضغط الصور الخفيفة داخل المتصفح مباشرة */
         function compressAndSendImage(file) {
             const img = new Image();
             const reader = new FileReader();
@@ -540,7 +632,7 @@
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
-                    const max_size = 1000; // أقصى أبعاد مسموحة بالحجم المالي الخفيف
+                    const max_size = 1000;
 
                     if (width > height) {
                         if (width > max_size) {
@@ -557,7 +649,7 @@
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7); // ضغط بجودة ممتازة وسلسة
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
                     sendPayload(`[FILE]:${compressedBase64}`);
                 };
             };

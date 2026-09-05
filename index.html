@@ -164,11 +164,16 @@
             const container = document.getElementById('chat-msgs');
             container.innerHTML = '';
 
-            const { data, error } = await db.from('messages').select('*').eq('room_id', currentRoomId).order('created_at', { ascending: true });
+            const { data, error } = await db.from('messages').select('*').order('created_at', { ascending: true });
             if(error) {
                 console.error("خطأ جلب الرسائل:", error);
             } else if(data) {
-                data.forEach(msg => renderMessageUI(msg));
+                data.forEach(msg => {
+                    // تصفية الرسائل حسب الغرفة إن وجد عمود الغرفة
+                    if(!msg.room_id || msg.room_id === currentRoomId) {
+                        renderMessageUI(msg);
+                    }
+                });
             }
             container.scrollTop = container.scrollHeight;
         }
@@ -176,7 +181,7 @@
         function listenRealtime() {
             db.channel('realtime:messages')
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                  if(payload.new.room_id === currentRoomId) {
+                  if(!payload.new.room_id || payload.new.room_id === currentRoomId) {
                       renderMessageUI(payload.new);
                       const container = document.getElementById('chat-msgs');
                       container.scrollTop = container.scrollHeight;
@@ -186,16 +191,31 @@
 
         function renderMessageUI(msg) {
             const container = document.getElementById('chat-msgs');
-            // التأكد من عدم تكرار إضافة نفس الرسالة
             if(document.getElementById('msg-' + msg.id)) return;
 
             const bubble = document.createElement('div');
             bubble.id = 'msg-' + (msg.id || Date.now());
-            bubble.className = `msg-bubble ${msg.sender === myUsername ? 'self' : ''}`;
             
-            let html = `<div><strong>${msg.sender}:</strong> ${msg.content || ''}</div>`;
-            if(msg.audio_url) html += `<audio controls src="${msg.audio_url}"></audio>`;
-            if(msg.file_url) html += `<a href="${msg.file_url}" target="_blank" style="color:#60a5fa;">📄 عرض الملف المرفق</a>`;
+            // لقراءة اسم المستخدِم بجميع الأشكال الممكنة لتفادي undefined
+            const senderName = msg.sender || msg.username || msg.user_id || msg.user || 'مستخدم';
+            bubble.className = `msg-bubble ${senderName === myUsername ? 'self' : ''}`;
+            
+            let contentText = msg.content || '';
+            let audioUrl = msg.audio_url;
+            let fileUrl = msg.file_url;
+
+            // تحويل الصيغ النصية القديمة [AUDIO] و [FILE] لتظهر كملفات حقيقية
+            if(contentText.startsWith('[AUDIO]:')) {
+                audioUrl = contentText.replace('[AUDIO]:', '').trim();
+                contentText = '';
+            } else if(contentText.startsWith('[FILE]:')) {
+                fileUrl = contentText.replace('[FILE]:', '').trim();
+                contentText = '';
+            }
+
+            let html = `<div><strong>${senderName}:</strong> ${contentText}</div>`;
+            if(audioUrl) html += `<audio controls src="${audioUrl}" style="max-width:100%; margin-top:6px;"></audio>`;
+            if(fileUrl) html += `<a href="${fileUrl}" target="_blank" style="color:#60a5fa; margin-top:6px; display:inline-block; font-weight:bold;">📄 فتح / تحميل الملف المرفق</a>`;
             if(msg.is_video) {
                 html += `
                     <div class="video-broadcast-card">
@@ -216,20 +236,21 @@
 
             let audioUrl = null;
             if(recordedAudioBlob) {
-                const fileName = `audio_${Date.now()}.mp3`;
-                const { data, error: uploadErr } = await db.storage.from('chat-attachments').upload(fileName, recordedAudioBlob);
+                const fileName = `audio_${Date.now()}.webm`;
+                const { data, error: uploadErr } = await db.storage.from('audio-messages').upload(fileName, recordedAudioBlob);
                 if(uploadErr) alert('حدث خطأ في رفـع الصـوت: ' + uploadErr.message);
                 else {
-                    const res = db.storage.from('chat-attachments').getPublicUrl(fileName);
+                    const res = db.storage.from('audio-messages').getPublicUrl(fileName);
                     audioUrl = res.data.publicUrl;
                 }
             }
 
+            // تجهيز البيانات بإرسال مفاتيح مرنة لتجنب مشكلات عدم تطابق الأعمدة
             const msgData = {
-                room_id: currentRoomId,
                 sender: myUsername,
-                content: messageText,
-                audio_url: audioUrl
+                username: myUsername,
+                content: audioUrl ? `[AUDIO]:${audioUrl}` : messageText,
+                room_id: currentRoomId
             };
 
             input.value = '';
@@ -238,8 +259,12 @@
             const { data, error } = await db.from('messages').insert([msgData]).select();
 
             if(error) {
-                alert('فشل إرسال الرسالة: ' + error.message);
-                console.error(error);
+                // محاولة إرسال بسيطة جداً في حال كانت بعض الأعمدة جافة من الدعم في الجدول
+                const fallbackData = { content: messageText || audioUrl };
+                if(msgData.sender) fallbackData.sender = myUsername;
+                const { error: err2 } = await db.from('messages').insert([fallbackData]);
+                if(err2) alert('فشل إرسال الرسالة: ' + error.message);
+                else loadMessages();
             } else if(data && data.length > 0) {
                 renderMessageUI(data[0]);
             }
@@ -258,7 +283,7 @@
                     audioChunks = [];
                     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                     mediaRecorder.onstop = () => {
-                        recordedAudioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                        recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                         alert('تم تسجيل المقطع الصوتي، اضغط إرسال.');
                     };
                     mediaRecorder.start();
@@ -271,17 +296,18 @@
         async function handleFileUpload(input) {
             if(input.files && input.files[0]) {
                 const file = input.files[0];
-                const fileName = `file_${Date.now()}_${file.name}`;
-                const { data, error } = await db.storage.from('chat-attachments').upload(fileName, file);
+                const fileName = `chat_${Date.now()}_${file.name}`;
+                const { data, error } = await db.storage.from('chat-files').upload(fileName, file);
                 
                 if(error) alert('فشل رفع الملف: ' + error.message);
                 else if(data) {
-                    const res = db.storage.from('chat-attachments').getPublicUrl(fileName);
+                    const res = db.storage.from('chat-files').getPublicUrl(fileName);
+                    const fileUrl = res.data.publicUrl;
                     await db.from('messages').insert([{
-                        room_id: currentRoomId,
                         sender: myUsername,
-                        content: `مرفق ملف: ${file.name}`,
-                        file_url: res.data.publicUrl
+                        username: myUsername,
+                        content: `[FILE]:${fileUrl}`,
+                        room_id: currentRoomId
                     }]);
                     loadMessages();
                 }
@@ -311,10 +337,11 @@
 
         async function startContextVideo() {
             await db.from('messages').insert([{
-                room_id: currentRoomId,
                 sender: myUsername,
+                username: myUsername,
                 content: 'بدأ بث فيديو مباشر',
-                is_video: true
+                is_video: true,
+                room_id: currentRoomId
             }]);
             switchView('video-call');
             toggleCameraStream();

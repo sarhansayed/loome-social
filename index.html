@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Loome Factory Suite - نظام تواصل مصنع مستحضرات التجميل</title>
+    <title>Loome Cosmetics Factory</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-primary: #0f172a;
             --bg-secondary: #1e293b;
             --bg-card: #334155;
-            --accent-color: #0d9488; /* Teal / Factory Professional */
+            --accent-color: #0d9488;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --border-color: #475569;
@@ -19,132 +19,146 @@
             --warning-color: #f59e0b;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-primary); color: var(--text-main); display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
         
-        /* Header */
-        header { height: 60px; background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0; }
-        .factory-title { font-size: 1.05rem; font-weight: bold; color: #2dd4bf; display: flex; align-items: center; gap: 6px; }
-        .user-badge { font-size: 0.75rem; color: #5eead4; background: rgba(13, 148, 136, 0.2); padding: 4px 10px; border-radius: 20px; border: 1px solid var(--accent-color); }
+        /* Header Responsive Fix */
+        header { 
+            height: 60px; 
+            background-color: var(--bg-secondary); 
+            border-bottom: 1px solid var(--border-color); 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 0 8px; 
+            flex-shrink: 0; 
+            gap: 4px;
+        }
         
-        /* Layout */
+        .header-right { display: flex; align-items: center; gap: 6px; overflow: hidden; }
+        .menu-toggle { background: transparent; border: none; color: #fff; font-size: 1.4rem; padding: 4px 8px; cursor: pointer; }
+        .factory-title { font-size: 0.85rem; font-weight: bold; color: #2dd4bf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .header-left { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .user-badge { font-size: 0.7rem; color: #5eead4; background: rgba(13, 148, 136, 0.2); padding: 3px 6px; border-radius: 12px; border: 1px solid var(--accent-color); white-space: nowrap; }
+        .zoom-btn { background: #0284c7; color: white; border: none; padding: 5px 8px; font-size: 0.75rem; font-weight: bold; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+
+        /* Main Container */
         .main-container { flex: 1; display: flex; overflow: hidden; position: relative; }
         
-        /* Sidebar Navigation for Departments */
-        .sidebar { width: 260px; background-color: var(--bg-secondary); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; flex-shrink: 0; }
-        .dept-header { padding: 12px; font-weight: bold; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); text-transform: uppercase; }
-        .dept-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
-        .dept-btn { background: transparent; border: none; color: var(--text-main); padding: 10px 12px; border-radius: 8px; text-align: right; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 0.88rem; transition: background 0.2s; }
-        .dept-btn:hover, .dept-btn.active { background-color: var(--bg-card); color: #2dd4bf; font-weight: bold; }
-        .dept-icon { margin-left: 8px; font-size: 1.1rem; }
+        /* Drawer Overlay */
+        .overlay { display: none; position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); z-index: 40; }
+        .overlay.active { display: block; }
 
-        /* Main Workspace */
-        .content-area { flex: 1; display: flex; flex-direction: column; position: relative; background: #0b1329; }
+        /* Mobile Responsive Sidebar */
+        .sidebar { 
+            width: 270px; 
+            background-color: var(--bg-secondary); 
+            border-left: 1px solid var(--border-color); 
+            display: flex; 
+            flex-direction: column; 
+            position: absolute; 
+            top: 0; bottom: 0; right: 0; 
+            z-index: 50; 
+            transform: translateX(100%); 
+            transition: transform 0.25s ease-in-out; 
+        }
+        .sidebar.open { transform: translateX(0); }
+        
+        .dept-header { padding: 12px; font-weight: bold; font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .dept-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+        .dept-btn { background: transparent; border: none; color: var(--text-main); padding: 10px 12px; border-radius: 8px; text-align: right; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; width: 100%; }
+        .dept-btn:hover, .dept-btn.active { background-color: var(--bg-card); color: #2dd4bf; font-weight: bold; }
+
+        /* Content Area */
+        .content-area { flex: 1; display: flex; flex-direction: column; position: relative; background: #0b1329; width: 100%; overflow: hidden; }
         
         /* Chat View */
-        .chat-container { display: flex; flex-direction: column; height: 100%; }
-        .chat-header { padding: 10px 16px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        .messages-list { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .chat-container { display: flex; flex-direction: column; height: 100%; width: 100%; }
+        .chat-header { padding: 8px 12px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .messages-list { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         
         /* Bubbles */
-        .msg-bubble { background-color: var(--bg-secondary); padding: 10px 14px; border-radius: 12px; max-width: 75%; font-size: 0.9rem; align-self: flex-start; display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--border-color); position: relative; }
+        .msg-bubble { background-color: var(--bg-secondary); padding: 8px 12px; border-radius: 12px; max-width: 85%; font-size: 0.88rem; align-self: flex-start; border: 1px solid var(--border-color); }
         .msg-bubble.self { align-self: flex-end; background-color: #0f4c5c; border-color: #136f63; }
-        .msg-info { font-size: 0.75rem; color: #2dd4bf; font-weight: bold; display: flex; justify-content: space-between; gap: 10px; margin-bottom: 2px; }
-        .msg-time { font-size: 0.65rem; color: var(--text-muted); align-self: flex-end; margin-top: 4px; }
+        .msg-info { font-size: 0.72rem; color: #2dd4bf; font-weight: bold; margin-bottom: 2px; }
+        .msg-time { font-size: 0.65rem; color: var(--text-muted); text-align: left; margin-top: 4px; }
         
-        /* Actions & Reactions */
-        .msg-actions { display: flex; gap: 10px; font-size: 0.75rem; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px; }
-        .action-link { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.75rem; }
-        .action-link:hover { color: #fff; }
-        .reactions-bar { display: flex; gap: 4px; margin-top: 4px; }
-        .react-btn { background: rgba(0,0,0,0.3); border: none; border-radius: 12px; padding: 2px 6px; font-size: 0.75rem; cursor: pointer; color: #fff; }
+        /* Chat Input Area (Mobile Friendly) */
+        .chat-input-bar { padding: 8px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+        .reactions-quick { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+        .react-btn { background: rgba(0,0,0,0.3); border: none; border-radius: 12px; padding: 3px 8px; font-size: 0.8rem; cursor: pointer; color: #fff; flex-shrink: 0; }
 
-        /* Form Inputs */
-        .chat-input-bar { padding: 12px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 8px; }
-        .input-row { display: flex; gap: 8px; align-items: center; }
-        input[type="text"] { flex: 1; background-color: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 14px; border-radius: 8px; outline: none; font-size: 0.9rem; }
-        .btn { background-color: var(--accent-color); color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
-        .btn-danger { background-color: var(--danger-color); }
-        .btn-audio { background-color: #6366f1; }
-        .file-label { background: var(--bg-card); color: #fff; padding: 10px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border-color); }
+        .input-row { display: flex; gap: 6px; align-items: center; width: 100%; }
+        input[type="text"] { flex: 1; background-color: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 10px; border-radius: 8px; outline: none; font-size: 0.85rem; min-width: 0; }
+        
+        .action-btn { background-color: var(--accent-color); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; flex-shrink: 0; }
+        .file-label { background: var(--bg-card); color: #fff; padding: 8px 10px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border-color); flex-shrink: 0; font-size: 0.9rem; }
 
-        /* Panels for Team Admin & Video */
-        .panel { display: none; padding: 20px; overflow-y: auto; height: 100%; }
+        /* Panels */
+        .panel { display: none; padding: 12px; overflow-y: auto; height: 100%; width: 100%; }
         .panel.active { display: block; }
-        .card { background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 16px; border-radius: 10px; margin-bottom: 16px; }
-        .table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .table th, .table td { padding: 10px; border: 1px solid var(--border-color); text-align: right; font-size: 0.85rem; }
-        .table th { background: var(--bg-card); color: #2dd4bf; }
+        .card { background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; margin-bottom: 12px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+        .form-control { background: var(--bg-primary); border: 1px solid var(--border-color); color: #fff; padding: 8px; border-radius: 6px; font-size: 0.85rem; width: 100%; }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .sidebar { width: 100%; height: 100%; position: absolute; z-index: 50; transform: translateX(100%); transition: transform 0.3s; }
-            .sidebar.open { transform: translateX(0); }
-            .msg-bubble { max-width: 90%; }
-        }
+        .table-responsive { overflow-x: auto; width: 100%; }
+        .table { width: 100%; border-collapse: collapse; min-width: 320px; }
+        .table th, .table td { padding: 8px; border: 1px solid var(--border-color); text-align: right; font-size: 0.8rem; }
+        .table th { background: var(--bg-card); color: #2dd4bf; }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
     <header>
-        <div class="factory-title">
-            <button class="btn" style="padding:4px 8px; background:transparent;" onclick="toggleSidebar()">☰</button>
-            🏢 Loome Cosmetics Factory
+        <div class="header-right">
+            <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+            <div class="factory-title">🏭 Loome Cosmetics</div>
         </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-            <span class="user-badge" id="current-user-display">مستثمر / مدير المصنع</span>
-            <button class="btn" style="background:#0284c7; padding:6px 12px; font-size:0.8rem;" onclick="openVideoCall()">📹 اجتماع Zoom</button>
+        <div class="header-left">
+            <span class="user-badge" id="current-user-display">المدير العام</span>
+            <button class="zoom-btn" onclick="openVideoCall()">📹 Zoom</button>
         </div>
     </header>
 
     <div class="main-container">
         
-        <!-- Sidebar Navigation (إدارات المصنع) -->
+        <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+        <!-- Sidebar Navigation -->
         <div class="sidebar" id="sidebar">
-            <div class="dept-header">إدارات المصنع والأقسام</div>
+            <div class="dept-header">
+                <span>إدارات المصنع</span>
+                <button style="background:none; border:none; color:#fff; font-size:1.1rem;" onclick="toggleSidebar()">✕</button>
+            </div>
             <div class="dept-list">
-                <button class="dept-btn active" onclick="switchDepartment('production', '🏭 إدارة الإنتاج والتخطيط')">
-                    <span><span class="dept-icon">🏭</span> الإنتاج والتخطيط</span>
-                </button>
-                <button class="dept-btn" onclick="switchDepartment('qc_qa', '🧪 الجودة والمعامل (QC/QA)')">
-                    <span><span class="dept-icon">🧪</span> الجودة والمعامل</span>
-                </button>
-                <button class="dept-btn" onclick="switchDepartment('inventory', '📦 المخازن والمشتريات')">
-                    <span><span class="dept-icon">📦</span> المخازن والمشتريات</span>
-                </button>
-                <button class="dept-btn" onclick="switchDepartment('admin_hr', '👔 الشؤون الإدارية (HR)')">
-                    <span><span class="dept-icon">👔</span> الشؤون الإدارية</span>
-                </button>
-                <button class="dept-btn" onclick="switchDepartment('finance', '💰 الإدارة المالية')">
-                    <span><span class="dept-icon">💰</span> الإدارة المالية</span>
-                </button>
-                <button class="dept-btn" onclick="switchDepartment('general', '💬 القناة العامة للمصنع')">
-                    <span><span class="dept-icon">💬</span> القناة العامة</span>
-                </button>
+                <button class="dept-btn active" onclick="switchDepartment('production', '🏭 إدارة الإنتاج والتخطيط')">🏭 الإنتاج والتخطيط</button>
+                <button class="dept-btn" onclick="switchDepartment('qc_qa', '🧪 الجودة والمعامل')">🧪 الجودة والمعامل (QC/QA)</button>
+                <button class="dept-btn" onclick="switchDepartment('inventory', '📦 المخازن والمشتريات')">📦 المخازن والمشتريات</button>
+                <button class="dept-btn" onclick="switchDepartment('admin_hr', '👔 الشؤون الإدارية')">👔 الشؤون الإدارية (HR)</button>
+                <button class="dept-btn" onclick="switchDepartment('finance', '💰 الإدارة المالية')">💰 الإدارة المالية</button>
+                <button class="dept-btn" onclick="switchDepartment('general', '💬 القناة العامة')">💬 القناة العامة</button>
                 
                 <div style="margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border-color);">
-                    <button class="dept-btn" style="color: var(--warning-color);" onclick="showPanel('team-management')">
-                        <span><span class="dept-icon">👥</span> إدارة أعضاء الفريق</span>
-                    </button>
+                    <button class="dept-btn" style="color: var(--warning-color);" onclick="showPanel('team-management')">👥 إدارة أعضاء الفريق</button>
                 </div>
             </div>
         </div>
 
-        <!-- Main Workspace View -->
+        <!-- Content Area -->
         <div class="content-area">
             
             <!-- Chat Panel -->
             <div id="chat-panel" class="chat-container">
                 <div class="chat-header">
-                    <h3 id="current-dept-title" style="font-size: 1rem; color: #2dd4bf;">🏭 إدارة الإنتاج والتخطيط</h3>
-                    <span style="font-size:0.75rem; color:var(--text-muted);">مشفّر وخاص بالمصنع</span>
+                    <h3 id="current-dept-title" style="font-size: 0.88rem; color: #2dd4bf;">🏭 إدارة الإنتاج والتخطيط</h3>
+                    <span style="font-size:0.68rem; color:var(--text-muted);">خاص بالمصنع</span>
                 </div>
 
                 <div class="messages-list" id="chat-msgs"></div>
 
                 <div class="chat-input-bar">
-                    <div style="display:flex; gap:6px;">
+                    <div class="reactions-quick">
                         <button class="react-btn" onclick="addEmoji('👍')">👍</button>
                         <button class="react-btn" onclick="addEmoji('✅')">✅</button>
                         <button class="react-btn" onclick="addEmoji('⚠️')">⚠️</button>
@@ -152,62 +166,61 @@
                         <button class="react-btn" onclick="addEmoji('📦')">📦</button>
                     </div>
                     <form onsubmit="event.preventDefault(); sendMessage();" class="input-row">
-                        <label class="file-label" title="إرفاق ملف/صورة تحاليل/فاتورة">
+                        <label class="file-label" title="إرفاق ملف">
                             📎
                             <input type="file" id="chat-file" style="display:none;" onchange="handleFileUpload(this)">
                         </label>
-                        <button type="button" id="record-btn" class="btn btn-audio" onclick="toggleRecording()">🎙️</button>
-                        <input type="text" id="chat-input" placeholder="اكتب ملاحظة أو أمر تشغيل...">
-                        <button type="submit" class="btn">إرسال</button>
+                        <button type="button" id="record-btn" class="action-btn" style="background:#6366f1;" onclick="toggleRecording()">🎙️</button>
+                        <input type="text" id="chat-input" placeholder="اكتب ملاحظة أو أمر...">
+                        <button type="submit" class="action-btn">إرسال</button>
                     </form>
                 </div>
             </div>
 
-            <!-- Team Management Panel (إضافة وحذف الأعضاء) -->
+            <!-- Team Management Panel -->
             <div id="team-management" class="panel">
                 <div class="card">
-                    <h3 style="color:#2dd4bf; margin-bottom:12px;">إضافة عضو جديد لفريق المصنع</h3>
-                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:12px;">
-                        <input type="text" id="new-user-name" placeholder="اسم الموظف...">
-                        <input type="text" id="new-user-role" placeholder="المسمى الوظيفي (مثال: كيميائي معمل)...">
-                        <select id="new-user-dept" style="background:var(--bg-primary); color:#fff; border:1px solid var(--border-color); padding:10px; border-radius:8px;">
+                    <h4 style="color:#2dd4bf; margin-bottom:10px; font-size:0.9rem;">إضافة عضو جديد للفريق</h4>
+                    <div class="form-group">
+                        <input type="text" id="new-user-name" class="form-control" placeholder="اسم الموظف...">
+                        <input type="text" id="new-user-role" class="form-control" placeholder="المسمى الوظيفي (مثال: كيميائي معمل)...">
+                        <select id="new-user-dept" class="form-control">
                             <option value="production">إدارة الإنتاج والتخطيط</option>
                             <option value="qc_qa">الجودة والمعامل</option>
                             <option value="inventory">المخازن والمشتريات</option>
                             <option value="admin_hr">الشؤون الإدارية</option>
                             <option value="finance">الإدارة المالية</option>
                         </select>
+                        <button class="action-btn" style="width:100%;" onclick="addNewMember()">+ إضافة الموظف</button>
                     </div>
-                    <button class="btn" onclick="addNewMember()">+ إضافة الموظف للنظام</button>
                 </div>
 
                 <div class="card">
-                    <h3 style="color:#2dd4bf; margin-bottom:12px;">قائمة فريق العمل الحالي والصلاحيات</h3>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>اسم الموظف</th>
-                                <th>المسمى الوظيفي</th>
-                                <th>القسم التابع له</th>
-                                <th>الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="team-table-body">
-                            <!-- Team members will be injected here -->
-                        </tbody>
-                    </table>
+                    <h4 style="color:#2dd4bf; margin-bottom:10px; font-size:0.9rem;">قائمة فريق العمل</h4>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>اسم الموظف</th>
+                                    <th>الوظيفة</th>
+                                    <th>القسم</th>
+                                    <th>إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="team-table-body"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- Video Meeting Panel (بديل Zoom) -->
+            <!-- Video Meeting Panel -->
             <div id="video-panel" class="panel">
                 <div class="card" style="text-align:center;">
-                    <h3 style="color:#2dd4bf; margin-bottom:10px;">غرفة الاجتماعات المرئية (Loome Live)</h3>
-                    <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:15px;">اجتماعات إدارية لمتابعة صالة الإنتاج والمعامل</p>
-                    <video id="groupVideoPlayer" autoplay playsinline muted style="width:100%; max-height:400px; background:#000; border-radius:10px; object-fit:cover; margin-bottom:15px;"></video>
-                    <div style="display:flex; justify-content:center; gap:10px;">
-                        <button class="btn" style="background:var(--success-color);" onclick="startCamera()">تفعيل الكاميرا والمايك</button>
-                        <button class="btn btn-danger" onclick="stopCamera()">إنهاء البث</button>
+                    <h4 style="color:#2dd4bf; margin-bottom:8px;">غرفة الاجتماعات المرئية</h4>
+                    <video id="groupVideoPlayer" autoplay playsinline muted style="width:100%; max-height:300px; background:#000; border-radius:8px; object-fit:cover; margin-bottom:10px;"></video>
+                    <div style="display:flex; justify-content:center; gap:8px;">
+                        <button class="action-btn" style="background:var(--success-color);" onclick="startCamera()">تفعيل الكاميرا</button>
+                        <button class="action-btn" style="background:var(--danger-color);" onclick="stopCamera()">إغلاق</button>
                     </div>
                 </div>
             </div>
@@ -225,7 +238,6 @@
         let mediaRecorder = null, audioChunks = [], recordedAudioBlob = null;
         let localStream = null;
 
-        // Sample initial team database
         let teamMembers = [
             { id: 1, name: 'أحمد محمود', role: 'مدير إنتاج', dept: 'production' },
             { id: 2, name: 'د. سارة علي', role: 'مدير الجودة QC', dept: 'qc_qa' },
@@ -242,6 +254,7 @@
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('overlay').classList.toggle('active');
         }
 
         function switchDepartment(deptKey, title) {
@@ -252,7 +265,7 @@
             
             showPanel('chat-panel');
             loadMessages();
-            if(window.innerWidth <= 768) toggleSidebar();
+            toggleSidebar();
         }
 
         function showPanel(panelId) {
@@ -314,28 +327,17 @@
             }
 
             let html = `
-                <div class="msg-info">
-                    <span>${msg.username || 'عضو مصنع'}</span>
-                </div>
+                <div class="msg-info">${msg.username || 'عضو'}</div>
                 <div>${contentText}</div>
             `;
 
-            if(audioUrl) html += `<audio controls src="${audioUrl}" style="max-width:100%; margin-top:6px;"></audio>`;
-            if(fileUrl) html += `<a href="${fileUrl}" target="_blank" style="color:#60a5fa; margin-top:6px; display:inline-block; font-weight:bold;">📄 المرفق / التقرير</a>`;
-
-            html += `
-                <div class="reactions-bar">
-                    <button class="react-btn" onclick="reactToMsg('${msg.id}', '❤️')">❤️</button>
-                    <button class="react-btn" onclick="reactToMsg('${msg.id}', '👍')">👍</button>
-                    <button class="react-btn" onclick="reactToMsg('${msg.id}', '✅')">✅</button>
-                </div>
-            `;
+            if(audioUrl) html += `<audio controls src="${audioUrl}" style="width:100%; margin-top:4px; height:30px;"></audio>`;
+            if(fileUrl) html += `<a href="${fileUrl}" target="_blank" style="color:#60a5fa; margin-top:4px; display:inline-block; font-size:0.8rem; font-weight:bold;">📄 الملف المرفق</a>`;
 
             if(isSelf && msg.id) {
                 html += `
-                    <div class="msg-actions">
-                        ${contentText ? `<button class="action-link" onclick="editMsg('${msg.id}', \`${contentText}\`)">✏️ تعديل</button>` : ''}
-                        <button class="action-link" style="color:var(--danger-color);" onclick="deleteMsg('${msg.id}')">🗑️ حذف</button>
+                    <div style="display:flex; gap:8px; font-size:0.7rem; margin-top:4px; border-top:1px solid rgba(255,255,255,0.1); padding-top:2px;">
+                        <button style="background:none; border:none; color:var(--danger-color); cursor:pointer;" onclick="deleteMsg('${msg.id}')">حذف</button>
                     </div>
                 `;
             }
@@ -370,16 +372,8 @@
             await db.from('messages').insert([{ username: myUsername, content: content, room_id: currentDept }]);
         }
 
-        async function editMsg(id, oldText) {
-            const newText = prompt('تعديل الرسالة/أمر التشغيل:', oldText);
-            if(newText && newText !== oldText) {
-                await db.from('messages').update({ content: newText }).eq('id', id);
-                loadMessages();
-            }
-        }
-
         async function deleteMsg(id) {
-            if(confirm('هل تريد حذف هذه الرسالة من القناة؟')) {
+            if(confirm('حذف الرسالة؟')) {
                 await db.from('messages').delete().eq('id', id);
                 const el = document.getElementById('msg-' + id);
                 if(el) el.remove();
@@ -409,7 +403,7 @@
                     mediaRecorder.start();
                     btn.innerText = "⏹️";
                     btn.style.backgroundColor = "#ef4444";
-                } catch (e) { alert('الرجاء إعطاء صلاحية المايك لتسجيل الصوت'); }
+                } catch (e) { alert('برجاء تفعيل صلاحية تسجيل الصوت'); }
             }
         }
 
@@ -425,7 +419,6 @@
             }
         }
 
-        // Team Management Functions (إضافة/حذف الأعضاء)
         function renderTeamTable() {
             const tbody = document.getElementById('team-table-body');
             tbody.innerHTML = '';
@@ -435,7 +428,7 @@
                     <td><strong>${m.name}</strong></td>
                     <td>${m.role}</td>
                     <td>${getDeptLabel(m.dept)}</td>
-                    <td><button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="removeMember(${m.id})">إزالة العضو</button></td>
+                    <td><button style="background:var(--danger-color); color:#fff; border:none; padding:3px 6px; border-radius:4px; font-size:0.7rem;" onclick="removeMember(${m.id})">إزالة</button></td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -451,32 +444,29 @@
             const role = document.getElementById('new-user-role').value.trim();
             const dept = document.getElementById('new-user-dept').value;
 
-            if(!name || !role) return alert('برجاء إدخال اسم الموظف والمسمى الوظيفي');
+            if(!name || !role) return alert('أدخل بيانات الموظف كاملة');
 
             teamMembers.push({ id: Date.now(), name, role, dept });
             renderTeamTable();
             document.getElementById('new-user-name').value = '';
             document.getElementById('new-user-role').value = '';
-            alert(`تمت إضافة الموظف (${name}) وإرسال رابط الوصول إليه بنجاح.`);
+            alert(`تمت إضافة (${name}) بنجاح.`);
         }
 
         function removeMember(id) {
-            if(confirm('هل أنت تأكد من سحب صلاحيات هذا الموظف وإزالته من النظام؟')) {
+            if(confirm('حذف الموظف من النظام؟')) {
                 teamMembers = teamMembers.filter(m => m.id !== id);
                 renderTeamTable();
             }
         }
 
-        // Video Meeting Functions
-        function openVideoCall() {
-            showPanel('video-panel');
-        }
+        function openVideoCall() { showPanel('video-panel'); }
 
         async function startCamera() {
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 document.getElementById('groupVideoPlayer').srcObject = localStream;
-            } catch(e) { alert('تعذر الوصول للكاميرا/المايك'); }
+            } catch(e) { alert('تعذر الوصول للكاميرا'); }
         }
 
         function stopCamera() {

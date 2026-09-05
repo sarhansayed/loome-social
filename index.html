@@ -75,7 +75,7 @@
         .msg-time { font-size: 0.65rem; color: var(--text-muted); text-align: left; margin-top: 4px; }
         
         .audio-wrapper { width: 100%; max-width: 200px; margin-top: 4px; }
-        .audio-wrapper audio { width: 100%; height: 32px; border-radius: 16px; }
+        .audio-wrapper audio { width: 100%; height: 32px; border-radius: 16px; background: transparent; }
 
         .chat-input-bar { padding: 8px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
         .reactions-quick { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
@@ -311,7 +311,8 @@
                 list.appendChild(bubble);
             }
 
-            const sender = msg.username || msg.user_id || 'عضو';
+            // استخدام user_id لمعالجة خلل قاعدة البيانات
+            const sender = msg.user_id || msg.username || 'عضو';
             const isSelf = sender === myUsername;
             bubble.className = `msg-bubble ${isSelf ? 'self' : ''}`;
 
@@ -365,8 +366,9 @@
         }
 
         async function sendPayload(content) {
+            // إرسال البيانات باستخدام العمود المتوافق مع الجدول (user_id)
             const { error } = await db.from('messages').insert([{ 
-                username: myUsername, 
+                user_id: myUsername, 
                 content: content, 
                 room_id: currentDept 
             }]);
@@ -398,28 +400,15 @@
                     audioChunks = [];
                     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                     
-                    mediaRecorder.onstop = async () => {
+                    mediaRecorder.onstop = () => {
                         btn.innerText = "⏳";
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-                        const formData = new FormData();
-                        formData.append('file', audioBlob);
-                        formData.append('upload_preset', 'ml_default');
-
-                        try {
-                            const res = await fetch('https://api.cloudinary.com/v1_1/demo/video/upload', {
-                                method: 'POST',
-                                body: formData
-                            });
-                            const data = await res.json();
-                            if(data.secure_url) {
-                                sendPayload(`[AUDIO]:${data.secure_url}`);
-                            } else {
-                                alert('يرجى كتابة نص، أو إرسال التسجيل الصوتي مرة أخرى');
-                            }
-                        } catch(e) {
-                            alert('تعذر إرسال الصوت عبر الشبكة');
-                        }
-                        btn.innerText = "🎙️";
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const reader = new FileReader();
+                        reader.readAsDataURL(audioBlob);
+                        reader.onloadend = () => {
+                            sendPayload(`[AUDIO]:${reader.result}`);
+                            btn.innerText = "🎙️";
+                        };
                     };
 
                     mediaRecorder.start();
@@ -432,18 +421,11 @@
         async function handleFileUpload(input) {
             if(input.files && input.files[0]) {
                 const file = input.files[0];
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('upload_preset', 'ml_default');
-
-                try {
-                    const res = await fetch('https://api.cloudinary.com/v1_1/demo/image/upload', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const data = await res.json();
-                    if(data.secure_url) sendPayload(`[FILE]:${data.secure_url}`);
-                } catch(e) { alert('تعذر رفع الملف'); }
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onloadend = () => {
+                    sendPayload(`[FILE]:${reader.result}`);
+                };
             }
         }
 

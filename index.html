@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Loome Social - لومي سبيس</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
@@ -17,9 +17,9 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-        body { background-color: var(--bg-main); color: var(--text-dark); height: 100vh; display: flex; }
+        html, body { height: 100%; width: 100%; background-color: var(--bg-main); color: var(--text-dark); overflow: hidden; }
 
-        .app-container { width: 100%; height: 100vh; background: var(--panel-bg); display: flex; overflow: hidden; }
+        .app-container { width: 100%; height: 100%; background: var(--panel-bg); display: flex; flex-direction: column; }
 
         /* Auth Screen */
         .auth-box { width: 90%; max-width: 400px; margin: auto; padding: 25px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
@@ -27,32 +27,32 @@
         .auth-box button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
 
         /* Main Dashboard Responsive */
-        .main-dashboard { display: flex; width: 100%; height: 100%; flex-direction: row; }
+        .main-dashboard { display: flex; width: 100%; height: 100%; flex-direction: column; }
 
-        /* Sidebar Responsive */
-        .sidebar { width: 80px; background: #f8f9fa; border-left: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between; padding: 15px 5px; align-items: center; }
-        .brand { font-size: 14px; font-weight: bold; color: var(--primary); margin-bottom: 15px; text-align: center; }
-        .nav-btn { width: 100%; padding: 10px 5px; margin-bottom: 8px; border: none; background: transparent; border-radius: 8px; text-align: center; font-size: 12px; color: var(--text-dark); cursor: pointer; }
+        /* Navigation Bar for Mobile */
+        .sidebar { width: 100%; background: #ffffff; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: row; justify-content: space-around; align-items: center; padding: 8px 5px; order: 2; }
+        .brand { display: none; }
+        .nav-btn { flex: 1; padding: 8px 4px; border: none; background: transparent; border-radius: 6px; text-align: center; font-size: 12px; color: var(--text-dark); cursor: pointer; white-space: nowrap; }
         .nav-btn.active, .nav-btn:hover { background: #e7f3ff; color: var(--primary); font-weight: bold; }
-        .btn-logout { background: #ffebe9; color: #d93025; font-weight: bold; }
+        .btn-logout { background: #ffebe9; color: #d93025; font-weight: bold; flex: 0.6; }
 
         /* Content Area */
-        .content-area { flex: 1; display: flex; flex-direction: column; background: #ffffff; width: calc(100% - 80px); }
+        .content-area { flex: 1; display: flex; flex-direction: column; background: #ffffff; width: 100%; height: calc(100% - 50px); order: 1; overflow: hidden; }
         .tab-content { display: none; flex-direction: column; height: 100%; padding: 12px; }
         .tab-content.active { display: flex; }
 
         /* Chat UI Responsive Fix */
-        .chat-header { padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 10px; font-size: 16px; font-weight: bold; }
+        .chat-header { padding-bottom: 8px; border-bottom: 1px solid var(--border-color); margin-bottom: 8px; font-size: 16px; font-weight: bold; }
         .chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: #f9f9fb; border-radius: 8px; }
         
-        .message-bubble { max-width: 85%; padding: 8px 12px; border-radius: 12px; font-size: 14px; line-height: 1.4; word-break: break-word; }
+        .message-bubble { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 14px; line-height: 1.4; word-break: break-word; }
         .msg-other { background: #e4e6eb; color: var(--text-dark); align-self: flex-start; border-bottom-right-radius: 2px; }
         .msg-me { background: var(--primary); color: white; align-self: flex-end; border-bottom-left-radius: 2px; }
         .msg-author { font-size: 10px; margin-bottom: 2px; font-weight: bold; opacity: 0.85; }
         
-        .chat-input-area { display: flex; gap: 6px; margin-top: 10px; }
-        .chat-input-area input { flex: 1; padding: 10px 14px; border-radius: 20px; border: 1px solid var(--border-color); outline: none; font-size: 14px; }
-        .chat-input-area button { padding: 10px 18px; border-radius: 20px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
+        .chat-input-area { display: flex; gap: 6px; margin-top: 8px; }
+        .chat-input-area input { flex: 1; padding: 10px 12px; border-radius: 20px; border: 1px solid var(--border-color); outline: none; font-size: 14px; }
+        .chat-input-area button { padding: 10px 16px; border-radius: 20px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; white-space: nowrap; }
 
         /* Posts Styling */
         .posts-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
@@ -60,10 +60,12 @@
 
         /* Desktop Adjustments */
         @media (min-width: 768px) {
-            .sidebar { width: 220px; padding: 20px 15px; align-items: stretch; }
-            .content-area { width: calc(100% - 220px); }
-            .nav-btn { text-align: right; font-size: 14px; padding: 12px; }
-            .brand { font-size: 18px; }
+            .main-dashboard { flex-direction: row; }
+            .sidebar { width: 220px; height: 100%; border-bottom: none; border-left: 1px solid var(--border-color); flex-direction: column; justify-content: space-between; padding: 20px 15px; order: 1; }
+            .content-area { width: calc(100% - 220px); height: 100%; order: 2; }
+            .brand { display: block; font-size: 18px; font-weight: bold; color: var(--primary); margin-bottom: 20px; text-align: center; }
+            .nav-btn { text-align: right; font-size: 14px; padding: 12px; margin-bottom: 8px; width: 100%; flex: initial; }
+            .btn-logout { flex: initial; }
             .message-bubble { max-width: 70%; }
         }
     </style>
@@ -89,11 +91,11 @@
 
     <!-- لوحة التحكم الرئيسية -->
     <div id="main-content" class="main-dashboard" style="display: none;">
-        <!-- الشريط الجانبي -->
+        <!-- الشريط الجانبي / شريط التنقل السفلي للهاتف -->
         <div class="sidebar">
-            <div>
+            <div style="width: 100%;">
                 <div class="brand">🚀 Loome</div>
-                <button class="nav-btn active" onclick="switchTab('tab-chat', this)">💬 غرفة الدردشة</button>
+                <button class="nav-btn active" onclick="switchTab('tab-chat', this)">💬 الدردشة</button>
                 <button class="nav-btn" onclick="switchTab('tab-posts', this)">📑 المنشورات</button>
                 <button class="nav-btn" onclick="switchTab('tab-dm', this)">✉️ الخاص</button>
             </div>

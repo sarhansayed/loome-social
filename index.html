@@ -355,8 +355,8 @@
         let localStream = null;
         let activeReplyTarget = null;
         let typingTimeout = null;
-        let msgReactions = {}; // { msgId: { emoji: count } }
-        
+        let msgReactions = {};
+
         let teamMembers = [
             { id: 1, name: 'د دينا علي', role: 'مدير الجودة', dept: 'qc_qa' },
             { id: 2, name: 'م ندى مجدي', role: 'مدير الإنتاج', dept: 'production' },
@@ -476,7 +476,10 @@
                       if (el) el.remove();
                   } else if (payload.eventType === 'INSERT') {
                       if(payload.new.room_id === currentDept) {
-                          renderMessageUI(payload.new);
+                          // التأكد من عدم تكرار الرسالة إذا كانت موجودة بالفعل
+                          if (!document.getElementById('msg-' + payload.new.id)) {
+                              renderMessageUI(payload.new);
+                          }
                       }
                   }
               }).subscribe();
@@ -581,7 +584,6 @@
                 }
             }
 
-            // إضافة تفاعلات الرموز التعبيرية المعالجة
             const msgIdVal = msg.id || msgKey;
             const reactions = msgReactions[msgIdVal] || {};
             let reactionsHtml = '<div class="msg-reactions-container">';
@@ -664,22 +666,15 @@
             }
             const fullContent = `[NAME]:${myUsername}::${finalPayload}`;
             
-            const tempMsg = {
-                user_id: myUserId,
-                content: fullContent,
-                room_id: currentDept,
-                created_at: new Date().toISOString()
-            };
-            renderMessageUI(tempMsg);
-            const { data, error } = await db.from('messages').insert([{ 
+            // إرسال الرسالة إلى قاعدة البيانات وترك عملية العرض للمستمع المباشر (Realtime) لمنع التكرار
+            const { error } = await db.from('messages').insert([{ 
                 user_id: myUserId, 
                 content: fullContent, 
                 room_id: currentDept 
-            }]).select();
+            }]);
+            
             if(error) {
                 alert('خطأ في الإرسال: ' + error.message);
-            } else if(data && data[0]) {
-                renderMessageUI(data[0]);
             }
         }
 
@@ -738,7 +733,7 @@
             }
         }
 
-        async function handleFileUpload(input) {
+        function handleFileUpload(input) {
             if(input.files && input.files[0]) {
                 const file = input.files[0];
                 

@@ -3,68 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لومي سبيس - Loome Space</title>
+    <title>Loome Social - لومي سبيس</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script src="app.js" defer></script>
     <style>
-        body { font-family: system-ui, -apple-system, sans-serif; background-color: #f4f6f8; margin: 0; padding: 20px; direction: rtl; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        input, textarea, button { width: 100%; box-sizing: border-box; margin-bottom: 10px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 15px; }
-        button { background-color: #007bff; color: white; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { background-color: #0056b3; }
-        .error-msg { color: red; background: #ffe6e6; padding: 8px; border-radius: 4px; margin-bottom: 10px; display: none; }
+        :root {
+            --bg-main: #f0f2f5;
+            --panel-bg: #ffffff;
+            --primary: #0084ff;
+            --primary-hover: #006bce;
+            --text-dark: #1c1e21;
+            --text-muted: #65676b;
+            --border-color: #e4e6eb;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-dark); height: 100vh; display: flex; justify-content: center; align-items: center; }
+
+        .app-container { width: 100%; max-width: 1100px; height: 90vh; background: var(--panel-bg); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); display: flex; overflow: hidden; }
+
+        /* Auth Screen */
+        .auth-box { width: 100%; max-width: 400px; margin: auto; padding: 30px; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .auth-box input, .auth-box button { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 15px; }
+        .auth-box button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
+
+        /* Main Dashboard */
+        .main-dashboard { display: flex; width: 100%; height: 100%; }
+        
+        /* Sidebar Navigation */
+        .sidebar { width: 260px; background: #f8f9fa; border-left: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between; padding: 20px 15px; }
+        .brand { font-size: 20px; font-weight: bold; color: var(--primary); margin-bottom: 25px; text-align: center; }
+        .nav-btn { width: 100%; padding: 12px 15px; margin-bottom: 8px; border: none; background: transparent; border-radius: 8px; text-align: right; font-size: 15px; color: var(--text-dark); cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .nav-btn.active, .nav-btn:hover { background: #e7f3ff; color: var(--primary); font-weight: bold; }
+        .btn-logout { background: #ffebe9; color: #d93025; font-weight: bold; }
+
+        /* Content Area */
+        .content-area { flex: 1; display: flex; flex-direction: column; background: #ffffff; }
+        .tab-content { display: none; flex-direction: column; height: 100%; padding: 20px; }
+        .tab-content.active { display: flex; }
+
+        /* Chat UI Styling */
+        .chat-header { padding-bottom: 15px; border-bottom: 1px solid var(--border-color); margin-bottom: 15px; font-size: 18px; font-weight: bold; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 10px; background: #f9f9fb; border-radius: 8px; }
+        .message-bubble { max-width: 70%; padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.4; position: relative; }
+        .msg-other { background: #e4e6eb; color: var(--text-dark); align-self: flex-start; border-bottom-right-radius: 2px; }
+        .msg-me { background: var(--primary); color: white; align-self: flex-end; border-bottom-left-radius: 2px; }
+        .msg-author { font-size: 11px; margin-bottom: 3px; font-weight: bold; opacity: 0.8; }
+        
+        .chat-input-area { display: flex; gap: 10px; margin-top: 15px; }
+        .chat-input-area input { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid var(--border-color); outline: none; }
+        .chat-input-area button { padding: 10px 24px; border-radius: 20px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
+
+        /* Posts Styling */
+        .posts-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+        .post-card { background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <!-- شاشة تسجيل الدخول -->
-    <div id="auth-container">
-        <h2 id="auth-title" style="text-align: center;">تسجيل الدخول</h2>
-        <div id="auth-error" class="error-msg"></div>
+<div class="app-container">
+    <!-- شاشة الدخول -->
+    <div id="auth-container" class="auth-box">
+        <h2 id="auth-title" style="text-align: center; margin-bottom: 20px;">تسجيل الدخول</h2>
+        <div id="auth-error" style="color:red; margin-bottom:10px; display:none;"></div>
         <form id="auth-form">
             <input type="email" id="email" placeholder="البريد الإلكتروني" required>
             <input type="password" id="password" placeholder="كلمة المرور" required>
             <button type="submit" id="btn-submit">تسجيل الدخول</button>
         </form>
-        <button id="btn-anon" style="background-color: #6c757d; margin-top: 5px;">الدخول كزائر</button>
-        <p style="text-align: center; margin-top: 15px; color: #555;">
+        <button id="btn-anon" style="background:#6c757d;">الدخول كزائر</button>
+        <p style="text-align: center; margin-top: 10px;">
             <span id="toggle-msg">ليس لديك حساب؟</span>
-            <a href="#" id="toggle-auth" style="color: #007bff; text-decoration: none; font-weight: bold;">إنشاء حساب جديد</a>
+            <a href="#" id="toggle-auth">إنشاء حساب</a>
         </p>
     </div>
 
-    <!-- شاشة المحتوى الرئيسي (المنشورات والدردشة) -->
-    <div id="main-content" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h2 style="margin: 0;">مرحباً بك في لومي سبيس!</h2>
-            <button id="btn-logout" style="width: auto; background-color: #dc3545; padding: 6px 12px; margin: 0;">خروج</button>
-        </div>
-
-        <!-- نشر منشور جديد -->
-        <textarea id="post-input" rows="3" placeholder="بماذا تفكر اليوم؟"></textarea>
-        <button id="btn-post">نشر المنشور</button>
-
-        <!-- قائمة المنشورات -->
-        <h3 style="margin-top: 25px; border-bottom: 2px solid #eee; padding-bottom: 8px;">📑 المنشورات</h3>
-        <div id="posts-container">
-            <p>جاري تحميل المنشورات...</p>
-        </div>
-
-        <!-- غرفة الدردشة الجماعية -->
-        <div style="margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px;">
-            <h3>💬 غرفة الدردشة الجماعية</h3>
-            <div id="chat-box" style="height: 250px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 8px; background-color: #fafafa; margin-bottom: 10px; text-align: right;">
-                <p style="color: #888;">جاري تحميل المحادثات...</p>
+    <!-- لوحة التحكم الرئيسية -->
+    <div id="main-content" class="main-dashboard" style="display: none;">
+        <!-- الشريط الجانبي -->
+        <div class="sidebar">
+            <div>
+                <div class="brand">🚀 Loome Social</div>
+                <button class="nav-btn active" onclick="switchTab('tab-chat')">💬 غرفة الدردشة</button>
+                <button class="nav-btn" onclick="switchTab('tab-posts')">📑 المنشورات العامة</button>
+                <button class="nav-btn" onclick="switchTab('tab-dm')">✉️ الرسائل الخاصة</button>
             </div>
-            <div style="display: flex; gap: 8px;">
-                <input type="text" id="chat-input" placeholder="اكتب رسالتك هنا..." style="flex: 1; margin: 0;">
-                <button id="btn-send-chat" style="width: auto; background-color: #28a745; margin: 0; padding: 10px 20px;">إرسال</button>
+            <button id="btn-logout" class="nav-btn btn-logout">🚪 تسجيل الخروج</button>
+        </div>
+
+        <!-- منطقة المحتوى -->
+        <div class="content-area">
+            <!-- تبويب الدردشة الجماعية -->
+            <div id="tab-chat" class="tab-content active">
+                <div class="chat-header">💬 غرفة الدردشة الجماعية</div>
+                <div id="chat-box" class="chat-messages">
+                    <p style="text-align: center; color: #888;">جاري تحميل المحادثات...</p>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input" placeholder="اكتب رسالتك هنا...">
+                    <button id="btn-send-chat">إرسال</button>
+                </div>
+            </div>
+
+            <!-- تبويب المنشورات -->
+            <div id="tab-posts" class="tab-content">
+                <div class="chat-header">📑 المنشورات العامة</div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="post-input" placeholder="بماذا تفكر اليوم؟" style="flex:1; padding: 10px; border-radius: 8px; border:1px solid #ccc;">
+                    <button id="btn-post" style="padding: 10px 20px; background: var(--primary); color:white; border:none; border-radius:8px; cursor:pointer;">نشر</button>
+                </div>
+                <div id="posts-container" class="posts-list">
+                    <p>جاري تحميل المنشورات...</p>
+                </div>
+            </div>
+
+            <!-- تبويب الرسائل الخاصة (قادمة بالخطوة التالية) -->
+            <div id="tab-dm" class="tab-content">
+                <div class="chat-header">✉️ الرسائل الخاصة</div>
+                <p style="color: #888; text-align: center; margin-top: 50px;">قريباً: اختر مستخدماً لبدء محادثة خاصة وسرية معه!</p>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+</script>
 
 </body>
 </html>

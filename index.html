@@ -22,6 +22,11 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-primary); color: var(--text-main); display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
         
+        /* Modal Login */
+        .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.98); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .login-card { background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 24px; border-radius: 12px; width: 100%; max-width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .login-title { text-align: center; color: var(--accent-light); font-size: 1.2rem; font-weight: bold; margin-bottom: 16px; }
+
         /* Header */
         header { 
             height: 55px; 
@@ -142,7 +147,7 @@
         .react-btn { background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 12px; padding: 4px 8px; font-size: 0.82rem; cursor: pointer; color: #fff; flex-shrink: 0; }
         
         .input-row { display: flex; gap: 6px; align-items: center; width: 100%; }
-        input[type="text"] { flex: 1; background-color: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 10px; border-radius: 8px; outline: none; font-size: 0.85rem; min-width: 0; }
+        input[type="text"], input[type="email"], input[type="password"] { flex: 1; background-color: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 10px; border-radius: 8px; outline: none; font-size: 0.85rem; min-width: 0; }
         
         .action-btn { background-color: var(--accent-color); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; flex-shrink: 0; }
         .mic-btn { background-color: #6366f1; font-size: 0.9rem; width: 36px; height: 36px; border-radius: 8px; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -176,13 +181,32 @@
 </head>
 <body>
 
+    <!-- Login Modal Box -->
+    <div class="login-overlay" id="login-modal">
+        <div class="login-card">
+            <div class="login-title">🏭 مصنع لومي للكوزمتكس</div>
+            <p style="text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-bottom: 16px;">يرجى تسجيل الدخول للوصول للإدارات</p>
+            <form onsubmit="event.preventDefault(); handleLogin();">
+                <div class="form-group">
+                    <label style="font-size:0.75rem; color:var(--text-muted);">البريد الإلكتروني للمدير / الموظف:</label>
+                    <input type="email" id="login-email" class="form-control" placeholder="admin@loome.com" required>
+                </div>
+                <div class="form-group">
+                    <label style="font-size:0.75rem; color:var(--text-muted);">كلمة المرور:</label>
+                    <input type="password" id="login-pass" class="form-control" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="action-btn" style="width:100%; padding: 10px; margin-top: 8px;">تسجيل الدخول للنظام</button>
+            </form>
+        </div>
+    </div>
+
     <header>
         <div class="header-right">
             <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
             <div class="factory-title">🏭 Loome Cosmetics</div>
         </div>
         <div class="header-left">
-            <span class="user-badge" id="current-user-display" onclick="changeUsername()"><span class="online-dot"></span> المدير العام</span>
+            <span class="user-badge" id="current-user-display" onclick="changeUsername()"><span class="online-dot"></span> زائر</span>
         </div>
     </header>
 
@@ -211,7 +235,7 @@
             <div class="sub-nav-tabs">
                 <button class="tab-btn active" id="tab-chat" onclick="showPanel('chat-panel')">💬 المحادثات</button>
                 <button class="tab-btn" id="tab-tasks" onclick="showPanel('tasks-panel')">📋 المهام</button>
-                <button class="tab-btn" id="tab-team" onclick="showPanel('team-management')">👥 الفريق</button>
+                <button class="tab-btn" id="tab-team" onclick="showPanel('team-management')">👥 المديرون والفريق</button>
                 <button class="tab-btn" id="tab-video" onclick="showPanel('video-panel')">🎙️ مباشر</button>
             </div>
 
@@ -275,10 +299,10 @@
             <!-- Panel 3: Team Management Panel -->
             <div id="team-management" class="panel">
                 <div class="card">
-                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">إضافة موظف جديد</h4>
+                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">إضافة مدير أو موظف جديد</h4>
                     <div class="form-group">
-                        <input type="text" id="new-user-name" class="form-control" placeholder="اسم الموظف...">
-                        <input type="text" id="new-user-role" class="form-control" placeholder="المسمى الوظيفي...">
+                        <input type="text" id="new-user-name" class="form-control" placeholder="الاسم الكامل...">
+                        <input type="text" id="new-user-role" class="form-control" placeholder="المسمى الوظيفي (مثال: مدير الجودة)...">
                         <select id="new-user-dept" class="form-control">
                             <option value="production">إدارة الإنتاج والتخطيط</option>
                             <option value="qc_qa">الجودة والمعامل</option>
@@ -286,18 +310,18 @@
                             <option value="admin_hr">الشؤون الإدارية</option>
                             <option value="finance">الإدارة المالية</option>
                         </select>
-                        <button class="action-btn" style="width:100%;" onclick="addNewMember()">+ إضافة الموظف</button>
+                        <button class="action-btn" style="width:100%;" onclick="addNewMember()">+ إضافة للهيكل الإداري</button>
                     </div>
                 </div>
                 <div class="card">
-                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">قائمة فريق العمل</h4>
+                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">قائمة المديرين وفريق العمل</h4>
                     <div class="table-responsive">
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>اسم الموظف</th>
-                                    <th>الوظيفة</th>
-                                    <th>القسم</th>
+                                    <th>اسم المسؤول</th>
+                                    <th>المسمى الوظيفي</th>
+                                    <th>الإدارة / القسم</th>
                                     <th>إجراء</th>
                                 </tr>
                             </thead>
@@ -311,7 +335,7 @@
             <div id="video-panel" class="panel">
                 <div class="card" style="text-align:center;">
                     <h4 style="color:var(--accent-light); margin-bottom:8px;">🎙️ غرفة التحدث والاجتماع المباشر</h4>
-                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px;">تحدث مباشرة وبدون أي تأخير مع أعضاء الفريق</p>
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px;">تحدث مباشرة وبدون أي تأخير مع أعضاء الفريق والمديرين</p>
                     <video id="groupVideoPlayer" autoplay playsinline muted style="width:100%; max-height:220px; background:#000; border-radius:8px; object-fit:cover; margin-bottom:12px; border:1px solid var(--accent-color);"></video>
                     <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px;">
                         <button class="action-btn" id="toggle-mic-btn" style="background:var(--success-color);" onclick="startLiveAudioCall()">🔊 فتح المايك والتحدث المباشر</button>
@@ -341,10 +365,13 @@
         let localStream = null;
         let activeReplyTarget = null;
 
+        // الهيكل الإداري الكامل للمديرين
         let teamMembers = [
-            { id: 1, name: 'أحمد محمود', role: 'مدير إنتاج', dept: 'production' },
-            { id: 2, name: 'د. سارة علي', role: 'مدير الجودة QC', dept: 'qc_qa' },
-            { id: 3, name: 'محمود حسن', role: 'أمين المخازن', dept: 'inventory' }
+            { id: 1, name: 'المدير العام', role: 'الإدارة العامة والتنفيذية', dept: 'admin_hr' },
+            { id: 2, name: 'م. أحمد محمود', role: 'مدير إدارة الإنتاج والتخطيط', dept: 'production' },
+            { id: 3, name: 'د. سارة علي', role: 'مديرة إدارة الجودة (QC/QA)', dept: 'qc_qa' },
+            { id: 4, name: 'أ. محمود حسن', role: 'مدير المخازن والمشتريات', dept: 'inventory' },
+            { id: 5, name: 'أ. خالد السيد', role: 'المدير المالي', dept: 'finance' }
         ];
 
         let deptTasks = {};
@@ -356,16 +383,34 @@
             });
         }
 
+        function handleLogin() {
+            const email = document.getElementById('login-email').value.trim();
+            if(email) {
+                myUsername = email.split('@')[0];
+                let savedId = generateUUID();
+                myUserId = savedId;
+                
+                localStorage.setItem('loome_factory_username', myUsername);
+                localStorage.setItem('loome_factory_uuid', savedId);
+
+                document.getElementById('current-user-display').innerHTML = `<span class="online-dot"></span> ${myUsername}`;
+                document.getElementById('login-modal').style.display = 'none';
+                initApp();
+            }
+        }
+
         function initApp() {
-            let savedName = localStorage.getItem('loome_factory_username') || 'المدير العام';
+            let savedName = localStorage.getItem('loome_factory_username');
             let savedId = localStorage.getItem('loome_factory_uuid');
             
-            if(!savedId) {
-                savedId = generateUUID();
-                localStorage.setItem('loome_factory_uuid', savedId);
+            if(savedName && savedId) {
+                myUsername = savedName;
+                myUserId = savedId;
+                document.getElementById('login-modal').style.display = 'none';
+            } else {
+                document.getElementById('login-modal').style.display = 'flex';
+                return;
             }
-            myUsername = savedName;
-            myUserId = savedId;
 
             let savedTasks = localStorage.getItem('loome_dept_tasks');
             if(savedTasks) {
@@ -380,7 +425,7 @@
         }
 
         function changeUsername() {
-            let name = prompt('أدخل اسمك في النظام:', myUsername);
+            let name = prompt('أدخل اسمك أو مسمالك الوظيفي:', myUsername);
             if(name && name.trim()) {
                 myUsername = name.trim();
                 localStorage.setItem('loome_factory_username', myUsername);
@@ -837,7 +882,7 @@
             const name = document.getElementById('new-user-name').value.trim();
             const role = document.getElementById('new-user-role').value.trim();
             const dept = document.getElementById('new-user-dept').value;
-            if(!name || !role) return alert('أدخل بيانات الموظف كاملة');
+            if(!name || !role) return alert('أدخل بيانات المدير / الموظف كاملة');
             teamMembers.push({ id: Date.now(), name, role, dept });
             renderTeamTable();
             document.getElementById('new-user-name').value = '';
@@ -845,7 +890,7 @@
         }
 
         function removeMember(id) {
-            if(confirm('حذف الموظف من النظام؟')) {
+            if(confirm('حذف هذا المسؤول من الهيكل الإداري؟')) {
                 teamMembers = teamMembers.filter(m => m.id !== id);
                 renderTeamTable();
             }

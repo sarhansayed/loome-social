@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loome Social & Rooms</title>
+    <title>Loome Social & Games</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script src="https://meet.jit.si/external_api.js"></script>
     <script src="app.js" defer></script>
     <style>
         :root {
-            --primary-grad: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            --accent-grad: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
-            --bg-grad: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%);
-            --panel-bg: rgba(255, 255, 255, 0.95);
-            --chat-bg: #f7f9fc;
-            --border: #e2e8f0;
-            --text-dark: #2d3748;
+            --primary-grad: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            --accent-grad: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%);
+            --bg-grad: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            --panel-bg: rgba(255, 255, 255, 0.98);
+            --chat-bg: #f8fafc;
+            --border: #cbd5e1;
+            --text-dark: #0f172a;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; user-select: none; }
@@ -24,16 +24,15 @@
 
         .app-container { width: 100%; height: 100%; display: flex; flex-direction: column; background: var(--panel-bg); }
 
-        /* شاشة تسجيل الدخول */
-        .auth-box { width: 90%; max-width: 420px; margin: auto; padding: 30px; background: #ffffff; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); text-align: center; }
+        .auth-box { width: 90%; max-width: 420px; margin: auto; padding: 30px; background: #ffffff; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; }
         .auth-box h2 { font-size: 28px; background: var(--primary-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; font-weight: 800; }
-        .auth-box input, .auth-box button { width: 100%; padding: 12px 15px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); outline: none; font-size: 14px; }
+        .auth-box input, .auth-box button { width: 100%; padding: 14px 16px; margin-bottom: 12px; border-radius: 14px; border: 1px solid var(--border); outline: none; font-size: 14px; }
         .auth-box button.btn-login { background: var(--primary-grad); color: white; font-weight: bold; border: none; cursor: pointer; }
         .auth-box button.btn-anon { background: #edf2f7; color: #4a5568; border: none; font-weight: 600; cursor: pointer; }
 
         .main-dashboard { display: flex; width: 100%; height: 100%; flex-direction: column; }
-        .sidebar { width: 100%; border-bottom: 1px solid var(--border); display: flex; padding: 10px; background: #ffffff; order: 2; gap: 5px; overflow-x: auto; }
-        .nav-btn { flex: 1; min-width: 80px; padding: 10px 5px; border: none; background: transparent; cursor: pointer; border-radius: 12px; font-weight: 600; font-size: 12px; color: #718096; text-align: center; }
+        .sidebar { width: 100%; border-top: 1px solid var(--border); display: flex; padding: 10px; background: #ffffff; order: 2; gap: 8px; overflow-x: auto; justify-content: space-around; }
+        .nav-btn { flex: 1; min-width: 70px; padding: 10px 5px; border: none; background: transparent; cursor: pointer; border-radius: 14px; font-weight: 700; font-size: 13px; color: #64748b; text-align: center; }
         .nav-btn.active { background: var(--primary-grad); color: white; }
 
         .content-area { flex: 1; display: flex; flex-direction: column; order: 1; overflow: hidden; background: #ffffff; }
@@ -41,34 +40,37 @@
         .tab-content.active { display: flex; }
 
         .chat-header { padding-bottom: 12px; border-bottom: 1px solid var(--border); font-weight: 700; font-size: 16px; display: flex; justify-content: space-between; align-items: center; }
-        .chat-messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: var(--chat-bg); margin: 12px 0; border-radius: 16px; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 14px; background: var(--chat-bg); margin: 10px 0; border-radius: 20px; border: 1px solid #f1f5f9; }
 
-        /* الفقاعات والأزمنة والضغط المطول */
-        .message-bubble { max-width: 80%; padding: 10px 14px; border-radius: 16px; word-break: break-word; font-size: 14px; position: relative; cursor: pointer; transition: transform 0.1s; }
-        .message-bubble:active { transform: scale(0.98); }
-        .msg-me { background: var(--primary-grad); color: white; align-self: flex-end; border-bottom-left-radius: 2px; }
-        .msg-other { background: #ffffff; color: var(--text-dark); align-self: flex-start; border: 1px solid var(--border); border-bottom-right-radius: 2px; }
+        .message-bubble { max-width: 82%; padding: 12px 16px; border-radius: 18px; word-break: break-word; font-size: 14px; position: relative; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .msg-me { background: var(--primary-grad); color: white; align-self: flex-end; border-bottom-left-radius: 4px; }
+        .msg-other { background: #ffffff; color: var(--text-dark); align-self: flex-start; border: 1px solid var(--border); border-bottom-right-radius: 4px; }
 
-        .chat-input-area { display: flex; gap: 6px; align-items: center; background: #f8fafc; padding: 8px; border-radius: 25px; border: 1px solid var(--border); }
-        .chat-input-area input[type="text"] { flex: 1; min-width: 120px; padding: 10px 15px; border-radius: 20px; border: none; outline: none; background: transparent; font-size: 14px; }
+        .reply-quote { background: rgba(0,0,0,0.06); border-right: 3px solid #4f46e5; padding: 6px 10px; border-radius: 8px; margin-bottom: 8px; font-size: 12px; opacity: 0.9; }
+        .reply-preview-bar { display: none; background: #e2e8f0; padding: 8px 12px; border-radius: 12px; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 13px; }
+        .reaction-badges { display: flex; gap: 4px; position: absolute; bottom: -12px; left: 10px; background: white; border: 1px solid var(--border); border-radius: 12px; padding: 2px 6px; font-size: 11px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        .chat-input-area { display: flex; gap: 6px; align-items: center; background: #f1f5f9; padding: 8px 12px; border-radius: 25px; }
+        .chat-input-area input[type="text"] { flex: 1; padding: 10px; border: none; outline: none; background: transparent; font-size: 14px; }
         .icon-btn { width: 38px; height: 38px; border-radius: 50%; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; }
         .btn-send { padding: 10px 20px; border-radius: 20px; border: none; background: var(--primary-grad); color: white; cursor: pointer; font-weight: bold; }
 
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
+        .modal-body { background: white; padding: 25px; border-radius: 24px; width: 90%; max-width: 450px; }
+
+        .context-menu { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-radius: 24px 24px 0 0; padding: 20px; box-shadow: 0 -5px 25px rgba(0,0,0,0.15); z-index: 2000; flex-direction: column; gap: 12px; }
+        .reactions-row { display: flex; justify-content: space-around; font-size: 24px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+        .reactions-row span { cursor: pointer; transition: transform 0.15s; }
+        .reactions-row span:hover { transform: scale(1.3); }
+        .context-btn { padding: 12px; border: none; border-radius: 12px; background: #f1f5f9; font-weight: bold; cursor: pointer; text-align: center; }
+
         .room-card { background: #f8fafc; border: 1px solid var(--border); padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-
-        /* Modals & Menus */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
-        .modal-body { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-
-        /* القائمة السفلية للخيارات عند الضغط المطول */
-        .context-menu { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-radius: 20px 20px 0 0; padding: 20px; box-shadow: 0 -5px 25px rgba(0,0,0,0.2); z-index: 2000; flex-direction: column; gap: 10px; }
-        .context-btn { padding: 12px; border: none; border-radius: 10px; background: #f7f9fc; font-weight: bold; cursor: pointer; text-align: center; }
 
         @media (min-width: 768px) {
             .main-dashboard { flex-direction: row; }
-            .sidebar { width: 220px; border-left: 1px solid var(--border); border-bottom: none; flex-direction: column; justify-content: start; order: 1; padding: 20px 10px; overflow-x: visible; }
+            .sidebar { width: 220px; border-left: 1px solid var(--border); border-top: none; flex-direction: column; justify-content: start; order: 1; padding: 20px 12px; gap: 12px; }
             .content-area { flex: 1; order: 2; }
-            .nav-btn { width: 100%; text-align: right; margin-bottom: 8px; padding: 12px 15px; }
+            .nav-btn { width: 100%; text-align: right; padding: 12px 16px; }
         }
     </style>
 </head>
@@ -77,7 +79,7 @@
 <div class="app-container">
     <div id="auth-container" class="auth-box">
         <h2>✨ Loome Social</h2>
-        <p>مرحباً بك في مجتمع التواصل والتفاعل السعيد</p>
+        <p style="color:#64748b; margin-bottom:20px; font-size:14px;">تواصل، تفاعل، والعب مع الأصدقاء</p>
         <form id="auth-form">
             <input type="email" id="email" placeholder="البريد الإلكتروني" required>
             <input type="password" id="password" placeholder="كلمة المرور" required>
@@ -86,28 +88,21 @@
         <button id="btn-anon" class="btn-anon">⚡ الدخول السريع كزائر</button>
     </div>
 
-    <!-- قائمة الضغط المطول (Context Menu) الشاملة -->
+    <!-- قائمة الخيارات والتفاعلات -->
     <div id="context-menu" class="context-menu">
-        <h4 style="text-align:center; color:#718096; margin-bottom:5px;">خيارات المحتوى</h4>
-        <button id="ctx-resend" class="context-btn" style="color:#2b6cb0;">🔄 إعادة إرسال / توجيه</button>
-        <button id="ctx-edit" class="context-btn" style="color:#319795;">✏️ تعديل / استبدال</button>
-        <button id="ctx-delete" class="context-btn" style="color:#e53e3e;">🗑️ حذف</button>
-        <button id="ctx-cancel" class="context-btn" style="background:#edf2f7;">إلغاء</button>
-    </div>
-
-    <!-- نافذة تعديل النص -->
-    <div id="edit-modal" class="modal">
-        <div class="modal-body">
-            <h3 style="margin-bottom:12px;">✏️ تعديل النص</h3>
-            <input type="text" id="edit-input" style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--border); margin-bottom:15px; outline:none;">
-            <div style="display:flex; justify-content:flex-end; gap:10px;">
-                <button id="btn-cancel-edit" style="padding:8px 16px; border-radius:8px; border:none; background:#e2e8f0;">إلغاء</button>
-                <button id="btn-save-edit" style="padding:8px 16px; border-radius:8px; border:none; background:var(--primary-grad); color:white; font-weight:bold;">حفظ</button>
-            </div>
+        <div class="reactions-row">
+            <span onclick="addReaction('👍')">👍</span>
+            <span onclick="addReaction('❤️')">❤️</span>
+            <span onclick="addReaction('😂')">😂</span>
+            <span onclick="addReaction('😮')">😮</span>
+            <span onclick="addReaction('😢')">😢</span>
         </div>
+        <button id="ctx-reply" class="context-btn" style="color:#4f46e5;">↩️ رد على الرسالة</button>
+        <button id="ctx-delete" class="context-btn" style="color:#e53e3e; display:none;">🗑️ حذف الغرفة (للمالك فقط)</button>
+        <button id="ctx-cancel" class="context-btn" style="background:#e2e8f0;">إلغاء</button>
     </div>
 
-    <!-- نافذة إنشاء غرفة خاصة -->
+    <!-- نافذة إنشاء غرفة -->
     <div id="create-room-modal" class="modal">
         <div class="modal-body">
             <h3 style="margin-bottom:12px;">🔒 إنشاء غرفة خاصة جديدة</h3>
@@ -119,31 +114,36 @@
         </div>
     </div>
 
-    <input type="file" id="replace-file-input" style="display:none;">
-
     <!-- التطبيق الرئيسي -->
     <div id="main-content" class="main-dashboard" style="display: none;">
         <div class="sidebar">
-            <div style="font-weight:800; font-size:20px; color:#2575fc; margin-bottom:20px; text-align:center;">Loome ✨</div>
+            <div style="font-weight:800; font-size:22px; color:#4f46e5; margin-bottom:20px; text-align:center;">Loome ✨</div>
             <button class="nav-btn active" onclick="switchTab('tab-chat', this)">💬 العامة</button>
             <button class="nav-btn" onclick="switchTab('tab-rooms', this)">🔒 الغرف</button>
             <button class="nav-btn" onclick="switchTab('tab-dm', this)">✉️ الخاص</button>
-            <button class="nav-btn" onclick="switchTab('tab-posts', this)">📑 المنشورات</button>
+            <button class="nav-btn" onclick="switchTab('tab-games', this)">🎮 الألعاب</button>
             <button id="btn-logout" class="nav-btn" style="color:#e53e3e; margin-top:auto;">🚪 خروج</button>
         </div>
 
         <div class="content-area">
-            <!-- 1. الدردشة العامة -->
+            <!-- 1. المحادثة العامة -->
             <div id="tab-chat" class="tab-content active">
                 <div class="chat-header">
-                    <span>💬 غرفة الدردشة العامة</span>
-                    <button id="btn-start-global-meeting" style="background:var(--accent-grad); color:white; border:none; padding:6px 12px; border-radius:15px; cursor:pointer; font-size:12px; font-weight:bold;">📹 اجتماع حي</button>
+                    <span>💬 المحادثة العامة</span>
+                    <button id="btn-start-global-meeting" style="background:var(--accent-grad); color:white; border:none; padding:8px 16px; border-radius:20px; cursor:pointer; font-size:12px; font-weight:bold;">📹 اجتماع Zoom حي</button>
                 </div>
+                
                 <div id="chat-box" class="chat-messages"></div>
+
+                <div id="reply-preview" class="reply-preview-bar">
+                    <span id="reply-preview-text">الرد على: ...</span>
+                    <button onclick="cancelReply()" style="border:none; background:transparent; cursor:pointer; font-weight:bold;">✖</button>
+                </div>
+
                 <div class="chat-input-area">
-                    <input type="text" id="chat-input" placeholder="اكتب رسالتك... (اضغط مطولاً للخيارات)">
-                    <button class="icon-btn" style="background:#28a745;" id="btn-chat-mic" title="تسجيل صوت">🎤</button>
-                    <label class="icon-btn" style="background:#48bb78;" title="إرفاق ملف">
+                    <input type="text" id="chat-input" placeholder="اكتب رسالتك...">
+                    <button class="icon-btn" style="background:#10b981;" id="btn-chat-mic">🎤</button>
+                    <label class="icon-btn" style="background:#06b6d4;" title="إرفاق ملف">
                         📁 <input type="file" id="chat-file-input" style="display:none;">
                     </label>
                     <button class="btn-send" id="btn-send-chat">إرسال</button>
@@ -153,27 +153,25 @@
             <!-- 2. الغرف الخاصة -->
             <div id="tab-rooms" class="tab-content">
                 <div class="chat-header">
-                    <span id="room-view-title">🔒 الغرف الخاصة والسرية</span>
+                    <span id="room-view-title">🔒 الغرف الخاصة</span>
                     <div>
-                        <button id="btn-back-rooms" style="display:none; padding:6px 12px; border-radius:15px; border:none; background:#edf2f7; margin-left:5px; cursor:pointer;">⬅️ خروج من الغرفة</button>
-                        <button id="btn-open-create-room" style="background:var(--primary-grad); color:white; border:none; padding:6px 12px; border-radius:15px; cursor:pointer; font-size:12px; font-weight:bold;">+ إنشاء غرفة</button>
+                        <button id="btn-back-rooms" style="display:none; padding:6px 12px; border-radius:15px; border:none; background:#edf2f7; margin-left:5px; cursor:pointer;">⬅️ خروج</button>
+                        <button id="btn-open-create-room" style="background:var(--primary-grad); color:white; border:none; padding:8px 14px; border-radius:18px; cursor:pointer; font-size:12px; font-weight:bold;">+ إنشاء غرفة</button>
                     </div>
                 </div>
-
-                <div id="rooms-list-container" style="flex:1; display:flex; flex-direction:column; overflow-y:auto; padding-top:10px;">
+                <div id="rooms-list-container" style="flex:1; overflow-y:auto; padding-top:10px;">
                     <div id="rooms-list"></div>
                 </div>
-
                 <div id="active-room-container" style="display:none; flex:1; flex-direction:column;">
                     <div id="room-requests-panel" style="display:none; background:#fff5f5; border:1px solid #feb2b2; padding:10px; border-radius:12px; margin-bottom:10px;">
-                        <h5 style="color:#c53030; margin-bottom:5px;">📥 طلبات الانضمام المعلقة:</h5>
+                        <h5 style="color:#c53030; margin-bottom:5px;">📥 طلبات الانضمام:</h5>
                         <div id="room-requests-list"></div>
                     </div>
                     <div id="room-chat-box" class="chat-messages"></div>
                     <div class="chat-input-area">
                         <input type="text" id="room-chat-input" placeholder="اكتب في الغرفة الخاصة...">
-                        <button class="icon-btn" style="background:#28a745;" id="btn-room-mic">🎤</button>
-                        <label class="icon-btn" style="background:#48bb78;">
+                        <button class="icon-btn" style="background:#10b981;" id="btn-room-mic">🎤</button>
+                        <label class="icon-btn" style="background:#06b6d4;">
                             📁 <input type="file" id="room-file-input" style="display:none;">
                         </label>
                         <button class="btn-send" id="btn-send-room-chat">إرسال</button>
@@ -184,41 +182,38 @@
 
             <!-- 3. المحادثات الخاصة -->
             <div id="tab-dm" class="tab-content">
-                <div class="chat-header">✉️ الرسائل الخاصة</div>
-                <input type="email" id="dm-target-email" placeholder="بريد المستلم..." style="padding:10px; border-radius:10px; border:1px solid var(--border); margin-bottom:8px; outline:none;">
+                <div class="chat-header">✉️ الرسائل المباشرة</div>
+                <input type="email" id="dm-target-email" placeholder="بريد المستلم..." style="padding:12px; border-radius:12px; border:1px solid var(--border); margin:10px 0; outline:none;">
                 <div id="dm-box" class="chat-messages"></div>
                 <div class="chat-input-area">
                     <input type="text" id="dm-input" placeholder="رسالة خاصة...">
-                    <button class="icon-btn" style="background:#28a745;" id="btn-dm-mic">🎤</button>
-                    <label class="icon-btn" style="background:#48bb78;">
+                    <button class="icon-btn" style="background:#10b981;" id="btn-dm-mic">🎤</button>
+                    <label class="icon-btn" style="background:#06b6d4;">
                         📁 <input type="file" id="dm-file-input" style="display:none;">
                     </label>
                     <button class="btn-send" id="btn-send-dm">إرسال</button>
                 </div>
             </div>
 
-            <!-- 4. المنشورات التفاعلية -->
-            <div id="tab-posts" class="tab-content">
-                <div class="chat-header">📑 المنشورات العامة والتفاعلات</div>
-                <div class="chat-input-area" style="margin-bottom:12px;">
-                    <input type="text" id="post-input" placeholder="شارِك أفكارك ولحظاتك المبهجة...">
-                    <button class="icon-btn" style="background:#28a745;" id="btn-post-mic">🎤</button>
-                    <label class="icon-btn" style="background:#48bb78;">
-                        📁 <input type="file" id="post-file-input" style="display:none;">
-                    </label>
-                    <button class="btn-send" id="btn-send-post">نشر</button>
+            <!-- 4. الألعاب والمسابقات -->
+            <div id="tab-games" class="tab-content">
+                <div class="chat-header">🎮 الألعاب والمسابقات الجماعية</div>
+                <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:15px; color:#64748b;">
+                    <div style="font-size:50px;">🎯</div>
+                    <h3>صالة التحديات والمسابقات</h3>
+                    <p>ألعاب سريعة ولوحة المتصدرين للأعضاء</p>
+                    <button style="padding:12px 24px; border-radius:20px; border:none; background:var(--primary-grad); color:white; font-weight:bold; cursor:pointer;">بدء لعبة XO جماعية</button>
                 </div>
-                <div id="posts-box" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:12px;"></div>
             </div>
         </div>
     </div>
 
-    <!-- نافذة الاجتماع المرئي المباشر بدون إعلانات وتطبيقات -->
+    <!-- نافذة الاجتماع المرئي -->
     <div id="meeting-modal" class="modal">
-        <div style="width:95%; height:90%; background:#111; border-radius:20px; overflow:hidden; display:flex; flex-direction:column;">
-            <div style="padding:10px 20px; background:#222; color:white; display:flex; justify-content:space-between; align-items:center;">
-                <span id="meeting-title" style="font-weight:bold;">📹 اجتماع حي</span>
-                <button id="btn-close-meeting" style="background:#e53e3e; color:white; border:none; padding:6px 14px; border-radius:8px; cursor:pointer; font-weight:bold;">إغلاق ✖</button>
+        <div style="width:95%; height:90%; background:#0f172a; border-radius:24px; overflow:hidden; display:flex; flex-direction:column;">
+            <div style="padding:12px 20px; background:#1e293b; color:white; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:bold;">📹 اجتماع Zoom/Jitsi المباشر</span>
+                <button id="btn-close-meeting" style="background:#ef4444; color:white; border:none; padding:6px 14px; border-radius:10px; cursor:pointer; font-weight:bold;">إغلاق ✖</button>
             </div>
             <div id="jitsi-container" style="flex:1; width:100%;"></div>
         </div>
@@ -232,7 +227,10 @@
         document.getElementById(tabId).classList.add('active');
         if(btn) btn.classList.add('active');
     }
+    function cancelReply() {
+        document.getElementById('reply-preview').style.display = 'none';
+        if (typeof currentReplyId !== 'undefined') currentReplyId = null;
+    }
 </script>
-
 </body>
 </html>

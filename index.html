@@ -39,8 +39,10 @@
         
         .chat-box { display: flex; flex-direction: column; height: 100%; gap: 10px; }
         .messages-list { flex: 1; background-color: var(--bg-secondary); border-radius: 10px; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--border-color); }
-        .msg-bubble { background-color: var(--border-color); padding: 10px; border-radius: 10px; max-width: 85%; font-size: 0.9rem; align-self: flex-start; display: flex; flex-direction: column; gap: 6px; word-break: break-word; }
+        
+        .msg-bubble { background-color: var(--border-color); padding: 10px; border-radius: 10px; max-width: 85%; font-size: 0.9rem; align-self: flex-start; display: flex; flex-direction: column; gap: 4px; word-break: break-word; position: relative; }
         .msg-bubble.self { align-self: flex-end; background-color: #1e3a8a; }
+        .msg-time { font-size: 0.65rem; color: #cbd5e1; align-self: flex-end; margin-top: 2px; }
         
         .file-attach-btn { background: #334155; color: #fff; padding: 8px 12px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; font-size: 1.1rem; }
         .video-broadcast-card { background: #0284c7; color: white; padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 6px; }
@@ -135,6 +137,7 @@
         let myUsername = '';
         let mediaRecorder = null, audioChunks = [], recordedAudioBlob = null;
         let localVideoStream = null;
+        let autoRefreshInterval = null;
 
         function initUser() {
             let savedName = localStorage.getItem('loome_username');
@@ -156,47 +159,54 @@
             currentRoomId = roomId;
             document.getElementById('page-title').innerText = title;
             switchView('chat-view');
+            
+            document.getElementById('chat-msgs').innerHTML = '';
+            
             loadMessages();
             listenRealtime();
+
+            if(autoRefreshInterval) clearInterval(autoRefreshInterval);
+            autoRefreshInterval = setInterval(loadMessages, 3000);
         }
 
         async function loadMessages() {
             const container = document.getElementById('chat-msgs');
-            container.innerHTML = '';
 
             const { data, error } = await db.from('messages').select('*').order('created_at', { ascending: true });
             if(error) {
                 console.error("خطأ جلب الرسائل:", error);
             } else if(data) {
                 data.forEach(msg => {
-                    // تصفية الرسائل حسب الغرفة إن وجد عمود الغرفة
                     if(!msg.room_id || msg.room_id === currentRoomId) {
                         renderMessageUI(msg);
                     }
                 });
             }
-            container.scrollTop = container.scrollHeight;
         }
 
         function listenRealtime() {
-            db.channel('realtime:messages')
+            db.channel('public:messages')
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
                   if(!payload.new.room_id || payload.new.room_id === currentRoomId) {
                       renderMessageUI(payload.new);
-                      const container = document.getElementById('chat-msgs');
-                      container.scrollTop = container.scrollHeight;
                   }
               }).subscribe();
         }
 
+        function formatTime(dateStr) {
+            const date = dateStr ? new Date(dateStr) : new Date();
+            return date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+        }
+
         function renderMessageUI(msg) {
             const container = document.getElementById('chat-msgs');
-            if(document.getElementById('msg-' + msg.id)) return;
+            
+            const msgKey = msg.id ? 'msg-' + msg.id : 'msg-temp-' + (msg.created_at || Date.now());
+            if(document.getElementById(msgKey)) return;
 
             const bubble = document.createElement('div');
-            bubble.id = 'msg-' + (msg.id || Date.now());
+            bubble.id = msgKey;
             
-            // لقراءة اسم المستخدِم بجميع الأشكال الممكنة لتفادي undefined
             const senderName = msg.sender || msg.username || msg.user_id || msg.user || 'مستخدم';
             bubble.className = `msg-bubble ${senderName === myUsername ? 'self' : ''}`;
             
@@ -204,7 +214,6 @@
             let audioUrl = msg.audio_url;
             let fileUrl = msg.file_url;
 
-            // تحويل الصيغ النصية القديمة [AUDIO] و [FILE] لتظهر كملفات حقيقية
             if(contentText.startsWith('[AUDIO]:')) {
                 audioUrl = contentText.replace('[AUDIO]:', '').trim();
                 contentText = '';
@@ -224,6 +233,8 @@
                     </div>
                 `;
             }
+            html += `<div class="msg-time">${formatTime(msg.created_at)}</div>`;
+
             bubble.innerHTML = html;
             container.appendChild(bubble);
             container.scrollTop = container.scrollHeight;
@@ -245,28 +256,29 @@
                 }
             }
 
-            // تجهيز البيانات بإرسال مفاتيح مرنة لتجنب مشكلات عدم تطابق الأعمدة
-            const msgData = {
+            const msgTextToSend = audioUrl ? `[AUDIO]:${audioUrl}` : messageText;
+
+            renderMessageUI({
                 sender: myUsername,
-                username: myUsername,
-                content: audioUrl ? `[AUDIO]:${audioUrl}` : messageText,
-                room_id: currentRoomId
-            };
+                content: msgTextToSend,
+                room_id: currentRoomId,
+                created_at: new Date().toISOString()
+            });
 
             input.value = '';
             recordedAudioBlob = null;
 
-            const { data, error } = await db.from('messages').insert([msgData]).select();
+            const { data, error } = await db.from('messages').insert([{
+                sender: myUsername,
+                username: myUsername,
+                content: msgTextToSend,
+                room_id: currentRoomId
+            }]);
 
             if(error) {
-                // محاولة إرسال بسيطة جداً في حال كانت بعض الأعمدة جافة من الدعم في الجدول
-                const fallbackData = { content: messageText || audioUrl };
-                if(msgData.sender) fallbackData.sender = myUsername;
-                const { error: err2 } = await db.from('messages').insert([fallbackData]);
-                if(err2) alert('فشل إرسال الرسالة: ' + error.message);
-                else loadMessages();
-            } else if(data && data.length > 0) {
-                renderMessageUI(data[0]);
+                alert('فشل الإرسال: ' + error.message);
+            } else {
+                loadMessages();
             }
         }
 
@@ -303,6 +315,14 @@
                 else if(data) {
                     const res = db.storage.from('chat-files').getPublicUrl(fileName);
                     const fileUrl = res.data.publicUrl;
+                    
+                    renderMessageUI({
+                        sender: myUsername,
+                        content: `[FILE]:${fileUrl}`,
+                        room_id: currentRoomId,
+                        created_at: new Date().toISOString()
+                    });
+
                     await db.from('messages').insert([{
                         sender: myUsername,
                         username: myUsername,

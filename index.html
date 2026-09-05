@@ -22,7 +22,6 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-primary); color: var(--text-main); display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
         
-        /* Header Responsive Fix */
         header { 
             height: 60px; 
             background-color: var(--bg-secondary); 
@@ -32,25 +31,20 @@
             justify-content: space-between; 
             padding: 0 8px; 
             flex-shrink: 0; 
-            gap: 4px;
         }
         
-        .header-right { display: flex; align-items: center; gap: 6px; overflow: hidden; }
+        .header-right { display: flex; align-items: center; gap: 6px; }
         .menu-toggle { background: transparent; border: none; color: #fff; font-size: 1.4rem; padding: 4px 8px; cursor: pointer; }
-        .factory-title { font-size: 0.85rem; font-weight: bold; color: #2dd4bf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .factory-title { font-size: 0.85rem; font-weight: bold; color: #2dd4bf; }
         
-        .header-left { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-        .user-badge { font-size: 0.7rem; color: #5eead4; background: rgba(13, 148, 136, 0.2); padding: 3px 6px; border-radius: 12px; border: 1px solid var(--accent-color); white-space: nowrap; }
-        .zoom-btn { background: #0284c7; color: white; border: none; padding: 5px 8px; font-size: 0.75rem; font-weight: bold; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+        .header-left { display: flex; align-items: center; gap: 6px; }
+        .user-badge { font-size: 0.7rem; color: #5eead4; background: rgba(13, 148, 136, 0.2); padding: 3px 6px; border-radius: 12px; border: 1px solid var(--accent-color); cursor: pointer; }
+        .zoom-btn { background: #0284c7; color: white; border: none; padding: 5px 8px; font-size: 0.75rem; font-weight: bold; border-radius: 6px; cursor: pointer; }
 
-        /* Main Container */
         .main-container { flex: 1; display: flex; overflow: hidden; position: relative; }
-        
-        /* Drawer Overlay */
         .overlay { display: none; position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); z-index: 40; }
         .overlay.active { display: block; }
 
-        /* Mobile Responsive Sidebar */
         .sidebar { 
             width: 270px; 
             background-color: var(--bg-secondary); 
@@ -70,21 +64,16 @@
         .dept-btn { background: transparent; border: none; color: var(--text-main); padding: 10px 12px; border-radius: 8px; text-align: right; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; width: 100%; }
         .dept-btn:hover, .dept-btn.active { background-color: var(--bg-card); color: #2dd4bf; font-weight: bold; }
 
-        /* Content Area */
         .content-area { flex: 1; display: flex; flex-direction: column; position: relative; background: #0b1329; width: 100%; overflow: hidden; }
-        
-        /* Chat View */
         .chat-container { display: flex; flex-direction: column; height: 100%; width: 100%; }
         .chat-header { padding: 8px 12px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         .messages-list { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         
-        /* Bubbles */
         .msg-bubble { background-color: var(--bg-secondary); padding: 8px 12px; border-radius: 12px; max-width: 85%; font-size: 0.88rem; align-self: flex-start; border: 1px solid var(--border-color); }
         .msg-bubble.self { align-self: flex-end; background-color: #0f4c5c; border-color: #136f63; }
         .msg-info { font-size: 0.72rem; color: #2dd4bf; font-weight: bold; margin-bottom: 2px; }
         .msg-time { font-size: 0.65rem; color: var(--text-muted); text-align: left; margin-top: 4px; }
         
-        /* Chat Input Area (Mobile Friendly) */
         .chat-input-bar { padding: 8px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
         .reactions-quick { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
         .react-btn { background: rgba(0,0,0,0.3); border: none; border-radius: 12px; padding: 3px 8px; font-size: 0.8rem; cursor: pointer; color: #fff; flex-shrink: 0; }
@@ -95,7 +84,6 @@
         .action-btn { background-color: var(--accent-color); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; flex-shrink: 0; }
         .file-label { background: var(--bg-card); color: #fff; padding: 8px 10px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border-color); flex-shrink: 0; font-size: 0.9rem; }
 
-        /* Panels */
         .panel { display: none; padding: 12px; overflow-y: auto; height: 100%; width: 100%; }
         .panel.active { display: block; }
         .card { background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; margin-bottom: 12px; }
@@ -116,16 +104,14 @@
             <div class="factory-title">🏭 Loome Cosmetics</div>
         </div>
         <div class="header-left">
-            <span class="user-badge" id="current-user-display">المدير العام</span>
+            <span class="user-badge" id="current-user-display" onclick="changeUsername()">المدير العام</span>
             <button class="zoom-btn" onclick="openVideoCall()">📹 Zoom</button>
         </div>
     </header>
 
     <div class="main-container">
-        
         <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-        <!-- Sidebar Navigation -->
         <div class="sidebar" id="sidebar">
             <div class="dept-header">
                 <span>إدارات المصنع</span>
@@ -145,14 +131,11 @@
             </div>
         </div>
 
-        <!-- Content Area -->
         <div class="content-area">
-            
-            <!-- Chat Panel -->
             <div id="chat-panel" class="chat-container">
                 <div class="chat-header">
                     <h3 id="current-dept-title" style="font-size: 0.88rem; color: #2dd4bf;">🏭 إدارة الإنتاج والتخطيط</h3>
-                    <span style="font-size:0.68rem; color:var(--text-muted);">خاص بالمصنع</span>
+                    <span style="font-size:0.68rem; color:var(--text-muted);">متصل الآن</span>
                 </div>
 
                 <div class="messages-list" id="chat-msgs"></div>
@@ -171,19 +154,18 @@
                             <input type="file" id="chat-file" style="display:none;" onchange="handleFileUpload(this)">
                         </label>
                         <button type="button" id="record-btn" class="action-btn" style="background:#6366f1;" onclick="toggleRecording()">🎙️</button>
-                        <input type="text" id="chat-input" placeholder="اكتب ملاحظة أو أمر...">
+                        <input type="text" id="chat-input" placeholder="اكتب رسالتك...">
                         <button type="submit" class="action-btn">إرسال</button>
                     </form>
                 </div>
             </div>
 
-            <!-- Team Management Panel -->
             <div id="team-management" class="panel">
                 <div class="card">
                     <h4 style="color:#2dd4bf; margin-bottom:10px; font-size:0.9rem;">إضافة عضو جديد للفريق</h4>
                     <div class="form-group">
                         <input type="text" id="new-user-name" class="form-control" placeholder="اسم الموظف...">
-                        <input type="text" id="new-user-role" class="form-control" placeholder="المسمى الوظيفي (مثال: كيميائي معمل)...">
+                        <input type="text" id="new-user-role" class="form-control" placeholder="المسمى الوظيفي...">
                         <select id="new-user-dept" class="form-control">
                             <option value="production">إدارة الإنتاج والتخطيط</option>
                             <option value="qc_qa">الجودة والمعامل</option>
@@ -213,7 +195,6 @@
                 </div>
             </div>
 
-            <!-- Video Meeting Panel -->
             <div id="video-panel" class="panel">
                 <div class="card" style="text-align:center;">
                     <h4 style="color:#2dd4bf; margin-bottom:8px;">غرفة الاجتماعات المرئية</h4>
@@ -224,7 +205,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -246,10 +226,24 @@
 
         function initApp() {
             let saved = localStorage.getItem('loome_factory_user');
-            if(saved) myUsername = saved;
+            if(!saved) {
+                saved = 'مستخدم_' + Math.floor(100 + Math.random() * 900);
+                localStorage.setItem('loome_factory_user', saved);
+            }
+            myUsername = saved;
             document.getElementById('current-user-display').innerText = myUsername;
             renderTeamTable();
             loadMessages();
+            subscribeRealtime();
+        }
+
+        function changeUsername() {
+            let name = prompt('أدخل اسمك في النظام:', myUsername);
+            if(name && name.trim()) {
+                myUsername = name.trim();
+                localStorage.setItem('loome_factory_user', myUsername);
+                document.getElementById('current-user-display').innerText = myUsername;
+            }
         }
 
         function toggleSidebar() {
@@ -261,11 +255,11 @@
             currentDept = deptKey;
             document.getElementById('current-dept-title').innerText = title;
             document.querySelectorAll('.dept-btn').forEach(b => b.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            if(event && event.currentTarget) event.currentTarget.classList.add('active');
             
             showPanel('chat-panel');
             loadMessages();
-            toggleSidebar();
+            if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
         }
 
         function showPanel(panelId) {
@@ -279,26 +273,31 @@
         }
 
         async function loadMessages() {
-            const { data } = await db.from('messages').select('*').order('created_at', { ascending: true });
+            const { data, error } = await db.from('messages')
+                .select('*')
+                .or(`room_id.eq.${currentDept},room_id.is.null`)
+                .order('created_at', { ascending: true });
+            
             const list = document.getElementById('chat-msgs');
             list.innerHTML = '';
             if(data) {
-                data.forEach(msg => {
-                    if(msg.room_id === currentDept || (!msg.room_id && currentDept === 'production')) {
-                        renderMessageUI(msg);
-                    }
-                });
+                data.forEach(msg => renderMessageUI(msg));
             }
         }
 
-        db.channel('factory:messages').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
-            if (payload.eventType === 'DELETE') {
-                const el = document.getElementById('msg-' + payload.old.id);
-                if (el) el.remove();
-            } else if(payload.new.room_id === currentDept) {
-                renderMessageUI(payload.new);
-            }
-        }).subscribe();
+        function subscribeRealtime() {
+            db.channel('global-factory-chat')
+              .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
+                  if (payload.eventType === 'DELETE') {
+                      const el = document.getElementById('msg-' + payload.old.id);
+                      if (el) el.remove();
+                  } else if (payload.eventType === 'INSERT') {
+                      if(payload.new.room_id === currentDept || (!payload.new.room_id && currentDept === 'production')) {
+                          renderMessageUI(payload.new);
+                      }
+                  }
+              }).subscribe();
+        }
 
         function renderMessageUI(msg) {
             const list = document.getElementById('chat-msgs');
@@ -311,7 +310,8 @@
                 list.appendChild(bubble);
             }
 
-            const isSelf = msg.username === myUsername;
+            const sender = msg.username || msg.user_id || 'عضو';
+            const isSelf = sender === myUsername;
             bubble.className = `msg-bubble ${isSelf ? 'self' : ''}`;
 
             let contentText = msg.content || '';
@@ -327,7 +327,7 @@
             }
 
             let html = `
-                <div class="msg-info">${msg.username || 'عضو'}</div>
+                <div class="msg-info">${sender}</div>
                 <div>${contentText}</div>
             `;
 
@@ -368,8 +368,12 @@
         }
 
         async function sendPayload(content) {
-            renderMessageUI({ username: myUsername, content: content, room_id: currentDept, created_at: new Date().toISOString() });
-            await db.from('messages').insert([{ username: myUsername, content: content, room_id: currentDept }]);
+            const { error } = await db.from('messages').insert([{ 
+                username: myUsername, 
+                content: content, 
+                room_id: currentDept 
+            }]);
+            if(error) console.error('خطأ إرسال:', error.message);
         }
 
         async function deleteMsg(id) {

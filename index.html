@@ -50,9 +50,11 @@
         .msg-me { background: var(--primary); color: white; align-self: flex-end; border-bottom-left-radius: 2px; }
         .msg-author { font-size: 10px; margin-bottom: 2px; font-weight: bold; opacity: 0.85; }
         
-        .chat-input-area { display: flex; gap: 6px; margin-top: 8px; }
+        .chat-input-area { display: flex; gap: 6px; margin-top: 8px; align-items: center; }
         .chat-input-area input { flex: 1; padding: 10px 12px; border-radius: 20px; border: 1px solid var(--border-color); outline: none; font-size: 14px; }
         .chat-input-area button { padding: 10px 16px; border-radius: 20px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; white-space: nowrap; }
+        
+        .btn-mic-style { background: #28a745 !important; width: 40px; height: 40px; border-radius: 50% !important; padding: 0 !important; display: flex; align-items: center; justify-content: center; font-size: 16px; }
 
         /* Posts Styling */
         .posts-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
@@ -112,6 +114,7 @@
                 </div>
                 <div class="chat-input-area">
                     <input type="text" id="chat-input" placeholder="اكتب رسالتك هنا...">
+                    <button id="btn-mic" class="btn-mic-style" title="تسجيل صوت">🎤</button>
                     <button id="btn-send-chat">إرسال</button>
                 </div>
             </div>
@@ -131,7 +134,16 @@
             <!-- تبويب الرسائل الخاصة -->
             <div id="tab-dm" class="tab-content">
                 <div class="chat-header">✉️ الرسائل الخاصة</div>
-                <p style="color: #888; text-align: center; margin-top: 50px;">قريباً: اختر مستخدماً لبدء محادثة خاصة وسرية معه!</p>
+                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                    <input type="email" id="dm-recipient-email" placeholder="بريد المستلم (example@domain.com)" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+                </div>
+                <div id="dm-chat-box" class="chat-messages" style="flex: 1;">
+                    <p style="text-align: center; color: #888;">أدخل بريد المستلم لرؤية المحادثة الخاصة معه</p>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="dm-input" placeholder="اكتب رسالة خاصة...">
+                    <button id="btn-send-dm">إرسال خاص</button>
+                </div>
             </div>
         </div>
     </div>

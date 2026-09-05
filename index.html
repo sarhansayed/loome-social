@@ -3,46 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loome Social</title>
-    <link rel="stylesheet" href="style.css">
+    <title>لومي سبيس - Loome Space</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script src="app.js" defer></script>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background-color: #f4f6f8; margin: 0; padding: 20px; direction: rtl; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        input, textarea, button { width: 100%; box-sizing: border-box; margin-bottom: 10px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 15px; }
+        button { background-color: #007bff; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #0056b3; }
+        .error-msg { color: red; background: #ffe6e6; padding: 8px; border-radius: 4px; margin-bottom: 10px; display: none; }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <!-- شاشة تسجيل الدخول -->
-        <div id="auth-container">
-            <h2 id="auth-title">تسجيل الدخول</h2>
-            <form id="auth-form">
-                <input type="email" id="email" placeholder="البريد الإلكتروني" required>
-                <input type="password" id="password" placeholder="كلمة المرور" required>
-                <button type="submit" id="btn-submit">تسجيل الدخول</button>
-            </form>
-            <p>أو</p>
-            <button id="btn-anon" style="width: 100%; background-color: #555; color: white; padding: 10px; margin-bottom: 10px;">الدخول كزائر (بدون حساب)</button>
-            <p><span id="toggle-msg">ليس لديك حساب؟</span> <a href="#" id="toggle-auth">إنشاء حساب جديد</a></p>
-            <div id="auth-error" style="color: red; display: none; margin-top: 10px;"></div>
+
+<div class="container">
+    <!-- شاشة تسجيل الدخول -->
+    <div id="auth-container">
+        <h2 id="auth-title" style="text-align: center;">تسجيل الدخول</h2>
+        <div id="auth-error" class="error-msg"></div>
+        <form id="auth-form">
+            <input type="email" id="email" placeholder="البريد الإلكتروني" required>
+            <input type="password" id="password" placeholder="كلمة المرور" required>
+            <button type="submit" id="btn-submit">تسجيل الدخول</button>
+        </form>
+        <button id="btn-anon" style="background-color: #6c757d; margin-top: 5px;">الدخول كزائر</button>
+        <p style="text-align: center; margin-top: 15px; color: #555;">
+            <span id="toggle-msg">ليس لديك حساب؟</span>
+            <a href="#" id="toggle-auth" style="color: #007bff; text-decoration: none; font-weight: bold;">إنشاء حساب جديد</a>
+        </p>
+    </div>
+
+    <!-- شاشة المحتوى الرئيسي (المنشورات والدردشة) -->
+    <div id="main-content" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 style="margin: 0;">مرحباً بك في لومي سبيس!</h2>
+            <button id="btn-logout" style="width: auto; background-color: #dc3545; padding: 6px 12px; margin: 0;">خروج</button>
         </div>
 
-        <!-- الشاشة الرئيسية والمنشورات -->
-        <div id="main-content" style="display: none;">
-            <h2>مرحباً بك في لومي سبيس!</h2>
-            
-            <!-- صندوق إضافة منشور -->
-            <div style="margin-top: 20px;">
-                <textarea id="post-input" placeholder="بماذا تفكر اليوم؟" style="width: 100%; height: 80px; padding: 10px; box-sizing: border-box;"></textarea>
-                <button id="btn-post" style="margin-top: 10px; padding: 10px 20px; cursor: pointer; width: 100%;">نشر المنشور</button>
+        <!-- نشر منشور جديد -->
+        <textarea id="post-input" rows="3" placeholder="بماذا تفكر اليوم؟"></textarea>
+        <button id="btn-post">نشر المنشور</button>
+
+        <!-- قائمة المنشورات -->
+        <h3 style="margin-top: 25px; border-bottom: 2px solid #eee; padding-bottom: 8px;">📑 المنشورات</h3>
+        <div id="posts-container">
+            <p>جاري تحميل المنشورات...</p>
+        </div>
+
+        <!-- غرفة الدردشة الجماعية -->
+        <div style="margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px;">
+            <h3>💬 غرفة الدردشة الجماعية</h3>
+            <div id="chat-box" style="height: 250px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 8px; background-color: #fafafa; margin-bottom: 10px; text-align: right;">
+                <p style="color: #888;">جاري تحميل المحادثات...</p>
             </div>
-
-            <hr style="margin: 20px 0;">
-
-            <!-- قائمة المنشورات -->
-            <h3>المنشورات الأخيرة</h3>
-            <div id="posts-container">جاري تحميل المنشورات...</div>
-
-            <button id="btn-logout" style="margin-top: 30px; background-color: #d9534f; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">تسجيل الخروج</button>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="chat-input" placeholder="اكتب رسالتك هنا..." style="flex: 1; margin: 0;">
+                <button id="btn-send-chat" style="width: auto; background-color: #28a745; margin: 0; padding: 10px 20px;">إرسال</button>
+            </div>
         </div>
     </div>
+</div>
+
 </body>
 </html>

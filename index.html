@@ -74,7 +74,6 @@
         .msg-info { font-size: 0.72rem; color: #2dd4bf; font-weight: bold; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
         .msg-time { font-size: 0.65rem; color: var(--text-muted); text-align: left; margin-top: 4px; }
         
-        /* مشغل وسائط الصوت المحدث كلياً للشاشات الصغيرة */
         .audio-player-box {
             margin-top: 6px;
             background: #0f172a;
@@ -87,11 +86,7 @@
             width: 100%;
             max-width: 250px;
         }
-        .audio-player-box audio {
-            width: 100%;
-            height: 36px;
-            outline: none;
-        }
+        .audio-player-box audio { width: 100%; height: 36px; outline: none; }
 
         .chat-input-bar { padding: 8px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
         .reactions-quick { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
@@ -120,6 +115,8 @@
         .urgent-btn { background: var(--danger-color) !important; color: white !important; font-weight: bold; }
         .export-btn { background: var(--bg-card); color: #2dd4bf; border: 1px solid #2dd4bf; padding: 4px 8px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; }
         .delete-btn { background: transparent; border: none; color: var(--danger-color); cursor: pointer; font-size: 0.75rem; font-weight: bold; }
+        
+        .live-status { display: inline-block; width: 10px; height: 10px; background-color: var(--success-color); border-radius: 50%; margin-left: 5px; }
     </style>
 </head>
 <body>
@@ -130,7 +127,7 @@
         </div>
         <div class="header-left">
             <span class="user-badge" id="current-user-display" onclick="changeUsername()">المدير العام</span>
-            <button class="zoom-btn" onclick="openVideoCall()">📹 Zoom</button>
+            <button class="zoom-btn" onclick="openVideoCall()">🎙️ التحدث المباشر والاجتماع</button>
         </div>
     </header>
 
@@ -187,7 +184,6 @@
                 </div>
             </div>
 
-            <!-- قائمة المهام المقسمة لكل قسم -->
             <div id="tasks-panel" class="panel">
                 <div class="card">
                     <h4 style="color:#2dd4bf; margin-bottom:10px; font-size:0.9rem;">إضافة مَهمة جديدة للقسم الحالي</h4>
@@ -236,14 +232,20 @@
                 </div>
             </div>
 
+            <!-- غرفة التحدث المباشر والتسجيل اللحظي -->
             <div id="video-panel" class="panel">
                 <div class="card" style="text-align:center;">
-                    <h4 style="color:#2dd4bf; margin-bottom:8px;">غرفة الاجتماعات المرئية</h4>
-                    <video id="groupVideoPlayer" autoplay playsinline muted style="width:100%; max-height:300px; background:#000; border-radius:8px; object-fit:cover; margin-bottom:10px;"></video>
-                    <div style="display:flex; justify-content:center; gap:8px;">
-                        <button class="action-btn" style="background:var(--success-color);" onclick="startCamera()">تفعيل الكاميرا</button>
-                        <button class="action-btn" style="background:var(--danger-color);" onclick="stopCamera()">إغلاق</button>
+                    <h4 style="color:#2dd4bf; margin-bottom:8px;">🎙️ غرفة التحدث المباشر اللحظي</h4>
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px;">تحدث مباشرة مع زملائك في الوقت الفعلي مع إمكانية حفظ الفيديو تلقائياً في الشات عند الانتهاء</p>
+
+                    <video id="groupVideoPlayer" autoplay playsinline muted style="width:100%; max-height:240px; background:#000; border-radius:8px; object-fit:cover; margin-bottom:12px; border:1px solid var(--accent-color);"></video>
+
+                    <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px;">
+                        <button class="action-btn" id="toggle-mic-btn" style="background:var(--success-color);" onclick="startLiveAudioCall()">🔊 فتح المايك والتحدث لحظياً</button>
+                        <button class="action-btn" id="video-rec-btn" style="background:#8b5cf6; display:none;" onclick="toggleVideoRecording()">🔴 بدء تسجيل الاجتماع للشات</button>
+                        <button class="action-btn" style="background:var(--danger-color);" onclick="stopCamera()">مغادرة الغرفة</button>
                     </div>
+                    <div id="audio-container" style="display:none;"></div>
                 </div>
             </div>
         </div>
@@ -258,6 +260,7 @@
         let myUsername = 'المدير العام';
         let myUserId = '';
         let mediaRecorder = null, audioChunks = [];
+        let videoRecorder = null, videoChunks = [];
         let localStream = null;
 
         let teamMembers = [
@@ -386,17 +389,20 @@
 
             bubble.className = `msg-bubble ${isSelf ? 'self' : ''} ${isUrgent ? 'urgent' : ''}`;
             let audioUrl = '';
+            let videoUrl = '';
             let fileUrl = '';
 
             if(contentText.startsWith('[AUDIO]:')) {
                 audioUrl = contentText.replace('[AUDIO]:', '').trim();
+                contentText = '';
+            } else if(contentText.startsWith('[VIDEO]:')) {
+                videoUrl = contentText.replace('[VIDEO]:', '').trim();
                 contentText = '';
             } else if(contentText.startsWith('[FILE]:')) {
                 fileUrl = contentText.replace('[FILE]:', '').trim();
                 contentText = '';
             }
 
-            // إتاحة خيار الحذف لجميع البيانات/الرسائل
             let deleteBtnHtml = msg.id ? `<button class="delete-btn" onclick="deleteMsg('${msg.id}')">🗑️ حذف</button>` : '';
 
             let html = `
@@ -411,6 +417,13 @@
                 html += `
                 <div class="audio-player-box">
                     <audio controls controlsList="nodownload" src="${audioUrl}"></audio>
+                </div>`;
+            }
+
+            if(videoUrl) {
+                html += `
+                <div style="margin-top:6px;">
+                    <video controls src="${videoUrl}" style="width:100%; max-width:260px; border-radius:8px; border:1px solid var(--accent-color);"></video>
                 </div>`;
             }
 
@@ -450,7 +463,7 @@
         }
 
         async function deleteMsg(id) {
-            if(confirm('هل تريد حذف هذه الرسالة/العنصر نهائياً؟')) {
+            if(confirm('هل تريد حذف هذه الرسالة نهائياً؟')) {
                 const { error } = await db.from('messages').delete().eq('id', id);
                 if(!error) {
                     const el = document.getElementById('msg-' + id);
@@ -492,7 +505,7 @@
                     mediaRecorder.start();
                     btn.classList.add('recording');
                     btn.innerText = "⏹️";
-                } catch (e) { alert('يرجى السماح باستخدام المايكروفون من إعدادات المتصفح'); }
+                } catch (e) { alert('يرجى السماح بالمايك للبدء'); }
             }
         }
 
@@ -501,48 +514,28 @@
                 const file = input.files[0];
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
-                reader.onloadend = () => {
-                    sendPayload(`[FILE]:${reader.result}`);
-                };
+                reader.onloadend = () => sendPayload(`[FILE]:${reader.result}`);
             }
         }
 
-        /* تصدير السجل بشكل فعال للتنزيل المباشر */
         function exportChatText() {
             const msgs = document.querySelectorAll('.msg-bubble');
-            if(msgs.length === 0) {
-                alert('لا توجد رسائل لتصديرها في هذا القسم حالياً.');
-                return;
-            }
-            let exportData = `======================================\n`;
-            exportData += `سجل محادثات وقرارات: ${document.getElementById('current-dept-title').innerText}\n`;
-            exportData += `تاريخ التصدير: ${new Date().toLocaleString('ar-EG')}\n`;
-            exportData += `======================================\n\n`;
-            
-            msgs.forEach(m => {
-                const info = m.querySelector('.msg-info')?.innerText.replace('🗑️ حذف', '').trim() || '';
-                const time = m.querySelector('.msg-time')?.innerText || '';
-                let content = m.innerText.replace(info, '').replace(time, '').replace('🗑️ حذف', '').trim();
-                exportData += `[${info}] (${time}):\n${content}\n--------------------------------------\n`;
-            });
-
+            if(msgs.length === 0) return alert('لا توجد رسائل للتصدير.');
+            let exportData = `سجل محادثات: ${document.getElementById('current-dept-title').innerText}\n\n`;
+            msgs.forEach(m => exportData += `${m.innerText}\n---\n`);
             const blob = new Blob([exportData], { type: 'text/plain;charset=utf-8' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = `Loome_${currentDept}_${Date.now()}.txt`;
-            document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
         }
 
-        /* إدارة المهام الخاصة بكل قسم */
         function addNewTask() {
             const input = document.getElementById('task-title-input');
             const title = input.value.trim();
             if(!title) return;
             if(!deptTasks[currentDept]) deptTasks[currentDept] = [];
             deptTasks[currentDept].push({ id: Date.now(), title, done: false });
-            
             localStorage.setItem('loome_dept_tasks', JSON.stringify(deptTasks));
             input.value = '';
             renderTasks();
@@ -614,7 +607,6 @@
             renderTeamTable();
             document.getElementById('new-user-name').value = '';
             document.getElementById('new-user-role').value = '';
-            alert(`تمت إضافة (${name}) بنجاح.`);
         }
 
         function removeMember(id) {
@@ -625,17 +617,53 @@
         }
 
         function openVideoCall() { showPanel('video-panel'); }
-        
-        async function startCamera() {
+
+        /* التحدث المباشر بالصوت والكاميرا */
+        async function startLiveAudioCall() {
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 document.getElementById('groupVideoPlayer').srcObject = localStream;
-            } catch(e) { alert('تعذر الوصول للكاميرا'); }
+                document.getElementById('video-rec-btn').style.display = 'inline-block';
+                document.getElementById('toggle-mic-btn').innerText = "🔊 المايك مفتوح للتحدث اللحظي المباشر";
+            } catch(e) {
+                alert('يرجى السماح بالوصول للمايك والكاميرا لتفعيل التحدث المباشر.');
+            }
+        }
+
+        function toggleVideoRecording() {
+            const btn = document.getElementById('video-rec-btn');
+            if (videoRecorder && videoRecorder.state === "recording") {
+                videoRecorder.stop();
+                btn.innerText = "🔴 بدء تسجيل الاجتماع للشات";
+                btn.style.background = "#8b5cf6";
+            } else {
+                if(!localStream) return alert('يرجى فتح المايك والتحدث المباشر أولاً');
+                videoRecorder = new MediaRecorder(localStream);
+                videoChunks = [];
+                videoRecorder.ondataavailable = e => videoChunks.push(e.data);
+                
+                videoRecorder.onstop = () => {
+                    btn.innerText = "⏳ جاري الإرسال للشات...";
+                    const videoBlob = new Blob(videoChunks, { type: 'video/webm' });
+                    const reader = new FileReader();
+                    reader.readAsDataURL(videoBlob);
+                    reader.onloadend = () => {
+                        sendPayload(`[VIDEO]:${reader.result}`);
+                        btn.innerText = "🔴 بدء تسجيل الاجتماع للشات";
+                        alert('تم حفظ الفيديو تلقائياً وإرساله في المحادثة!');
+                    };
+                };
+                videoRecorder.start();
+                btn.innerText = "⏹️ إيقاف وحفظ الاجتماع في الشات";
+                btn.style.background = "var(--danger-color)";
+            }
         }
 
         function stopCamera() {
             if(localStream) localStream.getTracks().forEach(t => t.stop());
             document.getElementById('groupVideoPlayer').srcObject = null;
+            document.getElementById('video-rec-btn').style.display = 'none';
+            document.getElementById('toggle-mic-btn').innerText = "🔊 فتح المايك والتحدث لحظياً";
             showPanel('chat-panel');
         }
 

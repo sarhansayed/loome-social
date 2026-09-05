@@ -39,9 +39,11 @@
         .header-left { display: flex; align-items: center; gap: 6px; }
         .user-badge { font-size: 0.75rem; color: #5eead4; background: rgba(13, 148, 136, 0.2); padding: 4px 8px; border-radius: 12px; border: 1px solid var(--accent-color); cursor: pointer; }
         .zoom-btn { background: #0284c7; color: white; border: none; padding: 6px 10px; font-size: 0.75rem; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        
         .main-container { flex: 1; display: flex; overflow: hidden; position: relative; }
         .overlay { display: none; position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); z-index: 40; }
         .overlay.active { display: block; }
+        
         .sidebar { 
             width: 270px; 
             background-color: var(--bg-secondary); 
@@ -60,36 +62,35 @@
         .dept-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
         .dept-btn { background: transparent; border: none; color: var(--text-main); padding: 10px 12px; border-radius: 8px; text-align: right; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; width: 100%; }
         .dept-btn:hover, .dept-btn.active { background-color: var(--bg-card); color: #2dd4bf; font-weight: bold; }
+        
         .content-area { flex: 1; display: flex; flex-direction: column; position: relative; background: #0b1329; width: 100%; overflow: hidden; }
         .chat-container { display: flex; flex-direction: column; height: 100%; width: 100%; }
         .chat-header { padding: 10px 12px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         .messages-list { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         
-        .msg-bubble { background-color: var(--bg-secondary); padding: 8px 12px; border-radius: 12px; max-width: 85%; font-size: 0.88rem; align-self: flex-start; border: 1px solid var(--border-color); word-break: break-word; }
+        .msg-bubble { background-color: var(--bg-secondary); padding: 8px 12px; border-radius: 12px; max-width: 88%; font-size: 0.88rem; align-self: flex-start; border: 1px solid var(--border-color); word-break: break-word; position: relative; }
         .msg-bubble.self { align-self: flex-end; background-color: #0f4c5c; border-color: #136f63; }
         .msg-bubble.urgent { border: 2px solid var(--danger-color); background-color: rgba(239, 68, 68, 0.15); }
-        .msg-info { font-size: 0.72rem; color: #2dd4bf; font-weight: bold; margin-bottom: 3px; }
+        .msg-info { font-size: 0.72rem; color: #2dd4bf; font-weight: bold; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
         .msg-time { font-size: 0.65rem; color: var(--text-muted); text-align: left; margin-top: 4px; }
         
-        /* تحسين وعزل مشغل الصوت لمنع الخلفيات المشوهة */
-        .audio-container {
+        /* مشغل وسائط الصوت المحدث كلياً للشاشات الصغيرة */
+        .audio-player-box {
             margin-top: 6px;
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 6px 8px;
+            border: 1px solid var(--accent-color);
             display: flex;
             align-items: center;
-            background: rgba(15, 23, 42, 0.6);
-            border-radius: 20px;
-            padding: 2px 6px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            gap: 6px;
             width: 100%;
-            max-width: 240px;
-            overflow: hidden;
+            max-width: 250px;
         }
-        .audio-container audio {
+        .audio-player-box audio {
             width: 100%;
-            height: 32px;
+            height: 36px;
             outline: none;
-            border: none;
-            background: transparent;
         }
 
         .chat-input-bar { padding: 8px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
@@ -99,6 +100,10 @@
         input[type="text"] { flex: 1; background-color: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 10px; border-radius: 8px; outline: none; font-size: 0.85rem; min-width: 0; }
         
         .action-btn { background-color: var(--accent-color); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; flex-shrink: 0; }
+        .mic-btn { background-color: #6366f1; font-size: 0.95rem; width: 38px; height: 38px; border-radius: 8px; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .mic-btn.recording { background-color: var(--danger-color); animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
         .file-label { background: var(--bg-card); color: #fff; padding: 8px 10px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border-color); flex-shrink: 0; font-size: 0.9rem; }
         .panel { display: none; padding: 12px; overflow-y: auto; height: 100%; width: 100%; }
         .panel.active { display: block; }
@@ -114,6 +119,7 @@
         .task-item.done { opacity: 0.6; text-decoration: line-through; }
         .urgent-btn { background: var(--danger-color) !important; color: white !important; font-weight: bold; }
         .export-btn { background: var(--bg-card); color: #2dd4bf; border: 1px solid #2dd4bf; padding: 4px 8px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; }
+        .delete-btn { background: transparent; border: none; color: var(--danger-color); cursor: pointer; font-size: 0.75rem; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -174,13 +180,14 @@
                             📎
                             <input type="file" id="chat-file" style="display:none;" onchange="handleFileUpload(this)">
                         </label>
-                        <button type="button" id="record-btn" class="action-btn" style="background:#6366f1;" onclick="toggleRecording()">🎙️</button>
+                        <button type="button" id="record-btn" class="mic-btn" onclick="toggleRecording()" title="تسجيل صوت">🎙️</button>
                         <input type="text" id="chat-input" placeholder="اكتب ملاحظة أو أمر...">
                         <button type="submit" class="action-btn">إرسال</button>
                     </form>
                 </div>
             </div>
 
+            <!-- قائمة المهام المقسمة لكل قسم -->
             <div id="tasks-panel" class="panel">
                 <div class="card">
                     <h4 style="color:#2dd4bf; margin-bottom:10px; font-size:0.9rem;">إضافة مَهمة جديدة للقسم الحالي</h4>
@@ -389,25 +396,28 @@
                 contentText = '';
             }
 
-            let html = `<div class="msg-info">${senderName} ${isUrgent ? '🚨 (بلاغ عاجل)' : ''}</div>`;
+            // إتاحة خيار الحذف لجميع البيانات/الرسائل
+            let deleteBtnHtml = msg.id ? `<button class="delete-btn" onclick="deleteMsg('${msg.id}')">🗑️ حذف</button>` : '';
+
+            let html = `
+                <div class="msg-info">
+                    <span>${senderName} ${isUrgent ? '🚨 (بلاغ عاجل)' : ''}</span>
+                    ${deleteBtnHtml}
+                </div>`;
+
             if(contentText) html += `<div>${contentText}</div>`;
             
             if(audioUrl) {
                 html += `
-                <div class="audio-container">
+                <div class="audio-player-box">
                     <audio controls controlsList="nodownload" src="${audioUrl}"></audio>
                 </div>`;
             }
+
             if(fileUrl) {
-                html += `<a href="${fileUrl}" target="_blank" style="color:#60a5fa; margin-top:4px; display:inline-block; font-size:0.8rem; font-weight:bold;">📄 عرض الملف المرفق</a>`;
+                html += `<a href="${fileUrl}" target="_blank" style="color:#60a5fa; margin-top:6px; display:inline-block; font-size:0.8rem; font-weight:bold;">📄 فتح الملف المرفق</a>`;
             }
-            if(isSelf && msg.id) {
-                html += `
-                    <div style="display:flex; gap:8px; font-size:0.7rem; margin-top:4px; border-top:1px solid rgba(255,255,255,0.1); padding-top:2px;">
-                        <button style="background:none; border:none; color:var(--danger-color); cursor:pointer;" onclick="deleteMsg('${msg.id}')">حذف</button>
-                    </div>
-                `;
-            }
+
             html += `<div class="msg-time">${new Date(msg.created_at || Date.now()).toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'})}</div>`;
             bubble.innerHTML = html;
             list.scrollTop = list.scrollHeight;
@@ -440,10 +450,14 @@
         }
 
         async function deleteMsg(id) {
-            if(confirm('حذف الرسالة؟')) {
-                await db.from('messages').delete().eq('id', id);
-                const el = document.getElementById('msg-' + id);
-                if(el) el.remove();
+            if(confirm('هل تريد حذف هذه الرسالة/العنصر نهائياً؟')) {
+                const { error } = await db.from('messages').delete().eq('id', id);
+                if(!error) {
+                    const el = document.getElementById('msg-' + id);
+                    if(el) el.remove();
+                } else {
+                    alert('تعذر الحذف: ' + error.message);
+                }
             }
         }
 
@@ -455,8 +469,8 @@
             const btn = document.getElementById('record-btn');
             if (mediaRecorder && mediaRecorder.state === "recording") {
                 mediaRecorder.stop();
+                btn.classList.remove('recording');
                 btn.innerText = "🎙️";
-                btn.style.backgroundColor = "#6366f1";
             } else {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -472,12 +486,13 @@
                         reader.onloadend = () => {
                             sendPayload(`[AUDIO]:${reader.result}`);
                             btn.innerText = "🎙️";
+                            btn.classList.remove('recording');
                         };
                     };
                     mediaRecorder.start();
+                    btn.classList.add('recording');
                     btn.innerText = "⏹️";
-                    btn.style.backgroundColor = "#ef4444";
-                } catch (e) { alert('برجاء تفعيل صلاحية المايكروفون'); }
+                } catch (e) { alert('يرجى السماح باستخدام المايكروفون من إعدادات المتصفح'); }
             }
         }
 
@@ -492,6 +507,35 @@
             }
         }
 
+        /* تصدير السجل بشكل فعال للتنزيل المباشر */
+        function exportChatText() {
+            const msgs = document.querySelectorAll('.msg-bubble');
+            if(msgs.length === 0) {
+                alert('لا توجد رسائل لتصديرها في هذا القسم حالياً.');
+                return;
+            }
+            let exportData = `======================================\n`;
+            exportData += `سجل محادثات وقرارات: ${document.getElementById('current-dept-title').innerText}\n`;
+            exportData += `تاريخ التصدير: ${new Date().toLocaleString('ar-EG')}\n`;
+            exportData += `======================================\n\n`;
+            
+            msgs.forEach(m => {
+                const info = m.querySelector('.msg-info')?.innerText.replace('🗑️ حذف', '').trim() || '';
+                const time = m.querySelector('.msg-time')?.innerText || '';
+                let content = m.innerText.replace(info, '').replace(time, '').replace('🗑️ حذف', '').trim();
+                exportData += `[${info}] (${time}):\n${content}\n--------------------------------------\n`;
+            });
+
+            const blob = new Blob([exportData], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Loome_${currentDept}_${Date.now()}.txt`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        /* إدارة المهام الخاصة بكل قسم */
         function addNewTask() {
             const input = document.getElementById('task-title-input');
             const title = input.value.trim();
@@ -539,23 +583,6 @@
                 `;
                 list.appendChild(item);
             });
-        }
-
-        function exportChatText() {
-            const msgs = document.querySelectorAll('.msg-bubble');
-            let exportData = `--- سجل المحادثات والقرارات: ${document.getElementById('current-dept-title').innerText} ---\n\n`;
-            
-            msgs.forEach(m => {
-                const info = m.querySelector('.msg-info')?.innerText || '';
-                const text = m.innerText.replace(info, '').trim();
-                exportData += `[${info}] : ${text}\n`;
-            });
-            const blob = new Blob([exportData], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Loome_${currentDept}_Log.txt`;
-            a.click();
         }
 
         function renderTeamTable() {

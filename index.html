@@ -2,933 +2,822 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Loome Cosmetics Factory</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة التواصل والمهام المباشرة</title>
+    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --bg-card: #334155;
-            --accent-color: #0d9488;
-            --accent-light: #2dd4bf;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #475569;
-            --danger-color: #ef4444;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
+            --bg-color: #f0f2f5;
+            --primary: #0084ff;
+            --primary-hover: #006bce;
+            --chat-bg: #ffffff;
+            --text-color: #050505;
+            --border-color: #e4e6eb;
+            --msg-me: #0084ff;
+            --msg-other: #e4e6eb;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg-primary); color: var(--text-main); display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
-        
-        /* Modal Login */
-        .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.98); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .login-card { background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 24px; border-radius: 12px; width: 100%; max-width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        .login-title { text-align: center; color: var(--accent-light); font-size: 1.2rem; font-weight: bold; margin-bottom: 16px; }
 
-        /* Header */
-        header { 
-            height: 55px; 
-            background-color: var(--bg-secondary); 
-            border-bottom: 1px solid var(--border-color); 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            padding: 0 12px; 
-            flex-shrink: 0; 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
-        .header-right { display: flex; align-items: center; gap: 10px; }
-        .menu-toggle { background: transparent; border: none; color: #fff; font-size: 1.3rem; padding: 4px; cursor: pointer; }
-        .factory-title { font-size: 0.95rem; font-weight: bold; color: var(--accent-light); }
-        
-        .header-left { display: flex; align-items: center; gap: 8px; }
-        .user-badge { font-size: 0.75rem; color: #5eead4; background: rgba(13, 148, 136, 0.2); padding: 5px 10px; border-radius: 20px; border: 1px solid var(--accent-color); cursor: pointer; display: flex; align-items: center; gap: 6px; }
-        .online-dot { width: 8px; height: 8px; background-color: var(--success-color); border-radius: 50%; box-shadow: 0 0 6px var(--success-color); }
-        
-        /* Layout Container */
-        .main-container { flex: 1; display: flex; overflow: hidden; position: relative; }
-        .overlay { display: none; position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); z-index: 40; backdrop-filter: blur(2px); }
-        .overlay.active { display: block; }
-        
-        /* Sidebar Navigation */
-        .sidebar { 
-            width: 260px; 
-            background-color: var(--bg-secondary); 
-            border-left: 1px solid var(--border-color); 
-            display: flex; 
-            flex-direction: column; 
-            position: absolute; 
-            top: 0; bottom: 0; right: 0; 
-            z-index: 50; 
-            transform: translateX(100%); 
-            transition: transform 0.25s ease-in-out; 
-        }
-        .sidebar.open { transform: translateX(0); }
-        
-        .dept-header { padding: 14px; font-weight: bold; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        .dept-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
-        .dept-btn { background: transparent; border: none; color: var(--text-main); padding: 10px 12px; border-radius: 8px; text-align: right; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; width: 100%; transition: 0.2s; }
-        .dept-btn:hover, .dept-btn.active { background-color: var(--bg-card); color: var(--accent-light); font-weight: bold; }
-        
-        /* Content Area */
-        .content-area { flex: 1; display: flex; flex-direction: column; position: relative; background: #0b1329; width: 100%; overflow: hidden; }
-        
-        /* Sub-Navigation Tabs */
-        .sub-nav-tabs {
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
             display: flex;
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-color);
-            padding: 4px;
-            gap: 4px;
-            flex-shrink: 0;
+            flex-direction: column;
         }
+
+        /* Auth Screen */
+        #auth-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .auth-box {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .auth-box h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .auth-box input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .auth-box button {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .auth-box button:hover {
+            background: var(--primary-hover);
+        }
+
+        /* Main Layout */
+        #app-container {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 300px;
+            background: white;
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-header {
+            padding: 15px;
+            background: #f8f9fa;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: bold;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+        }
+
         .tab-btn {
             flex: 1;
-            padding: 8px 4px;
-            background: transparent;
+            padding: 12px;
             border: none;
-            color: var(--text-muted);
-            font-size: 0.78rem;
-            font-weight: 600;
-            border-radius: 6px;
+            background: none;
             cursor: pointer;
-            text-align: center;
-            transition: all 0.2s ease;
+            font-weight: bold;
         }
+
         .tab-btn.active {
-            background: var(--accent-color);
-            color: #fff;
+            border-bottom: 3px solid var(--primary);
+            color: var(--primary);
         }
 
-        /* Chat Panel Components */
-        .chat-container { display: flex; flex-direction: column; height: 100%; width: 100%; overflow: hidden; }
-        .chat-header { padding: 8px 12px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
-        .messages-list { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth; }
-        
-        /* Message Bubbles */
-        .msg-bubble { background-color: var(--bg-secondary); padding: 10px 12px; border-radius: 12px; max-width: 85%; font-size: 0.88rem; align-self: flex-start; border: 1px solid var(--border-color); word-break: break-word; position: relative; transition: background-color 0.4s ease, border-color 0.4s ease; }
-        .msg-bubble.self { align-self: flex-end; background-color: #0f4c5c; border-color: #136f63; }
-        .msg-bubble.urgent { border: 2px solid var(--danger-color); background-color: rgba(239, 68, 68, 0.15); }
-        .msg-bubble.highlight { background-color: #0284c7 !important; border-color: #38bdf8 !important; }
+        .panel {
+            flex: 1;
+            overflow-y: auto;
+            display: none;
+            padding: 10px;
+        }
 
-        .msg-info { font-size: 0.72rem; color: var(--accent-light); font-weight: bold; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-        .msg-actions { display: flex; gap: 8px; align-items: center; }
-        .reply-btn { background: transparent; border: none; color: #38bdf8; cursor: pointer; font-size: 0.75rem; font-weight: bold; display: flex; align-items: center; gap: 2px; }
-        .msg-time { font-size: 0.65rem; color: var(--text-muted); text-align: left; margin-top: 6px; }
-        
-        /* Quote Reply Box */
-        .reply-quote-box {
-            background: rgba(15, 23, 42, 0.7);
-            border-right: 3px solid #38bdf8;
-            padding: 6px 8px;
+        .panel.active {
+            display: block;
+        }
+
+        /* Members List */
+        .member-item {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .member-item:hover {
+            background: #f5f5f5;
+        }
+
+        .call-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Chat Window */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #e5ddd5;
+        }
+
+        .chat-header {
+            padding: 15px;
+            background: white;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: bold;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            max-width: 60%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .message.me {
+            align-self: flex-start;
+            background: var(--msg-me);
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .message.other {
+            align-self: flex-end;
+            background: var(--msg-other);
+            color: black;
+            border-bottom-left-radius: 2px;
+        }
+
+        .message .meta {
+            font-size: 10px;
+            opacity: 0.7;
+            margin-top: 4px;
+            text-align: left;
+        }
+
+        /* Chat Controls */
+        .chat-input-area {
+            padding: 15px;
+            background: white;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .chat-input-area input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            outline: none;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        /* Call Overlay */
+        #call-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            z-index: 2000;
+        }
+
+        .call-controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .call-btn-danger {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* Task Items */
+        .task-item {
+            padding: 10px;
+            background: #f8f9fa;
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             margin-bottom: 8px;
-            font-size: 0.78rem;
-            cursor: pointer;
-            user-select: none;
-            transition: background 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .reply-quote-box:hover { background: rgba(30, 41, 59, 0.9); }
-        .reply-quote-author { color: #38bdf8; font-weight: bold; font-size: 0.7rem; margin-bottom: 2px; }
-        .reply-quote-text { color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
 
-        .audio-player-box { margin-top: 6px; background: #0f172a; border-radius: 10px; padding: 4px 6px; border: 1px solid var(--accent-color); display: flex; align-items: center; gap: 6px; width: 100%; max-width: 250px; }
-        .audio-player-box audio { width: 100%; height: 32px; outline: none; }
-
-        /* Input Controls */
-        .chat-input-bar { padding: 8px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
-        .reply-preview-bar { display: none; background: #1e293b; padding: 6px 12px; border-radius: 8px; border-right: 4px solid #38bdf8; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
-        .reply-preview-bar.active { display: flex; }
-        .cancel-reply { background: none; border: none; color: var(--danger-color); font-weight: bold; cursor: pointer; font-size: 1rem; padding: 0 4px; }
-
-        .reactions-quick { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
-        .react-btn { background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 12px; padding: 4px 8px; font-size: 0.82rem; cursor: pointer; color: #fff; flex-shrink: 0; }
-        
-        .input-row { display: flex; gap: 6px; align-items: center; width: 100%; }
-        input[type="text"], input[type="email"], input[type="password"] { flex: 1; background-color: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 10px; border-radius: 8px; outline: none; font-size: 0.85rem; min-width: 0; }
-        
-        .action-btn { background-color: var(--accent-color); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; flex-shrink: 0; }
-        .mic-btn { background-color: #6366f1; font-size: 0.9rem; width: 36px; height: 36px; border-radius: 8px; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .mic-btn.recording { background-color: var(--danger-color); animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
-        .file-label { background: var(--bg-card); color: #fff; padding: 8px 10px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border-color); flex-shrink: 0; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; }
-
-        /* Section Panels */
-        .panel { display: none; padding: 12px; overflow-y: auto; height: 100%; width: 100%; }
-        .panel.active { display: block; }
-        .card { background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; margin-bottom: 12px; }
-        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
-        .form-control { background: var(--bg-primary); border: 1px solid var(--border-color); color: #fff; padding: 8px; border-radius: 6px; font-size: 0.85rem; width: 100%; }
-        .table-responsive { overflow-x: auto; width: 100%; }
-        .table { width: 100%; border-collapse: collapse; min-width: 320px; }
-        .table th, .table td { padding: 8px; border: 1px solid var(--border-color); text-align: right; font-size: 0.8rem; }
-        .table th { background: var(--bg-card); color: var(--accent-light); }
-
-        .task-item { display: flex; align-items: center; justify-content: space-between; background: var(--bg-primary); padding: 8px 10px; border-radius: 6px; margin-bottom: 6px; border: 1px solid var(--border-color); }
-        .task-item.done { opacity: 0.6; text-decoration: line-through; }
-        .urgent-btn { background: var(--danger-color) !important; color: white !important; font-weight: bold; border: none !important; }
-        .export-btn { background: var(--bg-card); color: var(--accent-light); border: 1px solid var(--accent-light); padding: 4px 8px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; }
-        .delete-btn { background: transparent; border: none; color: var(--danger-color); cursor: pointer; font-size: 0.75rem; font-weight: bold; }
-
-        .preview-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; justify-content: center; align-items: center; padding: 20px; }
-        .preview-modal.active { display: flex; }
-        .preview-modal img { max-width: 95%; max-height: 90vh; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
-        .close-modal { position: absolute; top: 15px; right: 20px; color: white; font-size: 2rem; cursor: pointer; font-weight: bold; }
+        .task-item .meta {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Login Modal Box -->
-    <div class="login-overlay" id="login-modal">
-        <div class="login-card">
-            <div class="login-title">🏭 مصنع لومي للكوزمتكس</div>
-            <p style="text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-bottom: 16px;">يرجى تسجيل الدخول للوصول للإدارات</p>
-            <form onsubmit="event.preventDefault(); handleLogin();">
-                <div class="form-group">
-                    <label style="font-size:0.75rem; color:var(--text-muted);">البريد الإلكتروني للمدير / الموظف:</label>
-                    <input type="email" id="login-email" class="form-control" placeholder="admin@loome.com" required>
-                </div>
-                <div class="form-group">
-                    <label style="font-size:0.75rem; color:var(--text-muted);">كلمة المرور:</label>
-                    <input type="password" id="login-pass" class="form-control" placeholder="••••••••" required>
-                </div>
-                <button type="submit" class="action-btn" style="width:100%; padding: 10px; margin-top: 8px;">تسجيل الدخول للنظام</button>
-            </form>
+    <!-- Auth Screen -->
+    <div id="auth-screen">
+        <div class="auth-box">
+            <h2>تسجيل الدخول</h2>
+            <input type="text" id="username-input" placeholder="أدخل اسمك المعرف...">
+            <button onclick="login()">دخول المنصة</button>
         </div>
     </div>
 
-    <header>
-        <div class="header-right">
-            <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
-            <div class="factory-title">🏭 Loome Cosmetics</div>
-        </div>
-        <div class="header-left">
-            <span class="user-badge" id="current-user-display" onclick="changeUsername()"><span class="online-dot"></span> زائر</span>
-        </div>
-    </header>
-
-    <div class="main-container">
-        <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
-        
-        <!-- Sidebar Navigation -->
-        <div class="sidebar" id="sidebar">
-            <div class="dept-header">
-                <span>إدارات وأقسام المصنع</span>
-                <button style="background:none; border:none; color:#fff; font-size:1.1rem; cursor:pointer;" onclick="toggleSidebar()">✕</button>
+    <!-- Main Application -->
+    <div id="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="user-header" id="current-user-display">غير مسجل</div>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('members')">الأعضاء</button>
+                <button class="tab-btn" onclick="switchTab('tasks')">المهام</button>
             </div>
-            <div class="dept-list">
-                <button class="dept-btn active" onclick="switchDepartment('qc_qa', '🧪 الجودة والمعامل', event)">🧪 الجودة والمعامل (QC/QA)</button>
-                <button class="dept-btn" onclick="switchDepartment('production', '🏭 إدارة الإنتاج والتخطيط', event)">🏭 الإنتاج والتخطيط</button>
-                <button class="dept-btn" onclick="switchDepartment('inventory', '📦 المخازن والمشتريات', event)">📦 المخازن والمشتريات</button>
-                <button class="dept-btn" onclick="switchDepartment('finance', '💰 الإدارة المالية', event)">💰 الإدارة المالية</button>
-                <button class="dept-btn" onclick="switchDepartment('admin_hr', '👔 الشؤون الإدارية', event)">👔 الشؤون الإدارية (HR)</button>
-                <button class="dept-btn" onclick="switchDepartment('general', '💬 القناة العامة', event)">💬 القناة العامة</button>
+            <div id="members-panel" class="panel active">
+                <div id="members-list"></div>
             </div>
-        </div>
-
-        <div class="content-area">
-            
-            <!-- Quick Sub Navigation -->
-            <div class="sub-nav-tabs">
-                <button class="tab-btn active" id="tab-chat" onclick="showPanel('chat-panel')">💬 المحادثات</button>
-                <button class="tab-btn" id="tab-tasks" onclick="showPanel('tasks-panel')">📋 المهام</button>
-                <button class="tab-btn" id="tab-team" onclick="showPanel('team-management')">👥 المديرون والفريق</button>
-                <button class="tab-btn" id="tab-video" onclick="showPanel('video-panel')">🎙️ مباشر</button>
-            </div>
-
-            <!-- Panel 1: Chat Panel -->
-            <div id="chat-panel" class="chat-container">
-                <div class="chat-header">
-                    <div>
-                        <h3 id="current-dept-title" style="font-size: 0.88rem; color: var(--accent-light);">🧪 الجودة والمعامل (QC/QA)</h3>
-                        <span style="font-size:0.68rem; color:var(--text-muted);">🟢 المتصلون نشطون الآن</span>
-                    </div>
-                    <button class="export-btn" onclick="exportChatText()">📥 تصدير السجل</button>
-                </div>
-                
-                <div class="messages-list" id="chat-msgs"></div>
-                
-                <div class="chat-input-bar">
-                    <div class="reply-preview-bar" id="reply-preview">
-                        <div>
-                            <span style="color:#38bdf8; font-weight:bold; font-size:0.75rem;" id="reply-author">الرد على...</span>
-                            <div style="color:var(--text-muted); font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;" id="reply-text-preview"></div>
-                        </div>
-                        <button class="cancel-reply" onclick="cancelReply()">✕</button>
-                    </div>
-
-                    <div class="reactions-quick">
-                        <button class="react-btn" onclick="addEmoji('👍')">👍</button>
-                        <button class="react-btn" onclick="addEmoji('✅')">✅</button>
-                        <button class="react-btn" onclick="addEmoji('⚠️')">⚠️</button>
-                        <button class="react-btn" onclick="addEmoji('🧪')">🧪</button>
-                        <button class="react-btn" onclick="addEmoji('📦')">📦</button>
-                        <button class="react-btn urgent-btn" onclick="sendUrgentAlert()">🚨 بلاغ عاجل</button>
-                    </div>
-                    
-                    <form onsubmit="event.preventDefault(); sendMessage();" class="input-row">
-                        <label class="file-label" title="إرفاق ملف">
-                            📎
-                            <input type="file" id="chat-file" accept="image/*,video/*,audio/*,application/pdf" style="display:none;" onchange="handleFileUpload(this)">
-                        </label>
-                        <button type="button" id="record-btn" class="mic-btn" onclick="toggleRecording()" title="تسجيل صوت">🎙️</button>
-                        <input type="text" id="chat-input" placeholder="اكتب رسالة أو ملاحظة...">
-                        <button type="submit" class="action-btn">إرسال</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Panel 2: Tasks Panel -->
             <div id="tasks-panel" class="panel">
-                <div class="card">
-                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">إضافة مَهمة جديدة للقسم</h4>
-                    <div class="form-group">
-                        <input type="text" id="task-title-input" class="form-control" placeholder="عنوان المَهمة المطلوب تنفيذها...">
-                        <button class="action-btn" style="width:100%;" onclick="addNewTask()">+ إضافة المَهمة</button>
-                    </div>
+                <div style="padding: 10px;">
+                    <input type="text" id="task-input" placeholder="إضافة مهمة جديدة..." style="width:100%; padding:8px; margin-bottom:10px;">
+                    <button onclick="addTask()" style="width:100%; padding:8px; background:#28a745; color:white; border:none; border-radius:4px; cursor:pointer;">إضافة</button>
                 </div>
-                <div class="card">
-                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">قائمة المهام وحالة التنفيذ</h4>
-                    <div id="dept-tasks-list"></div>
-                </div>
+                <div id="tasks-list"></div>
             </div>
+        </div>
 
-            <!-- Panel 3: Team Management Panel -->
-            <div id="team-management" class="panel">
-                <div class="card">
-                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">إضافة مدير أو موظف جديد</h4>
-                    <div class="form-group">
-                        <input type="text" id="new-user-name" class="form-control" placeholder="الاسم الكامل...">
-                        <input type="text" id="new-user-role" class="form-control" placeholder="المسمى الوظيفي (مثال: مدير الجودة)...">
-                        <select id="new-user-dept" class="form-control">
-                            <option value="qc_qa">الجودة والمعامل</option>
-                            <option value="production">إدارة الإنتاج والتخطيط</option>
-                            <option value="inventory">المخازن والمشتريات</option>
-                            <option value="finance">الإدارة المالية</option>
-                            <option value="admin_hr">الشؤون الإدارية</option>
-                        </select>
-                        <button class="action-btn" style="width:100%;" onclick="addNewMember()">+ إضافة للهيكل الإداري</button>
-                    </div>
-                </div>
-                <div class="card">
-                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">قائمة المديرين وفريق العمل</h4>
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>اسم المسؤول</th>
-                                    <th>المسمى الوظيفي</th>
-                                    <th>الإدارة / القسم</th>
-                                    <th>إجراء</th>
-                                </tr>
-                            </thead>
-                            <tbody id="team-table-body"></tbody>
-                        </table>
-                    </div>
-                </div>
+        <!-- Chat Window -->
+        <div class="chat-area">
+            <div class="chat-header" id="chat-title">المحادثة العامة</div>
+            <div class="chat-messages" id="messages-container"></div>
+            <div class="chat-input-area">
+                <input type="file" id="file-input" style="display: none;" onchange="uploadFile(this)">
+                <button class="action-btn" onclick="document.getElementById('file-input').click()">📎</button>
+                <button class="action-btn" id="record-btn" onclick="toggleRecording()">🎙️</button>
+                <input type="text" id="message-input" placeholder="اكتب رسالة..." onkeypress="handleKeyPress(event)">
+                <button class="action-btn" onclick="sendMessage()">➔</button>
             </div>
-
-            <!-- Panel 4: Live Audio / Meeting Panel -->
-            <div id="video-panel" class="panel">
-                <div class="card" style="text-align:center;">
-                    <h4 style="color:var(--accent-light); margin-bottom:8px;">🎙️ غرفة التحدث والاجتماع المباشر</h4>
-                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px;">تحدث مباشرة وبدون أي تأخير مع أعضاء الفريق والمديرين</p>
-                    <video id="groupVideoPlayer" autoplay playsinline muted style="width:100%; max-height:220px; background:#000; border-radius:8px; object-fit:cover; margin-bottom:12px; border:1px solid var(--accent-color);"></video>
-                    <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px;">
-                        <button class="action-btn" id="toggle-mic-btn" style="background:var(--success-color);" onclick="startLiveAudioCall()">🔊 فتح المايك والتحدث المباشر</button>
-                        <button class="action-btn" style="background:var(--danger-color);" onclick="stopCamera()">مغادرة الغرفة</button>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </div>
 
-    <!-- Image Modal View -->
-    <div class="preview-modal" id="imageModal" onclick="closeImageModal()">
-        <span class="close-modal">&times;</span>
-        <img id="modalImg" src="" alt="صورة مكبرة">
+    <!-- Call Overlay -->
+    <div id="call-overlay">
+        <h2 id="call-status">جاري الاتصال...</h2>
+        <audio id="remote-audio" autoplay></audio>
+        <div class="call-controls">
+            <button class="call-btn-danger" onclick="endCall()">إنهاء المكالمة</button>
+        </div>
     </div>
 
     <script>
+        // --- Supabase Configuration ---
         const SUPABASE_URL = 'https://gdmevluvrmexkkihcxce.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkbWV2bHV2cm1leGtraWhjeGNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NTI5ODIsImV4cCI6MjEwNDEyODk4Mn0.U1MA6q_GfuPpzkJCvMwTc07neAek1vsq5qWE44_eYQQ';
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let currentDept = 'qc_qa';
-        let myUsername = 'د دينا علي';
-        let myUserId = '';
-        let mediaRecorder = null, audioChunks = [];
+        let currentUser = null;
+        let activeChannel = null;
+        let peerConnection = null;
         let localStream = null;
-        let activeReplyTarget = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
 
-        let teamMembers = [
-            { id: 1, name: 'د دينا علي', role: 'مدير الجودة', dept: 'qc_qa' },
-            { id: 2, name: 'م ندى مجدي', role: 'مدير الإنتاج', dept: 'production' },
-            { id: 3, name: 'أحمد إدريس', role: 'مدير المخازن', dept: 'inventory' },
-            { id: 4, name: 'أ مصطفى حسني', role: 'مدير الإدارة المالية', dept: 'finance' },
-            { id: 5, name: 'أ شهد', role: 'الشؤون الإدارية', dept: 'admin_hr' }
-        ];
+        // ICE Servers configuration
+        const rtcConfig = {
+            iceServers: [
+                {
+                    urls: 'stun:stun.l.google.com:19302'
+                },
+                {
+                    urls: 'stun:stun1.l.google.com:19302'
+                },
+                {
+                    urls: 'stun:stun2.l.google.com:19302'
+                },
+                {
+                    urls: 'stun:stun3.l.google.com:19302'
+                },
+                {
+                    urls: 'stun:stun4.l.google.com:19302'
+                }
+            ]
+        };
 
-        let deptTasks = {};
+        // --- Auth System ---
+        function login() {
+            const usernameInput = document.getElementById('username-input');
+            const username = usernameInput.value.trim();
+            
+            if (!username) {
+                alert('يرجى إدخال اسم صحيح');
+                return;
+            }
+            
+            currentUser = username;
+            document.getElementById('current-user-display').innerText = `المستخدم: ${currentUser}`;
+            document.getElementById('auth-screen').style.display = 'none';
+            
+            initSupabaseSubscriptions();
+            loadMessages();
+            loadTasks();
+            registerPresence();
+        }
 
-        function generateUUID() {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
+        // --- Realtime Subscriptions ---
+        function initSupabaseSubscriptions() {
+            // Subscribe to Messages
+            db.channel('public:messages')
+                .on('postgres_changes', { 
+                    event: 'INSERT', 
+                    schema: 'public', 
+                    table: 'messages' 
+                }, payload => {
+                    renderSingleMessage(payload.new);
+                })
+                .subscribe();
+
+            // Subscribe to Tasks
+            db.channel('public:tasks')
+                .on('postgres_changes', { 
+                    event: 'INSERT', 
+                    schema: 'public', 
+                    table: 'tasks' 
+                }, payload => {
+                    renderSingleTask(payload.new);
+                })
+                .subscribe();
+
+            // Broadcast Channel for P2P Calls Signaling
+            activeChannel = db.channel('call-signaling', { 
+                config: { 
+                    broadcast: { self: false } 
+                } 
+            });
+            
+            activeChannel.on('broadcast', { event: 'signal' }, async ({ payload }) => {
+                if (payload.target !== currentUser) return;
+                
+                if (payload.type === 'offer') {
+                    handleOffer(payload);
+                } else if (payload.type === 'answer') {
+                    handleAnswer(payload);
+                } else if (payload.type === 'candidate') {
+                    handleCandidate(payload);
+                } else if (payload.type === 'end') {
+                    resetCallUI();
+                }
+            }).subscribe();
+        }
+
+        // --- Presence & Members ---
+        async function registerPresence() {
+            const presenceChannel = db.channel('online-users', {
+                config: { 
+                    presence: { key: currentUser } 
+                }
+            });
+
+            presenceChannel.on('presence', { event: 'sync' }, () => {
+                const state = presenceChannel.presenceState();
+                renderMembers(Object.keys(state));
+            }).subscribe(async (status) => {
+                if (status === 'SUBSCRIBED') {
+                    await presenceChannel.track({ 
+                        online_at: new Date().toISOString() 
+                    });
+                }
             });
         }
 
-        function handleLogin() {
-            const email = document.getElementById('login-email').value.trim();
-            if(email) {
-                myUsername = email.split('@')[0];
-                let savedId = generateUUID();
-                myUserId = savedId;
-                
-                localStorage.setItem('loome_factory_username', myUsername);
-                localStorage.setItem('loome_factory_uuid', savedId);
-
-                document.getElementById('current-user-display').innerHTML = `<span class="online-dot"></span> ${myUsername}`;
-                document.getElementById('login-modal').style.display = 'none';
-                initApp();
-            }
-        }
-
-        function initApp() {
-            let savedName = localStorage.getItem('loome_factory_username');
-            let savedId = localStorage.getItem('loome_factory_uuid');
-            
-            if(savedName && savedId) {
-                myUsername = savedName;
-                myUserId = savedId;
-                document.getElementById('login-modal').style.display = 'none';
-            } else {
-                document.getElementById('login-modal').style.display = 'flex';
-                return;
-            }
-
-            let savedTasks = localStorage.getItem('loome_dept_tasks');
-            if(savedTasks) {
-                try { deptTasks = JSON.parse(savedTasks); } catch(e){}
-            }
-
-            document.getElementById('current-user-display').innerHTML = `<span class="online-dot"></span> ${myUsername}`;
-            renderTeamTable();
-            loadMessages();
-            subscribeRealtime();
-            renderTasks();
-        }
-
-        function changeUsername() {
-            let name = prompt('أدخل اسمك أو مسمالك الوظيفي:', myUsername);
-            if(name && name.trim()) {
-                myUsername = name.trim();
-                localStorage.setItem('loome_factory_username', myUsername);
-                document.getElementById('current-user-display').innerHTML = `<span class="online-dot"></span> ${myUsername}`;
-            }
-        }
-
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('overlay').classList.toggle('active');
-        }
-
-        function switchDepartment(deptKey, title, evt) {
-            currentDept = deptKey;
-            document.getElementById('current-dept-title').innerText = title;
-            document.querySelectorAll('.dept-btn').forEach(b => b.classList.remove('active'));
-            if(evt && evt.currentTarget) evt.currentTarget.classList.add('active');
-            
-            cancelReply();
-            showPanel('chat-panel');
-            loadMessages();
-            renderTasks();
-            if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
-        }
-
-        function showPanel(panelId) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            if(panelId === 'chat-panel') document.getElementById('tab-chat').classList.add('active');
-            if(panelId === 'tasks-panel') document.getElementById('tab-tasks').classList.add('active');
-            if(panelId === 'team-management') document.getElementById('tab-team').classList.add('active');
-            if(panelId === 'video-panel') document.getElementById('tab-video').classList.add('active');
-
-            document.getElementById('chat-panel').style.display = panelId === 'chat-panel' ? 'flex' : 'none';
-            document.getElementById('team-management').classList.remove('active');
-            document.getElementById('video-panel').classList.remove('active');
-            document.getElementById('tasks-panel').classList.remove('active');
-
-            if(panelId !== 'chat-panel') {
-                document.getElementById(panelId).classList.add('active');
-            }
-        }
-
-        async function loadMessages() {
-            const { data, error } = await db.from('messages')
-                .select('*')
-                .eq('room_id', currentDept)
-                .order('created_at', { ascending: true });
-            
-            const list = document.getElementById('chat-msgs');
+        function renderMembers(users) {
+            const list = document.getElementById('members-list');
             list.innerHTML = '';
-            if(data) data.forEach(msg => renderMessageUI(msg));
-        }
-
-        function subscribeRealtime() {
-            db.channel('global-factory-chat')
-              .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
-                  if (payload.eventType === 'DELETE') {
-                      const el = document.getElementById('msg-' + payload.old.id);
-                      if (el) el.remove();
-                  } else if (payload.eventType === 'INSERT') {
-                      if(payload.new.room_id === currentDept) {
-                          renderMessageUI(payload.new);
-                      }
-                  }
-              }).subscribe();
-        }
-
-        function parseMessagePayload(rawText) {
-            let text = rawText || '';
-            let senderName = 'عضو الفريق';
-            let isUrgent = false;
-            let replyData = null;
-
-            if (text.startsWith('[URGENT]:')) {
-                isUrgent = true;
-                text = text.replace('[URGENT]:', '').trim();
-            }
-
-            if (text.includes('[REPLY_TO]')) {
-                try {
-                    let parts = text.split('::[MSG]:');
-                    let replyPart = parts[0];
-                    text = parts[1] || '';
-
-                    let jsonMatch = replyPart.match(/\{.*\}/);
-                    if (jsonMatch) {
-                        replyData = JSON.parse(jsonMatch[0]);
-                    }
-                } catch(e) {
-                    console.log('Error parsing reply JSON', e);
-                }
-            }
-
-            if (text.startsWith('[NAME]:')) {
-                const parts = text.split('::');
-                senderName = parts[0].replace('[NAME]:', '');
-                text = parts.slice(1).join('::');
-            }
-
-            return { senderName, isUrgent, replyData, mainText: text };
-        }
-
-        function renderMessageUI(msg) {
-            const list = document.getElementById('chat-msgs');
-            const msgKey = msg.id ? 'msg-' + msg.id : 'msg-temp-' + Date.now();
-            let bubble = document.getElementById(msgKey);
-            if(!bubble) {
-                bubble = document.createElement('div');
-                bubble.id = msgKey;
-                list.appendChild(bubble);
-            }
-
-            const isSelf = msg.user_id === myUserId;
-            const parsed = parseMessagePayload(msg.content);
-            let contentText = parsed.mainText;
-            let senderName = isSelf ? myUsername : parsed.senderName;
-
-            bubble.className = `msg-bubble ${isSelf ? 'self' : ''} ${parsed.isUrgent ? 'urgent' : ''}`;
-
-            let audioUrl = '', videoUrl = '', fileUrl = '';
-
-            if(contentText.startsWith('[AUDIO]:')) {
-                audioUrl = contentText.replace('[AUDIO]:', '').trim();
-                contentText = '🎤 رسالة صوتية';
-            } else if(contentText.startsWith('[VIDEO]:')) {
-                videoUrl = contentText.replace('[VIDEO]:', '').trim();
-                contentText = '🎥 مقطع فيديو';
-            } else if(contentText.startsWith('[FILE]:')) {
-                fileUrl = contentText.replace('[FILE]:', '').trim();
-                contentText = fileUrl.startsWith('data:image/') ? '📷 صورة مرفقة' : '📄 ملف مرفق';
-            }
-
-            const summaryForReply = contentText;
-            let deleteBtnHtml = msg.id ? `<button class="delete-btn" onclick="deleteMsg('${msg.id}', event)">🗑️ حذف</button>` : '';
-
-            let html = `
-                <div class="msg-info">
-                    <span>${senderName} ${parsed.isUrgent ? '🚨 (عاجل)' : ''}</span>
-                    <div class="msg-actions">
-                        <button class="reply-btn" onclick="setReplyTarget('${msg.id || ''}', '${senderName.replace(/'/g, "\\'")}', '${summaryForReply.replace(/'/g, "\\'")}')">↩️ رد</button>
-                        ${deleteBtnHtml}
-                    </div>
-                </div>`;
-
-            if(parsed.replyData) {
-                const targetMsgId = parsed.replyData.id ? `msg-${parsed.replyData.id}` : '';
-                html += `
-                <div class="reply-quote-box" onclick="scrollToMessage('${targetMsgId}')">
-                    <div class="reply-quote-author">رد على: ${parsed.replyData.author || 'رسالة'}</div>
-                    <div class="reply-quote-text">${parsed.replyData.text || ''}</div>
-                </div>`;
-            }
-
-            if(contentText && !audioUrl && !videoUrl && !fileUrl) {
-                html += `<div>${contentText}</div>`;
-            }
-
-            if(audioUrl) {
-                html += `
-                <div class="audio-player-box">
-                    <audio controls controlsList="nodownload" src="${audioUrl}"></audio>
-                </div>`;
-            }
-
-            if(videoUrl) {
-                html += `
-                <div style="margin-top:6px;">
-                    <video controls style="width:100%; max-width:280px; border-radius:8px; border:1px solid var(--accent-color); background:#000;" src="${videoUrl}"></video>
-                </div>`;
-            }
-
-            if(fileUrl) {
-                if(fileUrl.startsWith('data:image/')) {
-                    html += `
-                    <div style="margin-top:6px;">
-                        <img src="${fileUrl}" onclick="openImageModal('${fileUrl}')" style="max-width:100%; max-height:220px; border-radius:8px; cursor:pointer; border:1px solid var(--accent-color);" title="انقر لتكبير الصورة">
-                    </div>`;
-                } else {
-                    html += `<a href="${fileUrl}" download="Attachment" target="_blank" style="color:#60a5fa; margin-top:6px; display:inline-block; font-size:0.8rem; font-weight:bold;">📄 فتح / تحميل المستند</a>`;
-                }
-            }
-
-            html += `<div class="msg-time">${new Date(msg.created_at || Date.now()).toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'})}</div>`;
-            bubble.innerHTML = html;
-            list.scrollTop = list.scrollHeight;
-        }
-
-        function scrollToMessage(elementId) {
-            if(!elementId) return;
-            const targetEl = document.getElementById(elementId);
-            if(targetEl) {
-                targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                targetEl.classList.add('highlight');
-                setTimeout(() => {
-                    targetEl.classList.remove('highlight');
-                }, 1500);
-            } else {
-                alert('الرسالة الأصلية غير موجودة أو قديمة جداً.');
-            }
-        }
-
-        function setReplyTarget(msgId, author, text) {
-            activeReplyTarget = { id: msgId, author, text };
-            document.getElementById('reply-author').innerText = 'الرد على: ' + author;
-            document.getElementById('reply-text-preview').innerText = text;
-            document.getElementById('reply-preview').classList.add('active');
-            document.getElementById('chat-input').focus();
-        }
-
-        function cancelReply() {
-            activeReplyTarget = null;
-            document.getElementById('reply-preview').classList.remove('active');
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('chat-input');
-            const messageText = input.value.trim();
-            if(messageText) {
-                input.value = '';
-                await sendPayload(messageText);
-            }
-        }
-
-        async function sendUrgentAlert() {
-            const note = prompt('أدخل تفاصيل البلاغ العاجل:');
-            if(note && note.trim()) {
-                await sendPayload(`[URGENT]: ${note.trim()}`);
-            }
-        }
-
-        async function sendPayload(content) {
-            let finalPayload = content;
-            if(activeReplyTarget) {
-                const replyJson = JSON.stringify(activeReplyTarget);
-                finalPayload = `[REPLY_TO]:${replyJson}::[MSG]:${content}`;
-                cancelReply();
-            }
-
-            const fullContent = `[NAME]:${myUsername}::${finalPayload}`;
             
-            // إضافة عرض الرسالة فوراً محلياً لتجربة مستخدم سريعة
-            const tempMsg = {
-                user_id: myUserId,
-                content: fullContent,
-                room_id: currentDept,
-                created_at: new Date().toISOString()
-            };
-            renderMessageUI(tempMsg);
+            users.forEach(user => {
+                if (user === currentUser) return;
+                
+                const div = document.createElement('div');
+                div.className = 'member-item';
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.innerText = user;
+                
+                const callBtn = document.createElement('button');
+                callBtn.className = 'call-btn';
+                callBtn.innerText = '📞 اتصال';
+                callBtn.onclick = () => startCall(user);
+                
+                div.appendChild(nameSpan);
+                div.appendChild(callBtn);
+                list.appendChild(div);
+            });
+        }
 
-            const { data, error } = await db.from('messages').insert([{ 
-                user_id: myUserId, 
-                content: fullContent, 
-                room_id: currentDept 
-            }]).select();
-
-            if(error) {
-                alert('خطأ في الإرسال: ' + error.message);
-            } else if(data && data[0]) {
-                // تحديث الرسالة بالـ id الحقيقي القادم من الخادم
-                renderMessageUI(data[0]);
+        // --- Messaging System ---
+        async function loadMessages() {
+            const { data, error } = await db
+                .from('messages')
+                .select('*')
+                .order('created_at', { ascending: true });
+                
+            if (!error && data) {
+                const container = document.getElementById('messages-container');
+                container.innerHTML = '';
+                data.forEach(msg => renderSingleMessage(msg));
             }
         }
 
-        async function deleteMsg(id, event) {
-            if(event) event.stopPropagation();
-            if(confirm('هل تريد حذف هذه الرسالة نهائياً؟')) {
-                const { error } = await db.from('messages').delete().eq('id', id);
-                if(!error) {
-                    const el = document.getElementById('msg-' + id);
-                    if(el) el.remove();
-                } else {
-                    alert('تعذر الحذف: ' + error.message);
-                }
+        async function sendMessage(customContent = null) {
+            const input = document.getElementById('message-input');
+            const content = customContent || input.value.trim();
+            
+            if (!content) return;
+
+            const { error } = await db
+                .from('messages')
+                .insert([
+                    { 
+                        sender: currentUser, 
+                        content: content 
+                    }
+                ]);
+
+            if (error) {
+                console.error('Error sending message:', error);
+            } else {
+                if (!customContent) input.value = '';
             }
         }
 
-        function addEmoji(emoji) {
-            document.getElementById('chat-input').value += ' ' + emoji;
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
         }
 
+        function renderSingleMessage(msg) {
+            const container = document.getElementById('messages-container');
+            const div = document.createElement('div');
+            const isMe = msg.sender === currentUser;
+            
+            div.className = `message ${isMe ? 'me' : 'other'}`;
+            
+            let messageBody = msg.content;
+            
+            if (msg.content.startsWith('[AUDIO]:')) {
+                const url = msg.content.replace('[AUDIO]:', '');
+                messageBody = `<audio controls src="${url}"></audio>`;
+            } else if (msg.content.startsWith('[FILE]:')) {
+                const url = msg.content.replace('[FILE]:', '');
+                messageBody = `<a href="${url}" target="_blank" style="color:inherit;">📄 عرض الملف المرفق</a>`;
+            }
+
+            div.innerHTML = `
+                <div>${messageBody}</div>
+                <div class="meta">${msg.sender}</div>
+            `;
+            
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // --- Storage (Voice & Files using 'chat-files' Bucket) ---
         async function toggleRecording() {
             const btn = document.getElementById('record-btn');
+            
             if (mediaRecorder && mediaRecorder.state === "recording") {
                 mediaRecorder.stop();
-                btn.classList.remove('recording');
-                btn.innerText = "🎙️";
             } else {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    let options = {};
-                    if (MediaRecorder.isTypeSupported('audio/webm')) {
-                        options = { mimeType: 'audio/webm' };
-                    } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
-                        options = { mimeType: 'audio/mp4' };
-                    }
-                    mediaRecorder = new MediaRecorder(stream, options);
+                    mediaRecorder = new MediaRecorder(stream);
                     audioChunks = [];
-                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                     
-                    mediaRecorder.onstop = () => {
-                        btn.innerText = "⏳";
-                        const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/mp4' });
-                        const reader = new FileReader();
-                        reader.readAsDataURL(audioBlob);
-                        reader.onloadend = () => {
-                            sendPayload(`[AUDIO]:${reader.result}`);
-                            btn.innerText = "🎙️";
-                            btn.classList.remove('recording');
-                        };
+                    mediaRecorder.ondataavailable = e => {
+                        audioChunks.push(e.data);
                     };
+                    
+                    mediaRecorder.onstop = async () => {
+                        btn.innerText = "⏳";
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const fileName = `voice_${Date.now()}.webm`;
+                        
+                        const { data, error } = await db.storage
+                            .from('chat-files')
+                            .upload(fileName, audioBlob);
+                            
+                        if (!error) {
+                            const { data: publicUrl } = db.storage
+                                .from('chat-files')
+                                .getPublicUrl(fileName);
+                                
+                            sendMessage(`[AUDIO]:${publicUrl.publicUrl}`);
+                        } else {
+                            alert('خطأ في رفع التسجيل الصوتي.');
+                            console.error(error);
+                        }
+                        btn.innerText = "🎙️";
+                    };
+                    
                     mediaRecorder.start();
-                    btn.classList.add('recording');
                     btn.innerText = "⏹️";
-                } catch (e) { alert('يرجى السماح بالوصول للميكروفون لبدء التسجيل.'); }
+                } catch (e) { 
+                    alert('الوصول للميكروفون مفقود أو غير متاح'); 
+                }
             }
         }
 
-        async function handleFileUpload(input) {
-            if(input.files && input.files[0]) {
-                const file = input.files[0];
+        async function uploadFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const fileName = `file_${Date.now()}_${file.name}`;
+            const { data, error } = await db.storage
+                .from('chat-files')
+                .upload(fileName, file);
                 
-                if(file.size > 15 * 1024 * 1024) {
-                    alert('حجم الملف كبير جداً، يرجى اختيار ملف بحجم أقل من 15 ميجابايت.');
-                    input.value = '';
-                    return;
-                }
+            if (!error) {
+                const { data: publicUrl } = db.storage
+                    .from('chat-files')
+                    .getPublicUrl(fileName);
+                    
+                sendMessage(`[FILE]:${publicUrl.publicUrl}`);
+            } else {
+                alert('خطأ في رفع الملف.');
+                console.error(error);
+            }
+        }
 
-                if(file.type.startsWith('image/')) {
-                    compressAndSendImage(file);
-                } else if(file.type.startsWith('video/')) {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onloadend = () => sendPayload(`[VIDEO]:${reader.result}`);
-                } else if(file.type.startsWith('audio/')) {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onloadend = () => sendPayload(`[AUDIO]:${reader.result}`);
-                } else {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onloadend = () => sendPayload(`[FILE]:${reader.result}`);
+        // --- WebRTC Audio Calls ---
+        async function startCall(targetUser) {
+            document.getElementById('call-overlay').style.display = 'flex';
+            document.getElementById('call-status').innerText = `جاري الاتصال بـ ${targetUser}...`;
+
+            peerConnection = new RTCPeerConnection(rtcConfig);
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            
+            localStream.getTracks().forEach(track => {
+                peerConnection.addTrack(track, localStream);
+            });
+
+            peerConnection.ontrack = e => {
+                document.getElementById('remote-audio').srcObject = e.streams[0];
+            };
+
+            peerConnection.onicecandidate = e => {
+                if (e.candidate) {
+                    activeChannel.send({
+                        type: 'broadcast', 
+                        event: 'signal',
+                        payload: { 
+                            type: 'candidate', 
+                            candidate: e.candidate, 
+                            target: targetUser, 
+                            sender: currentUser 
+                        }
+                    });
                 }
+            };
+
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+
+            activeChannel.send({
+                type: 'broadcast', 
+                event: 'signal',
+                payload: { 
+                    type: 'offer', 
+                    offer: offer, 
+                    target: targetUser, 
+                    sender: currentUser 
+                }
+            });
+        }
+
+        async function handleOffer(payload) {
+            if (!confirm(`مكالمة واردة من ${payload.sender}. هل ترغب بالرد؟`)) return;
+
+            document.getElementById('call-overlay').style.display = 'flex';
+            document.getElementById('call-status').innerText = `في مكالمة مع ${payload.sender}`;
+
+            peerConnection = new RTCPeerConnection(rtcConfig);
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            
+            localStream.getTracks().forEach(track => {
+                peerConnection.addTrack(track, localStream);
+            });
+
+            peerConnection.ontrack = e => {
+                document.getElementById('remote-audio').srcObject = e.streams[0];
+            };
+
+            peerConnection.onicecandidate = e => {
+                if (e.candidate) {
+                    activeChannel.send({
+                        type: 'broadcast', 
+                        event: 'signal',
+                        payload: { 
+                            type: 'candidate', 
+                            candidate: e.candidate, 
+                            target: payload.sender, 
+                            sender: currentUser 
+                        }
+                    });
+                }
+            };
+
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(payload.offer));
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+
+            activeChannel.send({
+                type: 'broadcast', 
+                event: 'signal',
+                payload: { 
+                    type: 'answer', 
+                    answer: answer, 
+                    target: payload.sender, 
+                    sender: currentUser 
+                }
+            });
+        }
+
+        async function handleAnswer(payload) {
+            document.getElementById('call-status').innerText = `تم الاتصال بـ ${payload.sender}`;
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(payload.answer));
+        }
+
+        async function handleCandidate(payload) {
+            if (peerConnection) {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(payload.candidate));
+            }
+        }
+
+        function endCall() {
+            if (activeChannel) {
+                activeChannel.send({
+                    type: 'broadcast', 
+                    event: 'signal',
+                    payload: { 
+                        type: 'end', 
+                        sender: currentUser 
+                    }
+                });
+            }
+            resetCallUI();
+        }
+
+        function resetCallUI() {
+            if (peerConnection) {
+                peerConnection.close();
+            }
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            peerConnection = null;
+            localStream = null;
+            document.getElementById('call-overlay').style.display = 'none';
+        }
+
+        // --- Tasks Management ---
+        async function loadTasks() {
+            const { data, error } = await db.from('tasks').select('*');
+            if (!error && data) {
+                const list = document.getElementById('tasks-list');
+                list.innerHTML = '';
+                data.forEach(t => renderSingleTask(t));
+            }
+        }
+
+        async function addTask() {
+            const input = document.getElementById('task-input');
+            const title = input.value.trim();
+            
+            if (!title) return;
+            
+            const { error } = await db
+                .from('tasks')
+                .insert([
+                    { 
+                        title: title, 
+                        created_by: currentUser 
+                    }
+                ]);
+                
+            if (!error) {
                 input.value = '';
             }
         }
 
-        function compressAndSendImage(file) {
-            const img = new Image();
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = e => {
-                img.src = e.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    const max_size = 1000;
-
-                    if (width > height) {
-                        if (width > max_size) {
-                            height *= max_size / width;
-                            width = max_size;
-                        }
-                    } else {
-                        if (height > max_size) {
-                            width *= max_size / height;
-                            height = max_size;
-                        }
-                    }
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                    sendPayload(`[FILE]:${compressedBase64}`);
-                };
-            };
+        function renderSingleTask(task) {
+            const list = document.getElementById('tasks-list');
+            const div = document.createElement('div');
+            div.className = 'task-item';
+            div.innerHTML = `
+                <div>
+                    <div>${task.title}</div>
+                    <div class="meta">بواسطة: ${task.created_by}</div>
+                </div>
+            `;
+            list.appendChild(div);
         }
 
-        function openImageModal(src) {
-            document.getElementById('modalImg').src = src;
-            document.getElementById('imageModal').classList.add('active');
-        }
-
-        function closeImageModal() {
-            document.getElementById('imageModal').classList.remove('active');
-        }
-
-        function exportChatText() {
-            const msgs = document.querySelectorAll('.msg-bubble');
-            if(msgs.length === 0) return alert('لا توجد رسائل للتصدير.');
-            let exportData = `سجل محادثات: ${document.getElementById('current-dept-title').innerText}\n\n`;
-            msgs.forEach(m => exportData += `${m.innerText}\n---\n`);
-            const blob = new Blob([exportData], { type: 'text/plain;charset=utf-8' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `Loome_${currentDept}_${Date.now()}.txt`;
-            link.click();
-        }
-
-        function addNewTask() {
-            const input = document.getElementById('task-title-input');
-            const title = input.value.trim();
-            if(!title) return;
-            if(!deptTasks[currentDept]) deptTasks[currentDept] = [];
-            deptTasks[currentDept].push({ id: Date.now(), title, done: false });
-            localStorage.setItem('loome_dept_tasks', JSON.stringify(deptTasks));
-            input.value = '';
-            renderTasks();
-        }
-
-        function toggleTask(taskId) {
-            if(deptTasks[currentDept]) {
-                const task = deptTasks[currentDept].find(t => t.id === taskId);
-                if(task) task.done = !task.done;
-                localStorage.setItem('loome_dept_tasks', JSON.stringify(deptTasks));
-                renderTasks();
+        // --- Interface UI Handlers ---
+        function switchTab(tabName) {
+            const buttons = document.querySelectorAll('.tab-btn');
+            const panels = document.querySelectorAll('.panel');
+            
+            buttons.forEach(b => b.classList.remove('active'));
+            panels.forEach(p => p.classList.remove('active'));
+            
+            if (tabName === 'members') {
+                buttons[0].classList.add('active');
+                document.getElementById('members-panel').classList.add('active');
+            } else {
+                buttons[1].classList.add('active');
+                document.getElementById('tasks-panel').classList.add('active');
             }
         }
-
-        function deleteTask(taskId) {
-            if(deptTasks[currentDept]) {
-                deptTasks[currentDept] = deptTasks[currentDept].filter(t => t.id !== taskId);
-                localStorage.setItem('loome_dept_tasks', JSON.stringify(deptTasks));
-                renderTasks();
-            }
-        }
-
-        function renderTasks() {
-            const list = document.getElementById('dept-tasks-list');
-            if(!list) return;
-            list.innerHTML = '';
-            const tasks = deptTasks[currentDept] || [];
-            if(tasks.length === 0) {
-                list.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem;">لا توجد مهام حالية لهذا القسم.</div>';
-                return;
-            }
-            tasks.forEach(t => {
-                const item = document.createElement('div');
-                item.className = `task-item ${t.done ? 'done' : ''}`;
-                item.innerHTML = `
-                    <span style="font-size:0.85rem; cursor:pointer;" onclick="toggleTask(${t.id})">${t.done ? '✅' : '⬛'} ${t.title}</span>
-                    <button style="background:none; border:none; color:var(--danger-color); cursor:pointer; font-size:0.75rem;" onclick="deleteTask(${t.id})">حذف</button>
-                `;
-                list.appendChild(item);
-            });
-        }
-
-        function renderTeamTable() {
-            const tbody = document.getElementById('team-table-body');
-            tbody.innerHTML = '';
-            teamMembers.forEach(m => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><strong>${m.name}</strong></td>
-                    <td>${m.role}</td>
-                    <td>${getDeptLabel(m.dept)}</td>
-                    <td><button style="background:var(--danger-color); color:#fff; border:none; padding:3px 6px; border-radius:4px; font-size:0.7rem; cursor:pointer;" onclick="removeMember(${m.id})">إزالة</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function getDeptLabel(key) {
-            const map = { qc_qa: 'الجودة والمعامل', production: 'الإنتاج والتخطيط', inventory: 'المخازن والمشتريات', finance: 'الإدارة المالية', admin_hr: 'الشؤون الإدارية' };
-            return map[key] || key;
-        }
-
-        function addNewMember() {
-            const name = document.getElementById('new-user-name').value.trim();
-            const role = document.getElementById('new-user-role').value.trim();
-            const dept = document.getElementById('new-user-dept').value;
-            if(!name || !role) return alert('أدخل بيانات المدير / الموظف كاملة');
-            teamMembers.push({ id: Date.now(), name, role, dept });
-            renderTeamTable();
-            document.getElementById('new-user-name').value = '';
-            document.getElementById('new-user-role').value = '';
-        }
-
-        function removeMember(id) {
-            if(confirm('حذف هذا المسؤول من الهيكل الإداري؟')) {
-                teamMembers = teamMembers.filter(m => m.id !== id);
-                renderTeamTable();
-            }
-        }
-
-        async function startLiveAudioCall() {
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                document.getElementById('groupVideoPlayer').srcObject = localStream;
-                document.getElementById('toggle-mic-btn').innerText = "🔊 التحدث المباشر يعمل حالياً";
-            } catch(e) {
-                alert('يرجى السماح بالوصول للميكروفون والكاميرا لتفعيل التحدث المباشر.');
-            }
-        }
-
-        function stopCamera() {
-            if(localStream) localStream.getTracks().forEach(t => t.stop());
-            document.getElementById('groupVideoPlayer').srcObject = null;
-            document.getElementById('toggle-mic-btn').innerText = "🔊 فتح المايك والتحدث المباشر";
-            showPanel('chat-panel');
-        }
-
-        initApp();
     </script>
 </body>
 </html>

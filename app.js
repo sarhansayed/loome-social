@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const client = window.supabaseClient || window.supabase;
 
     let currentUser = null;
-    let selectedItem = null; // يحفظ بيانات العنصر المختار عند الضغط المطول
+    let selectedItem = null;
     let activeRoom = null;
     let mediaRecorder = null;
     let chunks = [];
@@ -42,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchRooms();
         fetchPosts();
 
-        // تحديثات فورية
         client.channel('chat-room').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, fetchChat).subscribe();
     }
 
@@ -59,13 +58,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return `<div>${content}</div>`;
     }
 
-    // --- نظام الضغط المطول (Long Press) الشامل لكل محتوى ---
+    // --- نظام الضغط المطول (Long Press) ---
     window.attachLongPress = (element, id, table, content, isMe) => {
         let timer;
         const start = () => {
             timer = setTimeout(() => {
                 if (isMe) openContextMenu(id, table, content);
-            }, 500); // 500ms تعتبر ضغطة مطولة
+            }, 500);
         };
         const end = () => clearTimeout(timer);
 
@@ -169,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('chat-file-input').addEventListener('change', (e) => uploadAndSend(e.target.files[0], 'chat'));
 
-    // --- 2. الغرف الخاصة والموافقة وحصريتها ---
+    // --- 2. الغرف الخاصة ---
     document.getElementById('btn-open-create-room').addEventListener('click', () => {
         document.getElementById('create-room-modal').style.display = 'flex';
     });
@@ -183,7 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const { data } = await client.from('rooms').insert([{ name, owner_email: currentUser?.email || 'زائر' }]).select();
         if (data && data[0]) {
-            // إضافة صاحب الغرفة فوراً كعضو معتمد
             await client.from('room_members').insert([{ room_id: data[0].id, user_email: currentUser?.email || 'زائر', status: 'approved' }]);
         }
 
@@ -202,8 +200,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (const r of data) {
             const isOwner = r.owner_email === myEmail;
-            
-            // التحقق من حالة العضوية
             const { data: memberData } = await client.from('room_members').select('status').eq('room_id', r.id).eq('user_email', myEmail).maybeSingle();
             const status = isOwner ? 'approved' : (memberData?.status || 'none');
 
@@ -226,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.requestJoinRoom = async (roomId) => {
         await client.from('room_members').insert([{ room_id: roomId, user_email: currentUser?.email || 'زائر', status: 'pending' }]);
-        alert("تم إرسال طلب الانضمام لصاحب الغرفة بنجاح!");
+        alert("تم إرسال طلب الانضمام بنجاح!");
         fetchRooms();
     };
 
@@ -384,7 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- الاجتماع المرئي والصوتي الحي ---
+    // --- الاجتماع المرئي والصوتي الحي المباشر (تجاوز شاشة الترحيب) ---
     document.getElementById('btn-start-global-meeting').addEventListener('click', () => startMeeting('Loome-Global'));
     document.getElementById('btn-start-room-meeting').addEventListener('click', () => {
         if (activeRoom) startMeeting(`Room_${activeRoom.name}`);
@@ -400,7 +396,17 @@ document.addEventListener('DOMContentLoaded', () => {
             width: '100%',
             height: '100%',
             parentNode: document.querySelector('#jitsi-container'),
-            userInfo: { displayName: currentUser?.email || 'زائر Loome' }
+            userInfo: { displayName: currentUser?.email || 'زائر Loome' },
+            configOverwrite: {
+                startWithAudioMuted: false,
+                startWithVideoMuted: false,
+                disableDeepLinking: true,
+                prejoinPageEnabled: false
+            },
+            interfaceConfigOverwrite: {
+                SHOW_JITSI_WATERMARK: false,
+                MOBILE_APP_PROMO: false
+            }
         };
         document.querySelector('#jitsi-container').innerHTML = '';
         jitsiApi = new JitsiMeetExternalAPI('meet.jit.si', options);
@@ -411,7 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('meeting-modal').style.display = 'none';
     }
 
-    // --- الميكروفون التسجيل الصوتي المباشر ---
+    // --- التسجيل الصوتي المباشر ---
     function setupMic(btnId, targetType) {
         const btn = document.getElementById(btnId);
         if (!btn) return;
@@ -461,7 +467,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupMic('btn-dm-mic', 'dm');
     setupMic('btn-post-mic', 'post');
 
-    // --- رفع وتحديث الملفات العامة ---
+    // --- رفع وتحديث الملفات ---
     async function uploadAndSend(file, type) {
         if (!file) return;
 

@@ -42,13 +42,20 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchRooms();
         fetchPosts();
 
-        client.channel('chat-room').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, fetchChat).subscribe();
+        // التحديث الفوري المباشر الشامل (Realtime Subscriptions)
+        client.channel('global-changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, fetchChat)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'room_messages' }, fetchRoomMessages)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'direct_messages' }, fetchDM)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, fetchPosts)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'room_members' }, () => { fetchRooms(); if(activeRoom) checkRoomRequests(); })
+            .subscribe();
     }
 
-    // --- عرض محتوى الرسائل والملفات ---
+    // --- عرض وسائل الإعلام والملفات بشكل أنيق ---
     function renderMediaContent(content) {
         if (!content) return '';
-        if (content.startsWith('[IMAGE]:')) return `<img src="${content.replace('[IMAGE]:', '')}" style="max-width:100%; border-radius:12px; margin-top:5px;">`;
+        if (content.startsWith('[IMAGE]:')) return `<img src="${content.replace('[IMAGE]:', '')}" style="max-width:100%; border-radius:12px; margin-top:5px;" onclick="window.open('${content.replace('[IMAGE]:', '')}')">`;
         if (content.startsWith('[VIDEO]:')) return `<video controls src="${content.replace('[VIDEO]:', '')}" style="max-width:100%; border-radius:12px; margin-top:5px;"></video>`;
         if (content.startsWith('[AUDIO]:')) return `<audio controls src="${content.replace('[AUDIO]:', '')}" style="max-width:100%; height:35px; margin-top:5px;"></audio>`;
         if (content.startsWith('[FILE]:')) {
@@ -58,12 +65,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return `<div>${content}</div>`;
     }
 
-    // --- نظام الضغط المطول (Long Press) ---
+    // --- نظام الضغط المطول للجميع (Long Press & Context Menu) ---
     window.attachLongPress = (element, id, table, content, isMe) => {
         let timer;
         const start = () => {
             timer = setTimeout(() => {
-                if (isMe) openContextMenu(id, table, content);
+                openContextMenu(id, table, content, isMe);
             }, 500);
         };
         const end = () => clearTimeout(timer);
@@ -75,13 +82,36 @@ document.addEventListener('DOMContentLoaded', () => {
         element.addEventListener('mouseleave', end);
     };
 
-    function openContextMenu(id, table, content) {
-        selectedItem = { id, table, content };
+    function openContextMenu(id, table, content, isMe) {
+        selectedItem = { id, table, content, isMe };
+        document.getElementById('ctx-edit').style.display = isMe ? 'block' : 'none';
+        document.getElementById('ctx-delete').style.display = isMe ? 'block' : 'none';
         document.getElementById('context-menu').style.display = 'flex';
     }
 
     document.getElementById('ctx-cancel').addEventListener('click', () => {
         document.getElementById('context-menu').style.display = 'none';
+    });
+
+    // 🔄 إعادة إرسال وتوجيه الرسائل أو الملفات
+    document.getElementById('ctx-resend').addEventListener('click', async () => {
+        document.getElementById('context-menu').style.display = 'none';
+        if (!selectedItem) return;
+
+        const target = prompt("أين تريد إعادة إرسال هذا المحتوى؟\n1. الدردشة العامة\n2. الغرفة الخاصة الحالية\n3. المنشورات\n(اكتب رقم الخيار 1، 2، أو 3)");
+        
+        if (target === '1') {
+            await client.from('messages').insert([{ content: selectedItem.content, sender_email: currentUser?.email || 'زائر' }]);
+            fetchChat();
+        } else if (target === '2' && activeRoom) {
+            await client.from('room_messages').insert([{ room_id: activeRoom.id, content: selectedItem.content, sender_email: currentUser?.email || 'زائر' }]);
+            fetchRoomMessages();
+        } else if (target === '3') {
+            await client.from('posts').insert([{ content: selectedItem.content, user_id: currentUser?.id, sender_email: currentUser?.email || 'زائر' }]);
+            fetchPosts();
+        } else {
+            alert("خيار غير صحيح أو لم تعيّن غرفة نشطة.");
+        }
     });
 
     document.getElementById('ctx-delete').addEventListener('click', async () => {
@@ -350,7 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('dm-file-input').addEventListener('change', (e) => uploadAndSend(e.target.files[0], 'dm'));
 
-    // --- 4. المنشورات العامة ---
+    // --- 4. المنشورات والتفاعلات (الإعجابات والتعليقات) ---
     document.getElementById('post-file-input').addEventListener('change', (e) => uploadAndSend(e.target.files[0], 'post'));
 
     document.getElementById('btn-send-post').addEventListener('click', async () => {
@@ -369,18 +399,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const myEmail = currentUser?.email || 'زائر';
         box.innerHTML = '';
-        data.forEach(p => {
+
+        for (const p of data) {
             const isMe = p.sender_email === myEmail || p.user_id === currentUser?.id;
+            
+            // جلب الإعجابات
+            const { data: likes } = await client.from('post_likes').select('id').eq('post_id', p.id);
+            const likeCount = likes ? likes.length : 0;
+
             const card = document.createElement('div');
             card.style.cssText = "background:#ffffff; padding:15px; border-radius:12px; border:1px solid var(--border); position:relative;";
-            card.innerHTML = `<div style="font-size:12px; font-weight:bold; color:#4a5568; margin-bottom:6px;">${p.sender_email}</div>${renderMediaContent(p.content)}`;
+            card.innerHTML = `
+                <div style="font-size:12px; font-weight:bold; color:#4a5568; margin-bottom:6px;">👤 ${p.sender_email}</div>
+                ${renderMediaContent(p.content)}
+                <div style="margin-top:10px; padding-top:8px; border-top:1px solid #edf2f7; display:flex; gap:15px; font-size:13px;">
+                    <button onclick="toggleLike('${p.id}')" style="border:none; background:none; cursor:pointer; color:#e53e3e; font-weight:bold;">❤️ ${likeCount} إعجاب</button>
+                </div>
+            `;
 
             attachLongPress(card, p.id, 'posts', p.content, isMe);
             box.appendChild(card);
-        });
+        }
     }
 
-    // --- الاجتماع المرئي والصوتي الحي المباشر (تجاوز شاشة الترحيب) ---
+    window.toggleLike = async (postId) => {
+        const myEmail = currentUser?.email || 'زائر';
+        const { data } = await client.from('post_likes').select('id').eq('post_id', postId).eq('user_email', myEmail).maybeSingle();
+
+        if (data) {
+            await client.from('post_likes').delete().eq('id', data.id);
+        } else {
+            await client.from('post_likes').insert([{ post_id: postId, user_email: myEmail }]);
+        }
+        fetchPosts();
+    };
+
+    // --- الاجتماع المرئي المباشر والتنفيذي بدقة ---
     document.getElementById('btn-start-global-meeting').addEventListener('click', () => startMeeting('Loome-Global'));
     document.getElementById('btn-start-room-meeting').addEventListener('click', () => {
         if (activeRoom) startMeeting(`Room_${activeRoom.name}`);
@@ -467,7 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupMic('btn-dm-mic', 'dm');
     setupMic('btn-post-mic', 'post');
 
-    // --- رفع وتحديث الملفات ---
+    // --- رفع الملفات العامة ---
     async function uploadAndSend(file, type) {
         if (!file) return;
 

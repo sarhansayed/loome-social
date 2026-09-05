@@ -85,9 +85,11 @@ document.addEventListener('DOMContentLoaded', () => {
         authContainer.style.display = 'none';
         mainContent.style.display = 'block';
         fetchPosts();
+        fetchMessages();
+        subscribeToMessages();
     }
 
-    // جلب وعرض المنشورات
+    // --- إدارة المنشورات ---
     async function fetchPosts() {
         const postsContainer = document.getElementById('posts-container');
         if (!postsContainer) return;
@@ -112,7 +114,6 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
-    // زر إرسال المنشور
     const btnPost = document.getElementById('btn-post');
     if (btnPost) {
         btnPost.addEventListener('click', async () => {
@@ -132,6 +133,70 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 input.value = '';
                 fetchPosts();
+            }
+        });
+    }
+
+    // --- إدارة الدردشة الجماعية ---
+    async function fetchMessages() {
+        const chatBox = document.getElementById('chat-box');
+        if (!chatBox) return;
+
+        const { data: messages, error } = await client
+            .from('messages')
+            .select('*')
+            .order('created_at', { ascending: true });
+
+        if (error) {
+            chatBox.innerHTML = "<p style='color:red;'>خطأ في تحميل الرسائل</p>";
+            return;
+        }
+
+        if (!messages || messages.length === 0) {
+            chatBox.innerHTML = "<p style='color:#888;'>لا توجد رسائل بعد. ابدأ المحادثة الآن!</p>";
+            return;
+        }
+
+        chatBox.innerHTML = messages.map(msg => `
+            <div style="margin-bottom: 8px; background: #fff; padding: 8px; border-radius: 5px; border-right: 3px solid #007bff;">
+                <strong style="color: #007bff; font-size: 12px;">${msg.sender_email || 'زائر'}</strong>
+                <p style="margin: 3px 0 0 0; color: #333;">${msg.content}</p>
+            </div>
+        `).join('');
+
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function subscribeToMessages() {
+        client
+            .channel('public:messages')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
+                fetchMessages();
+            })
+            .subscribe();
+    }
+
+    const btnSendChat = document.getElementById('btn-send-chat');
+    if (btnSendChat) {
+        btnSendChat.addEventListener('click', async () => {
+            const input = document.getElementById('chat-input');
+            const content = input.value.trim();
+            if (!content) return;
+
+            const { data: { user } } = await client.auth.getUser();
+            const userId = user ? user.id : null;
+            const senderEmail = user ? (user.email || 'زائر') : 'زائر';
+
+            const { error } = await client.from('messages').insert([{
+                content: content,
+                user_id: userId,
+                sender_email: senderEmail
+            }]);
+
+            if (error) {
+                alert("فشل إرسال الرسالة: " + error.message);
+            } else {
+                input.value = '';
             }
         });
     }

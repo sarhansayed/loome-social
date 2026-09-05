@@ -2,12 +2,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const client = window.supabaseClient || window.supabase;
 
     let currentUser = null;
-    let activeCamTarget = 'chat'; // 'chat' | 'dm' | 'post'
+    let activeCamTarget = 'chat';
     let mediaRecorder = null;
     let chunks = [];
     let videoStream = null;
 
-    // تسجيل الدخول والزائر
+    // متغيرات التعديل والاستبدال
+    let currentEditId = null;
+    let currentEditTable = null;
+
+    // تسجيل الدخول
     const authForm = document.getElementById('auth-form');
     if (authForm) {
         authForm.addEventListener('submit', async (e) => {
@@ -40,10 +44,10 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchChat();
         fetchPosts();
 
-        client.channel('chat-room').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, fetchChat).subscribe();
+        client.channel('chat-room').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, fetchChat).subscribe();
     }
 
-    // --- معالجة صيغ كل أنواع الوسائط المستلمة ---
+    // --- عرض محتوى الوسائط والملفات والنصوص ---
     function renderMediaContent(content) {
         if (!content) return '';
 
@@ -64,6 +68,22 @@ document.addEventListener('DOMContentLoaded', () => {
         return `<div>${content}</div>`;
     }
 
+    // --- أزرار التحكم بالتعديل والاستبدال والحذف ---
+    function renderActionButtons(id, table, isMe, currentContent) {
+        if (!isMe) return '';
+        const isMedia = currentContent.startsWith('[AUDIO]:') || currentContent.startsWith('[IMAGE]:') || currentContent.startsWith('[VIDEO]:') || currentContent.startsWith('[FILE]:');
+
+        return `
+            <div class="msg-actions">
+                ${isMedia ? 
+                    `<span onclick="triggerReplaceFile('${id}', '${table}')">🔄 استبدال الملف</span>` : 
+                    `<span onclick="openEditModal('${id}', '${table}', \`${currentContent.replace(/`/g, '\\`')}\`)">✏️ تعديل</span>`
+                }
+                <span onclick="deleteItem('${id}', '${table}')" style="color:#ff4d4d;">🗑️ حذف</span>
+            </div>
+        `;
+    }
+
     // --- 1. الدردشة الجماعية ---
     async function fetchChat() {
         const box = document.getElementById('chat-box');
@@ -71,12 +91,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!data) return;
 
         const myEmail = currentUser ? (currentUser.email || 'زائر') : 'زائر';
-        box.innerHTML = data.map(m => `
-            <div class="message-bubble ${m.sender_email === myEmail ? 'msg-me' : 'msg-other'}">
-                <div style="font-size:10px; opacity:0.8;">${m.sender_email === myEmail ? 'أنت' : m.sender_email}</div>
-                ${renderMediaContent(m.content)}
-            </div>
-        `).join('');
+        box.innerHTML = data.map(m => {
+            const isMe = m.sender_email === myEmail;
+            return `
+                <div class="message-bubble ${isMe ? 'msg-me' : 'msg-other'}">
+                    <div style="font-size:10px; opacity:0.8; margin-bottom:2px;">${isMe ? 'أنت' : m.sender_email}</div>
+                    ${renderMediaContent(m.content)}
+                    ${renderActionButtons(m.id, 'messages', isMe, m.content)}
+                </div>
+            `;
+        }).join('');
         box.scrollTop = box.scrollHeight;
     }
 
@@ -85,6 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!input.value.trim()) return;
         await client.from('messages').insert([{ content: input.value.trim(), sender_email: currentUser?.email || 'زائر' }]);
         input.value = '';
+        fetchChat();
     });
 
     document.getElementById('chat-file-input').addEventListener('change', (e) => uploadAndSend(e.target.files[0], 'chat'));
@@ -103,11 +128,15 @@ document.addEventListener('DOMContentLoaded', () => {
             .or(`and(sender_email.eq.${myEmail},receiver_email.eq.${target}),and(sender_email.eq.${target},receiver_email.eq.${myEmail})`)
             .order('created_at', { ascending: true });
 
-        box.innerHTML = (data || []).map(m => `
-            <div class="message-bubble ${m.sender_email === myEmail ? 'msg-me' : 'msg-other'}">
-                ${renderMediaContent(m.content)}
-            </div>
-        `).join('');
+        box.innerHTML = (data || []).map(m => {
+            const isMe = m.sender_email === myEmail;
+            return `
+                <div class="message-bubble ${isMe ? 'msg-me' : 'msg-other'}">
+                    ${renderMediaContent(m.content)}
+                    ${renderActionButtons(m.id, 'direct_messages', isMe, m.content)}
+                </div>
+            `;
+        }).join('');
         box.scrollTop = box.scrollHeight;
     }
 
@@ -131,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let text = input.value.trim();
         if (!text) return;
 
-        await client.from('posts').insert([{ content: text, user_id: currentUser?.id }]);
+        await client.from('posts').insert([{ content: text, user_id: currentUser?.id, sender_email: currentUser?.email || 'زائر' }]);
         input.value = '';
         fetchPosts();
     });
@@ -141,30 +170,97 @@ document.addEventListener('DOMContentLoaded', () => {
         const { data } = await client.from('posts').select('*').order('created_at', { ascending: false });
         if (!data) return;
 
-        box.innerHTML = data.map(p => `
-            <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #e4e6eb;">
-                ${renderMediaContent(p.content)}
-            </div>
-        `).join('');
+        const myEmail = currentUser?.email || 'زائر';
+        box.innerHTML = data.map(p => {
+            const isMe = p.sender_email === myEmail || p.user_id === currentUser?.id;
+            return `
+                <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #e4e6eb;">
+                    ${renderMediaContent(p.content)}
+                    ${renderActionButtons(p.id, 'posts', isMe, p.content)}
+                </div>
+            `;
+        }).join('');
     }
 
-    // --- دالة رفع جميع أنواع الملفات الموحّدة ---
+    // --- عمليات الحذف والتعديل والاستبدال ---
+    window.deleteItem = async (id, table) => {
+        if (!confirm("هل أنت تأكد من رغبتك في حذف هذا العنصر؟")) return;
+
+        const { error } = await client.from(table).delete().eq('id', id);
+        if (error) alert("حدث خطأ أثناء الحذف: " + error.message);
+        else refreshCurrentTab(table);
+    };
+
+    window.openEditModal = (id, table, oldContent) => {
+        currentEditId = id;
+        currentEditTable = table;
+        document.getElementById('edit-input').value = oldContent;
+        document.getElementById('edit-modal').style.display = 'flex';
+    };
+
+    document.getElementById('btn-cancel-edit').addEventListener('click', () => {
+        document.getElementById('edit-modal').style.display = 'none';
+    });
+
+    document.getElementById('btn-save-edit').addEventListener('click', async () => {
+        const newText = document.getElementById('edit-input').value.trim();
+        if (!newText) return;
+
+        const { error } = await client.from(currentEditTable).update({ content: newText }).eq('id', currentEditId);
+        if (error) alert("فشل التعديل: " + error.message);
+        else {
+            document.getElementById('edit-modal').style.display = 'none';
+            refreshCurrentTab(currentEditTable);
+        }
+    });
+
+    // استبدال ملف أو صورة أو فيديو قديم بأحد جديد
+    window.triggerReplaceFile = (id, table) => {
+        currentEditId = id;
+        currentEditTable = table;
+        document.getElementById('replace-file-input').click();
+    };
+
+    document.getElementById('replace-file-input').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        let bucket = 'chat-files';
+        let prefix = '[FILE]:';
+
+        if (file.type.startsWith('image/')) { bucket = 'chat-images'; prefix = '[IMAGE]:'; }
+        else if (file.type.startsWith('video/')) { bucket = 'chat-videos'; prefix = '[VIDEO]:'; }
+        else if (file.type.startsWith('audio/')) { bucket = 'audio-messages'; prefix = '[AUDIO]:'; }
+
+        const fileName = `replaced_${Date.now()}_${file.name}`;
+        const { error: uploadError } = await client.storage.from(bucket).upload(fileName, file);
+        
+        if (uploadError) return alert("فشل رفع الملف الجديد: " + uploadError.message);
+
+        const url = client.storage.from(bucket).getPublicUrl(fileName).data.publicUrl;
+        const newContent = `${prefix}${url}`;
+
+        const { error: updateError } = await client.from(currentEditTable).update({ content: newContent }).eq('id', currentEditId);
+        if (updateError) alert("فشل الاستبدال: " + updateError.message);
+        else refreshCurrentTab(currentEditTable);
+    });
+
+    function refreshCurrentTab(table) {
+        if (table === 'messages') fetchChat();
+        if (table === 'direct_messages') fetchDM();
+        if (table === 'posts') fetchPosts();
+    }
+
+    // --- رفع الملفات الجديدة ---
     async function uploadAndSend(file, type) {
         if (!file) return;
 
         let bucket = 'chat-files';
         let prefix = '[FILE]:';
 
-        if (file.type.startsWith('image/')) {
-            bucket = 'chat-images';
-            prefix = '[IMAGE]:';
-        } else if (file.type.startsWith('video/')) {
-            bucket = 'chat-videos';
-            prefix = '[VIDEO]:';
-        } else if (file.type.startsWith('audio/')) {
-            bucket = 'audio-messages';
-            prefix = '[AUDIO]:';
-        }
+        if (file.type.startsWith('image/')) { bucket = 'chat-images'; prefix = '[IMAGE]:'; }
+        else if (file.type.startsWith('video/')) { bucket = 'chat-videos'; prefix = '[VIDEO]:'; }
+        else if (file.type.startsWith('audio/')) { bucket = 'audio-messages'; prefix = '[AUDIO]:'; }
 
         const fileName = `${type}_${Date.now()}_${file.name}`;
         if (type === 'post') document.getElementById('post-file-status').innerText = "جاري رفع الملف...";
@@ -187,13 +283,13 @@ document.addEventListener('DOMContentLoaded', () => {
             await client.from('direct_messages').insert([{ content: formatted, sender_email: currentUser?.email || 'زائر', receiver_email: target }]);
             fetchDM();
         } else if (type === 'post') {
-            await client.from('posts').insert([{ content: formatted, user_id: currentUser?.id }]);
+            await client.from('posts').insert([{ content: formatted, user_id: currentUser?.id, sender_email: currentUser?.email || 'زائر' }]);
             document.getElementById('post-file-status').innerText = "";
             fetchPosts();
         }
     }
 
-    // --- التسجيل الصوتي المباشر للمقاطع ---
+    // --- التسجيل الصوتي ---
     function setupMic(btnId, targetType) {
         const btn = document.getElementById(btnId);
         if (!btn) return;
@@ -223,19 +319,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                 fetchDM();
                             }
                         } else if (targetType === 'post') {
-                            await client.from('posts').insert([{ content: formatted, user_id: currentUser?.id }]);
+                            await client.from('posts').insert([{ content: formatted, user_id: currentUser?.id, sender_email: currentUser?.email || 'زائر' }]);
                             fetchPosts();
                         }
                         btn.style.background = '#28a745';
                     };
                     mediaRecorder.start();
                     btn.style.background = '#dc3545';
-                } catch (err) {
-                    alert("يرجى تفعيل الميكروفون.");
-                }
-            } else {
-                mediaRecorder.stop();
-            }
+                } catch (err) { alert("يرجى تفعيل الميكروفون."); }
+            } else { mediaRecorder.stop(); }
         });
     }
 
@@ -243,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupMic('btn-dm-mic', 'dm');
     setupMic('btn-post-mic', 'post');
 
-    // --- تسجيل الفيديو المباشر للكاميرا ---
+    // --- تسجيل الفيديو المباشر ---
     const videoModal = document.getElementById('video-modal');
     const videoPreview = document.getElementById('video-preview');
 
@@ -252,9 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!btn) return;
 
         btn.addEventListener('click', async () => {
-            if (targetType === 'dm' && !dmTarget.value.trim()) {
-                return alert("أدخل بريد المستلم أولاً.");
-            }
+            if (targetType === 'dm' && !dmTarget.value.trim()) return alert("أدخل بريد المستلم أولاً.");
             activeCamTarget = targetType;
             try {
                 videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -280,15 +370,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         await client.from('direct_messages').insert([{ content: formatted, sender_email: currentUser?.email || 'زائر', receiver_email: target }]);
                         fetchDM();
                     } else if (activeCamTarget === 'post') {
-                        await client.from('posts').insert([{ content: formatted, user_id: currentUser?.id }]);
+                        await client.from('posts').insert([{ content: formatted, user_id: currentUser?.id, sender_email: currentUser?.email || 'زائر' }]);
                         fetchPosts();
                     }
                     closeCam();
                 };
                 mediaRecorder.start();
-            } catch (err) {
-                alert("يرجى منح إذن استخدام الكاميرا والميكروفون.");
-            }
+            } catch (err) { alert("يرجى إعطاء إذن استخدام الكاميرا والميكروفون."); }
         });
     }
 

@@ -220,11 +220,11 @@
                 <button style="background:none; border:none; color:#fff; font-size:1.1rem; cursor:pointer;" onclick="toggleSidebar()">✕</button>
             </div>
             <div class="dept-list">
-                <button class="dept-btn active" onclick="switchDepartment('production', '🏭 إدارة الإنتاج والتخطيط', event)">🏭 الإنتاج والتخطيط</button>
-                <button class="dept-btn" onclick="switchDepartment('qc_qa', '🧪 الجودة والمعامل', event)">🧪 الجودة والمعامل (QC/QA)</button>
+                <button class="dept-btn active" onclick="switchDepartment('qc_qa', '🧪 الجودة والمعامل', event)">🧪 الجودة والمعامل (QC/QA)</button>
+                <button class="dept-btn" onclick="switchDepartment('production', '🏭 إدارة الإنتاج والتخطيط', event)">🏭 الإنتاج والتخطيط</button>
                 <button class="dept-btn" onclick="switchDepartment('inventory', '📦 المخازن والمشتريات', event)">📦 المخازن والمشتريات</button>
-                <button class="dept-btn" onclick="switchDepartment('admin_hr', '👔 الشؤون الإدارية', event)">👔 الشؤون الإدارية (HR)</button>
                 <button class="dept-btn" onclick="switchDepartment('finance', '💰 الإدارة المالية', event)">💰 الإدارة المالية</button>
+                <button class="dept-btn" onclick="switchDepartment('admin_hr', '👔 الشؤون الإدارية', event)">👔 الشؤون الإدارية (HR)</button>
                 <button class="dept-btn" onclick="switchDepartment('general', '💬 القناة العامة', event)">💬 القناة العامة</button>
             </div>
         </div>
@@ -243,7 +243,7 @@
             <div id="chat-panel" class="chat-container">
                 <div class="chat-header">
                     <div>
-                        <h3 id="current-dept-title" style="font-size: 0.88rem; color: var(--accent-light);">🏭 إدارة الإنتاج والتخطيط</h3>
+                        <h3 id="current-dept-title" style="font-size: 0.88rem; color: var(--accent-light);">🧪 الجودة والمعامل (QC/QA)</h3>
                         <span style="font-size:0.68rem; color:var(--text-muted);">🟢 المتصلون نشطون الآن</span>
                     </div>
                     <button class="export-btn" onclick="exportChatText()">📥 تصدير السجل</button>
@@ -304,11 +304,11 @@
                         <input type="text" id="new-user-name" class="form-control" placeholder="الاسم الكامل...">
                         <input type="text" id="new-user-role" class="form-control" placeholder="المسمى الوظيفي (مثال: مدير الجودة)...">
                         <select id="new-user-dept" class="form-control">
-                            <option value="production">إدارة الإنتاج والتخطيط</option>
                             <option value="qc_qa">الجودة والمعامل</option>
+                            <option value="production">إدارة الإنتاج والتخطيط</option>
                             <option value="inventory">المخازن والمشتريات</option>
-                            <option value="admin_hr">الشؤون الإدارية</option>
                             <option value="finance">الإدارة المالية</option>
+                            <option value="admin_hr">الشؤون الإدارية</option>
                         </select>
                         <button class="action-btn" style="width:100%;" onclick="addNewMember()">+ إضافة للهيكل الإداري</button>
                     </div>
@@ -358,20 +358,20 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkbWV2bHV2cm1leGtraWhjeGNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NTI5ODIsImV4cCI6MjEwNDEyODk4Mn0.U1MA6q_GfuPpzkJCvMwTc07neAek1vsq5qWE44_eYQQ';
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let currentDept = 'production';
-        let myUsername = 'المدير العام';
+        let currentDept = 'qc_qa';
+        let myUsername = 'د دينا علي';
         let myUserId = '';
         let mediaRecorder = null, audioChunks = [];
         let localStream = null;
         let activeReplyTarget = null;
 
-        // الهيكل الإداري الكامل للمديرين
+        // قائمة المديرين المعتمدة بالتحديد
         let teamMembers = [
-            { id: 1, name: 'المدير العام', role: 'الإدارة العامة والتنفيذية', dept: 'admin_hr' },
-            { id: 2, name: 'م. أحمد محمود', role: 'مدير إدارة الإنتاج والتخطيط', dept: 'production' },
-            { id: 3, name: 'د. سارة علي', role: 'مديرة إدارة الجودة (QC/QA)', dept: 'qc_qa' },
-            { id: 4, name: 'أ. محمود حسن', role: 'مدير المخازن والمشتريات', dept: 'inventory' },
-            { id: 5, name: 'أ. خالد السيد', role: 'المدير المالي', dept: 'finance' }
+            { id: 1, name: 'د دينا علي', role: 'مدير الجودة', dept: 'qc_qa' },
+            { id: 2, name: 'م ندى مجدي', role: 'مدير الإنتاج', dept: 'production' },
+            { id: 3, name: 'أحمد إدريس', role: 'مدير المخازن', dept: 'inventory' },
+            { id: 4, name: 'أ مصطفى حسني', role: 'مدير الإدارة المالية', dept: 'finance' },
+            { id: 5, name: 'أ شهد', role: 'الشؤون الإدارية', dept: 'admin_hr' }
         ];
 
         let deptTasks = {};
@@ -874,7 +874,7 @@
         }
 
         function getDeptLabel(key) {
-            const map = { production: 'الإنتاج', qc_qa: 'الجودة', inventory: 'المخازن', admin_hr: 'HR', finance: 'المالية' };
+            const map = { qc_qa: 'الجودة والمعامل', production: 'الإنتاج والتخطيط', inventory: 'المخازن والمشتريات', finance: 'الإدارة المالية', admin_hr: 'الشؤون الإدارية' };
             return map[key] || key;
         }
 

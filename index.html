@@ -476,7 +476,6 @@
                       if (el) el.remove();
                   } else if (payload.eventType === 'INSERT') {
                       if(payload.new.room_id === currentDept) {
-                          // التأكد من عدم تكرار الرسالة إذا كانت موجودة بالفعل
                           if (!document.getElementById('msg-' + payload.new.id)) {
                               renderMessageUI(payload.new);
                           }
@@ -666,7 +665,6 @@
             }
             const fullContent = `[NAME]:${myUsername}::${finalPayload}`;
             
-            // إرسال الرسالة إلى قاعدة البيانات وترك عملية العرض للمستمع المباشر (Realtime) لمنع التكرار
             const { error } = await db.from('messages').insert([{ 
                 user_id: myUserId, 
                 content: fullContent, 

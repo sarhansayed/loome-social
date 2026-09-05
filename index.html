@@ -77,27 +77,27 @@
         .reply-btn { background: transparent; border: none; color: #38bdf8; cursor: pointer; font-size: 0.75rem; font-weight: bold; display: flex; align-items: center; gap: 2px; }
         .msg-time { font-size: 0.65rem; color: var(--text-muted); text-align: left; margin-top: 6px; }
         
-        /* تنسيق مقتبس الرد داخل فقاعة الرسالة */
+        /* تصميم اقتباس الرد داخل الفقاعة */
         .reply-quote-box {
-            background: rgba(0, 0, 0, 0.25);
-            border-right: 4px solid #38bdf8;
-            padding: 6px 10px;
+            background: rgba(15, 23, 42, 0.6);
+            border-right: 3px solid #38bdf8;
+            padding: 6px 8px;
             border-radius: 6px;
             margin-bottom: 8px;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
         }
         .reply-quote-author {
             color: #38bdf8;
             font-weight: bold;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             margin-bottom: 2px;
         }
         .reply-quote-text {
-            color: #cbd5e1;
+            color: #94a3b8;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 240px;
+            max-width: 220px;
         }
 
         .audio-player-box { margin-top: 6px; background: #0f172a; border-radius: 12px; padding: 4px 6px; border: 1px solid var(--accent-color); display: flex; align-items: center; gap: 6px; width: 100%; max-width: 260px; }
@@ -105,7 +105,7 @@
 
         .chat-input-bar { padding: 8px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
         
-        /* شريط التنبيه المعاين فوق حقل الكتابة */
+        /* شريط المعاينة فوق حقل الكتابة */
         .reply-preview-bar { display: none; background: #1e293b; padding: 6px 12px; border-radius: 8px; border-right: 4px solid #38bdf8; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
         .reply-preview-bar.active { display: flex; }
         .cancel-reply { background: none; border: none; color: var(--danger-color); font-weight: bold; cursor: pointer; font-size: 1rem; padding: 0 4px; }
@@ -191,7 +191,6 @@
                 <div class="messages-list" id="chat-msgs"></div>
                 
                 <div class="chat-input-bar">
-                    <!-- شريط المعاينة فوق صندوق الكتابة عند إجراء رد -->
                     <div class="reply-preview-bar" id="reply-preview">
                         <div>
                             <span style="color:#38bdf8; font-weight:bold; font-size:0.75rem;" id="reply-author">الرد على...</span>
@@ -400,6 +399,7 @@
               }).subscribe();
         }
 
+        // دالة معالجة النصوص القديمة والحديثة ومنع إظهار السطور الخام
         function parseMessagePayload(rawText) {
             let text = rawText || '';
             let senderName = 'عضو الفريق';
@@ -411,13 +411,21 @@
                 text = text.replace('[URGENT]:', '').trim();
             }
 
-            if (text.startsWith('[REPLY_TO]:')) {
-                const parts = text.split('::[MSG]:');
-                const jsonPart = parts[0].replace('[REPLY_TO]:', '');
+            // التعامل مع الرد واستخراج JSON السليم أو المفكوك يدوياً
+            if (text.includes('[REPLY_TO]')) {
                 try {
-                    replyData = JSON.parse(jsonPart);
-                } catch(e){}
-                text = parts[1] || '';
+                    let parts = text.split('::[MSG]:');
+                    let replyPart = parts[0];
+                    text = parts[1] || '';
+
+                    // استخراج القيمة
+                    let jsonMatch = replyPart.match(/\{.*\}/);
+                    if (jsonMatch) {
+                        replyData = JSON.parse(jsonMatch[0]);
+                    }
+                } catch(e) {
+                    console.log('Error parsing reply JSON', e);
+                }
             }
 
             if (text.startsWith('[NAME]:')) {
@@ -460,8 +468,6 @@
             }
 
             const summaryForReply = contentText;
-            const authorForReply = senderName;
-
             let deleteBtnHtml = msg.id ? `<button class="delete-btn" onclick="deleteMsg('${msg.id}', event)">🗑️ حذف</button>` : '';
 
             let html = `
@@ -473,11 +479,12 @@
                     </div>
                 </div>`;
 
+            // إظهار بطاقة اقتباس الرد إذا كانت الرسالة عبارة عن رد
             if(parsed.replyData) {
                 html += `
                 <div class="reply-quote-box">
-                    <div class="reply-quote-author">رد على: ${parsed.replyData.author}</div>
-                    <div class="reply-quote-text">${parsed.replyData.text}</div>
+                    <div class="reply-quote-author">رد على: ${parsed.replyData.author || 'رسالة'}</div>
+                    <div class="reply-quote-text">${parsed.replyData.text || ''}</div>
                 </div>`;
             }
 

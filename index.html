@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -69,11 +70,16 @@
         .chat-header { padding: 8px 12px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         .messages-list { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         
-        .msg-bubble { background-color: var(--bg-secondary); padding: 8px 12px; border-radius: 12px; max-width: 85%; font-size: 0.88rem; align-self: flex-start; border: 1px solid var(--border-color); }
+        /* ضبط استجابة فقاعات الرسائل وإخفاء الخروج المسبق */
+        .msg-bubble { background-color: var(--bg-secondary); padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 0.88rem; align-self: flex-start; border: 1px solid var(--border-color); word-break: break-word; overflow: hidden; }
         .msg-bubble.self { align-self: flex-end; background-color: #0f4c5c; border-color: #136f63; }
         .msg-info { font-size: 0.72rem; color: #2dd4bf; font-weight: bold; margin-bottom: 2px; }
         .msg-time { font-size: 0.65rem; color: var(--text-muted); text-align: left; margin-top: 4px; }
         
+        /* تنسيق مشغل الصوت المخصص الجميل الخفيف */
+        .audio-player-custom { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.2); padding: 6px; border-radius: 8px; margin-top: 4px; max-width: 100%; }
+        .audio-player-custom audio { width: 180px; height: 32px; border-radius: 4px; }
+
         .chat-input-bar { padding: 8px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
         .reactions-quick { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
         .react-btn { background: rgba(0,0,0,0.3); border: none; border-radius: 12px; padding: 3px 8px; font-size: 0.8rem; cursor: pointer; color: #fff; flex-shrink: 0; }
@@ -331,7 +337,13 @@
                 <div>${contentText}</div>
             `;
 
-            if(audioUrl) html += `<audio controls src="${audioUrl}" style="width:100%; margin-top:4px; height:30px;"></audio>`;
+            if(audioUrl) {
+                html += `
+                <div class="audio-player-custom">
+                    <span>🎵</span>
+                    <audio controls controlsList="nodownload noplaybackrate" src="${audioUrl}"></audio>
+                </div>`;
+            }
             if(fileUrl) html += `<a href="${fileUrl}" target="_blank" style="color:#60a5fa; margin-top:4px; display:inline-block; font-size:0.8rem; font-weight:bold;">📄 الملف المرفق</a>`;
 
             if(isSelf && msg.id) {
@@ -397,7 +409,7 @@
             } else {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
                     audioChunks = [];
                     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                     mediaRecorder.onstop = () => {

@@ -193,7 +193,7 @@
         <div class="sidebar" id="sidebar">
             <div class="dept-header">
                 <span>إدارات وأقسام المصنع</span>
-                <button style="background:none; border:none; color:#fff; font-size:1.1rem;" onclick="toggleSidebar()">✕</button>
+                <button style="background:none; border:none; color:#fff; font-size:1.1rem; cursor:pointer;" onclick="toggleSidebar()">✕</button>
             </div>
             <div class="dept-list">
                 <button class="dept-btn active" onclick="switchDepartment('production', '🏭 إدارة الإنتاج والتخطيط', event)">🏭 الإنتاج والتخطيط</button>
@@ -220,7 +220,7 @@
                 <div class="chat-header">
                     <div>
                         <h3 id="current-dept-title" style="font-size: 0.88rem; color: var(--accent-light);">🏭 إدارة الإنتاج والتخطيط</h3>
-                        <span style="font-size:0.68rem; color:var(--text-muted);">🟢 المتصلون نشطون الان</span>
+                        <span style="font-size:0.68rem; color:var(--text-muted);">🟢 المتصلون نشطون الآن</span>
                     </div>
                     <button class="export-btn" onclick="exportChatText()">📥 تصدير السجل</button>
                 </div>
@@ -407,14 +407,12 @@
         }
 
         function showPanel(panelId) {
-            // Update active state of sub nav tabs
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             if(panelId === 'chat-panel') document.getElementById('tab-chat').classList.add('active');
             if(panelId === 'tasks-panel') document.getElementById('tab-tasks').classList.add('active');
             if(panelId === 'team-management') document.getElementById('tab-team').classList.add('active');
             if(panelId === 'video-panel') document.getElementById('tab-video').classList.add('active');
 
-            // Hide all panels then activate chosen one
             document.getElementById('chat-panel').style.display = panelId === 'chat-panel' ? 'flex' : 'none';
             document.getElementById('team-management').classList.remove('active');
             document.getElementById('video-panel').classList.remove('active');
@@ -426,9 +424,9 @@
         }
 
         async function loadMessages() {
-            const { data } = await db.from('messages')
+            const { data, error } = await db.from('messages')
                 .select('*')
-                .or(`room_id.eq.${currentDept},room_id.is.null`)
+                .eq('room_id', currentDept)
                 .order('created_at', { ascending: true });
             
             const list = document.getElementById('chat-msgs');
@@ -443,7 +441,7 @@
                       const el = document.getElementById('msg-' + payload.old.id);
                       if (el) el.remove();
                   } else if (payload.eventType === 'INSERT') {
-                      if(payload.new.room_id === currentDept || (!payload.new.room_id && currentDept === 'production')) {
+                      if(payload.new.room_id === currentDept) {
                           renderMessageUI(payload.new);
                       }
                   }
@@ -561,7 +559,7 @@
                         <img src="${fileUrl}" onclick="openImageModal('${fileUrl}')" style="max-width:100%; max-height:220px; border-radius:8px; cursor:pointer; border:1px solid var(--accent-color);" title="انقر لتكبير الصورة">
                     </div>`;
                 } else {
-                    html += `<a href="${fileUrl}" target="_blank" style="color:#60a5fa; margin-top:6px; display:inline-block; font-size:0.8rem; font-weight:bold;">📄 فتح الملف المرفق</a>`;
+                    html += `<a href="${fileUrl}" download="Attachment" target="_blank" style="color:#60a5fa; margin-top:6px; display:inline-block; font-size:0.8rem; font-weight:bold;">📄 فتح / تحميل المستند</a>`;
                 }
             }
 
@@ -656,8 +654,10 @@
             } else {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    let options = { mimeType: 'audio/webm' };
-                    if (!MediaRecorder.isTypeSupported('audio/webm')) {
+                    let options = {};
+                    if (MediaRecorder.isTypeSupported('audio/webm')) {
+                        options = { mimeType: 'audio/webm' };
+                    } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
                         options = { mimeType: 'audio/mp4' };
                     }
                     mediaRecorder = new MediaRecorder(stream, options);
@@ -666,7 +666,7 @@
                     
                     mediaRecorder.onstop = () => {
                         btn.innerText = "⏳";
-                        const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+                        const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/mp4' });
                         const reader = new FileReader();
                         reader.readAsDataURL(audioBlob);
                         reader.onloadend = () => {
@@ -678,7 +678,7 @@
                     mediaRecorder.start();
                     btn.classList.add('recording');
                     btn.innerText = "⏹️";
-                } catch (e) { alert('يرجى السماح بالمايك للبدء'); }
+                } catch (e) { alert('يرجى السماح بالوصول للميكروفون لبدء التسجيل.'); }
             }
         }
 
@@ -687,7 +687,7 @@
                 const file = input.files[0];
                 
                 if(file.size > 15 * 1024 * 1024) {
-                    alert('حجم الملف كبير جداً، يرجى اختيار فيديو أو ملف بحجم أقل من 15 ميجابايت.');
+                    alert('حجم الملف كبير جداً، يرجى اختيار ملف بحجم أقل من 15 ميجابايت.');
                     input.value = '';
                     return;
                 }
@@ -857,7 +857,7 @@
                 document.getElementById('groupVideoPlayer').srcObject = localStream;
                 document.getElementById('toggle-mic-btn').innerText = "🔊 التحدث المباشر يعمل حالياً";
             } catch(e) {
-                alert('يرجى السماح بالوصول للمايك والكاميرا لتفعيل التحدث المباشر.');
+                alert('يرجى السماح بالوصول للميكروفون والكاميرا لتفعيل التحدث المباشر.');
             }
         }
 

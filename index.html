@@ -11,6 +11,7 @@
             --bg-secondary: #1e293b;
             --bg-card: #334155;
             --accent-color: #0d9488;
+            --accent-light: #2dd4bf;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --border-color: #475569;
@@ -21,32 +22,34 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-primary); color: var(--text-main); display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
         
+        /* Header */
         header { 
-            height: 60px; 
+            height: 55px; 
             background-color: var(--bg-secondary); 
             border-bottom: 1px solid var(--border-color); 
             display: flex; 
             align-items: center; 
             justify-content: space-between; 
-            padding: 0 10px; 
+            padding: 0 12px; 
             flex-shrink: 0; 
         }
         
-        .header-right { display: flex; align-items: center; gap: 8px; }
-        .menu-toggle { background: transparent; border: none; color: #fff; font-size: 1.4rem; padding: 4px; cursor: pointer; }
-        .factory-title { font-size: 0.9rem; font-weight: bold; color: #2dd4bf; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .menu-toggle { background: transparent; border: none; color: #fff; font-size: 1.3rem; padding: 4px; cursor: pointer; }
+        .factory-title { font-size: 0.95rem; font-weight: bold; color: var(--accent-light); }
         
-        .header-left { display: flex; align-items: center; gap: 6px; }
-        .user-badge { font-size: 0.75rem; color: #5eead4; background: rgba(13, 148, 136, 0.2); padding: 4px 8px; border-radius: 12px; border: 1px solid var(--accent-color); cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .header-left { display: flex; align-items: center; gap: 8px; }
+        .user-badge { font-size: 0.75rem; color: #5eead4; background: rgba(13, 148, 136, 0.2); padding: 5px 10px; border-radius: 20px; border: 1px solid var(--accent-color); cursor: pointer; display: flex; align-items: center; gap: 6px; }
         .online-dot { width: 8px; height: 8px; background-color: var(--success-color); border-radius: 50%; box-shadow: 0 0 6px var(--success-color); }
-        .zoom-btn { background: #0284c7; color: white; border: none; padding: 6px 10px; font-size: 0.75rem; font-weight: bold; border-radius: 6px; cursor: pointer; }
         
+        /* Layout Container */
         .main-container { flex: 1; display: flex; overflow: hidden; position: relative; }
-        .overlay { display: none; position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); z-index: 40; }
+        .overlay { display: none; position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); z-index: 40; backdrop-filter: blur(2px); }
         .overlay.active { display: block; }
         
+        /* Sidebar Navigation */
         .sidebar { 
-            width: 270px; 
+            width: 260px; 
             background-color: var(--bg-secondary); 
             border-left: 1px solid var(--border-color); 
             display: flex; 
@@ -59,27 +62,58 @@
         }
         .sidebar.open { transform: translateX(0); }
         
-        .dept-header { padding: 12px; font-weight: bold; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        .dept-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
-        .dept-btn { background: transparent; border: none; color: var(--text-main); padding: 10px 12px; border-radius: 8px; text-align: right; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; width: 100%; }
-        .dept-btn:hover, .dept-btn.active { background-color: var(--bg-card); color: #2dd4bf; font-weight: bold; }
+        .dept-header { padding: 14px; font-weight: bold; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .dept-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+        .dept-btn { background: transparent; border: none; color: var(--text-main); padding: 10px 12px; border-radius: 8px; text-align: right; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; width: 100%; transition: 0.2s; }
+        .dept-btn:hover, .dept-btn.active { background-color: var(--bg-card); color: var(--accent-light); font-weight: bold; }
         
+        /* Content Area */
         .content-area { flex: 1; display: flex; flex-direction: column; position: relative; background: #0b1329; width: 100%; overflow: hidden; }
-        .chat-container { display: flex; flex-direction: column; height: 100%; width: 100%; }
-        .chat-header { padding: 10px 12px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        
+        /* Sub-Navigation Tabs */
+        .sub-nav-tabs {
+            display: flex;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 4px;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 8px 4px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        .tab-btn.active {
+            background: var(--accent-color);
+            color: #fff;
+        }
+
+        /* Chat Panel Components */
+        .chat-container { display: flex; flex-direction: column; height: 100%; width: 100%; overflow: hidden; }
+        .chat-header { padding: 8px 12px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         .messages-list { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth; }
         
-        .msg-bubble { background-color: var(--bg-secondary); padding: 10px 12px; border-radius: 12px; max-width: 88%; font-size: 0.88rem; align-self: flex-start; border: 1px solid var(--border-color); word-break: break-word; position: relative; transition: background-color 0.5s ease; }
+        /* Message Bubbles */
+        .msg-bubble { background-color: var(--bg-secondary); padding: 10px 12px; border-radius: 12px; max-width: 85%; font-size: 0.88rem; align-self: flex-start; border: 1px solid var(--border-color); word-break: break-word; position: relative; transition: background-color 0.4s ease, border-color 0.4s ease; }
         .msg-bubble.self { align-self: flex-end; background-color: #0f4c5c; border-color: #136f63; }
         .msg-bubble.urgent { border: 2px solid var(--danger-color); background-color: rgba(239, 68, 68, 0.15); }
         .msg-bubble.highlight { background-color: #0284c7 !important; border-color: #38bdf8 !important; }
 
-        .msg-info { font-size: 0.72rem; color: #2dd4bf; font-weight: bold; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .msg-info { font-size: 0.72rem; color: var(--accent-light); font-weight: bold; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
         .msg-actions { display: flex; gap: 8px; align-items: center; }
         .reply-btn { background: transparent; border: none; color: #38bdf8; cursor: pointer; font-size: 0.75rem; font-weight: bold; display: flex; align-items: center; gap: 2px; }
         .msg-time { font-size: 0.65rem; color: var(--text-muted); text-align: left; margin-top: 6px; }
         
-        /* تصميم اقتباس الرد وقابلية النقر للذهاب للرسالة */
+        /* Quote Reply Box */
         .reply-quote-box {
             background: rgba(15, 23, 42, 0.7);
             border-right: 3px solid #38bdf8;
@@ -89,46 +123,35 @@
             font-size: 0.78rem;
             cursor: pointer;
             user-select: none;
+            transition: background 0.2s;
         }
-        .reply-quote-box:hover {
-            background: rgba(30, 41, 59, 0.9);
-        }
-        .reply-quote-author {
-            color: #38bdf8;
-            font-weight: bold;
-            font-size: 0.7rem;
-            margin-bottom: 2px;
-        }
-        .reply-quote-text {
-            color: #94a3b8;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 220px;
-        }
+        .reply-quote-box:hover { background: rgba(30, 41, 59, 0.9); }
+        .reply-quote-author { color: #38bdf8; font-weight: bold; font-size: 0.7rem; margin-bottom: 2px; }
+        .reply-quote-text { color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
 
-        .audio-player-box { margin-top: 6px; background: #0f172a; border-radius: 12px; padding: 4px 6px; border: 1px solid var(--accent-color); display: flex; align-items: center; gap: 6px; width: 100%; max-width: 260px; }
+        .audio-player-box { margin-top: 6px; background: #0f172a; border-radius: 10px; padding: 4px 6px; border: 1px solid var(--accent-color); display: flex; align-items: center; gap: 6px; width: 100%; max-width: 250px; }
         .audio-player-box audio { width: 100%; height: 32px; outline: none; }
 
+        /* Input Controls */
         .chat-input-bar { padding: 8px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
-        
         .reply-preview-bar { display: none; background: #1e293b; padding: 6px 12px; border-radius: 8px; border-right: 4px solid #38bdf8; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
         .reply-preview-bar.active { display: flex; }
         .cancel-reply { background: none; border: none; color: var(--danger-color); font-weight: bold; cursor: pointer; font-size: 1rem; padding: 0 4px; }
 
         .reactions-quick { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
-        .react-btn { background: rgba(0,0,0,0.3); border: none; border-radius: 12px; padding: 4px 8px; font-size: 0.85rem; cursor: pointer; color: #fff; flex-shrink: 0; }
+        .react-btn { background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 12px; padding: 4px 8px; font-size: 0.82rem; cursor: pointer; color: #fff; flex-shrink: 0; }
         
         .input-row { display: flex; gap: 6px; align-items: center; width: 100%; }
         input[type="text"] { flex: 1; background-color: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 10px; border-radius: 8px; outline: none; font-size: 0.85rem; min-width: 0; }
         
         .action-btn { background-color: var(--accent-color); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; flex-shrink: 0; }
-        
         .mic-btn { background-color: #6366f1; font-size: 0.9rem; width: 36px; height: 36px; border-radius: 8px; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .mic-btn.recording { background-color: var(--danger-color); animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
         .file-label { background: var(--bg-card); color: #fff; padding: 8px 10px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border-color); flex-shrink: 0; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; }
+
+        /* Section Panels */
         .panel { display: none; padding: 12px; overflow-y: auto; height: 100%; width: 100%; }
         .panel.active { display: block; }
         .card { background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; margin-bottom: 12px; }
@@ -137,12 +160,12 @@
         .table-responsive { overflow-x: auto; width: 100%; }
         .table { width: 100%; border-collapse: collapse; min-width: 320px; }
         .table th, .table td { padding: 8px; border: 1px solid var(--border-color); text-align: right; font-size: 0.8rem; }
-        .table th { background: var(--bg-card); color: #2dd4bf; }
+        .table th { background: var(--bg-card); color: var(--accent-light); }
 
         .task-item { display: flex; align-items: center; justify-content: space-between; background: var(--bg-primary); padding: 8px 10px; border-radius: 6px; margin-bottom: 6px; border: 1px solid var(--border-color); }
         .task-item.done { opacity: 0.6; text-decoration: line-through; }
-        .urgent-btn { background: var(--danger-color) !important; color: white !important; font-weight: bold; }
-        .export-btn { background: var(--bg-card); color: #2dd4bf; border: 1px solid #2dd4bf; padding: 4px 8px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; }
+        .urgent-btn { background: var(--danger-color) !important; color: white !important; font-weight: bold; border: none !important; }
+        .export-btn { background: var(--bg-card); color: var(--accent-light); border: 1px solid var(--accent-light); padding: 4px 8px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; }
         .delete-btn { background: transparent; border: none; color: var(--danger-color); cursor: pointer; font-size: 0.75rem; font-weight: bold; }
 
         .preview-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; justify-content: center; align-items: center; padding: 20px; }
@@ -152,6 +175,7 @@
     </style>
 </head>
 <body>
+
     <header>
         <div class="header-right">
             <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
@@ -159,15 +183,16 @@
         </div>
         <div class="header-left">
             <span class="user-badge" id="current-user-display" onclick="changeUsername()"><span class="online-dot"></span> المدير العام</span>
-            <button class="zoom-btn" onclick="openVideoCall()">🎙️ الاجتماع المباشر</button>
         </div>
     </header>
 
     <div class="main-container">
         <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+        
+        <!-- Sidebar Navigation -->
         <div class="sidebar" id="sidebar">
             <div class="dept-header">
-                <span>إدارات المصنع</span>
+                <span>إدارات وأقسام المصنع</span>
                 <button style="background:none; border:none; color:#fff; font-size:1.1rem;" onclick="toggleSidebar()">✕</button>
             </div>
             <div class="dept-list">
@@ -177,23 +202,29 @@
                 <button class="dept-btn" onclick="switchDepartment('admin_hr', '👔 الشؤون الإدارية', event)">👔 الشؤون الإدارية (HR)</button>
                 <button class="dept-btn" onclick="switchDepartment('finance', '💰 الإدارة المالية', event)">💰 الإدارة المالية</button>
                 <button class="dept-btn" onclick="switchDepartment('general', '💬 القناة العامة', event)">💬 القناة العامة</button>
-                
-                <div style="margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border-color);">
-                    <button class="dept-btn" style="color: #38bdf8;" onclick="showPanel('tasks-panel')">📋 قائمة مهام القسم</button>
-                    <button class="dept-btn" style="color: var(--warning-color);" onclick="showPanel('team-management')">👥 إدارة أعضاء الفريق</button>
-                </div>
             </div>
         </div>
 
         <div class="content-area">
+            
+            <!-- Quick Sub Navigation -->
+            <div class="sub-nav-tabs">
+                <button class="tab-btn active" id="tab-chat" onclick="showPanel('chat-panel')">💬 المحادثات</button>
+                <button class="tab-btn" id="tab-tasks" onclick="showPanel('tasks-panel')">📋 المهام</button>
+                <button class="tab-btn" id="tab-team" onclick="showPanel('team-management')">👥 الفريق</button>
+                <button class="tab-btn" id="tab-video" onclick="showPanel('video-panel')">🎙️ مباشر</button>
+            </div>
+
+            <!-- Panel 1: Chat Panel -->
             <div id="chat-panel" class="chat-container">
                 <div class="chat-header">
                     <div>
-                        <h3 id="current-dept-title" style="font-size: 0.88rem; color: #2dd4bf;">🏭 إدارة الإنتاج والتخطيط</h3>
-                        <span style="font-size:0.68rem; color:var(--text-muted);">🟢 متصلون الآن</span>
+                        <h3 id="current-dept-title" style="font-size: 0.88rem; color: var(--accent-light);">🏭 إدارة الإنتاج والتخطيط</h3>
+                        <span style="font-size:0.68rem; color:var(--text-muted);">🟢 المتصلون نشطون الان</span>
                     </div>
                     <button class="export-btn" onclick="exportChatText()">📥 تصدير السجل</button>
                 </div>
+                
                 <div class="messages-list" id="chat-msgs"></div>
                 
                 <div class="chat-input-bar">
@@ -213,35 +244,38 @@
                         <button class="react-btn" onclick="addEmoji('📦')">📦</button>
                         <button class="react-btn urgent-btn" onclick="sendUrgentAlert()">🚨 بلاغ عاجل</button>
                     </div>
+                    
                     <form onsubmit="event.preventDefault(); sendMessage();" class="input-row">
-                        <label class="file-label" title="إرفاق صورة أو فيديو">
+                        <label class="file-label" title="إرفاق ملف">
                             📎
                             <input type="file" id="chat-file" accept="image/*,video/*,audio/*,application/pdf" style="display:none;" onchange="handleFileUpload(this)">
                         </label>
                         <button type="button" id="record-btn" class="mic-btn" onclick="toggleRecording()" title="تسجيل صوت">🎙️</button>
-                        <input type="text" id="chat-input" placeholder="اكتب ملاحظة...">
+                        <input type="text" id="chat-input" placeholder="اكتب رسالة أو ملاحظة...">
                         <button type="submit" class="action-btn">إرسال</button>
                     </form>
                 </div>
             </div>
 
+            <!-- Panel 2: Tasks Panel -->
             <div id="tasks-panel" class="panel">
                 <div class="card">
-                    <h4 style="color:#2dd4bf; margin-bottom:10px; font-size:0.9rem;">إضافة مَهمة جديدة للقسم الحالي</h4>
+                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">إضافة مَهمة جديدة للقسم</h4>
                     <div class="form-group">
                         <input type="text" id="task-title-input" class="form-control" placeholder="عنوان المَهمة المطلوب تنفيذها...">
                         <button class="action-btn" style="width:100%;" onclick="addNewTask()">+ إضافة المَهمة</button>
                     </div>
                 </div>
                 <div class="card">
-                    <h4 style="color:#2dd4bf; margin-bottom:10px; font-size:0.9rem;">مهام القسم (متابعة التنفيذ)</h4>
+                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">قائمة المهام وحالة التنفيذ</h4>
                     <div id="dept-tasks-list"></div>
                 </div>
             </div>
 
+            <!-- Panel 3: Team Management Panel -->
             <div id="team-management" class="panel">
                 <div class="card">
-                    <h4 style="color:#2dd4bf; margin-bottom:10px; font-size:0.9rem;">إضافة عضو جديد للفريق</h4>
+                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">إضافة موظف جديد</h4>
                     <div class="form-group">
                         <input type="text" id="new-user-name" class="form-control" placeholder="اسم الموظف...">
                         <input type="text" id="new-user-role" class="form-control" placeholder="المسمى الوظيفي...">
@@ -256,7 +290,7 @@
                     </div>
                 </div>
                 <div class="card">
-                    <h4 style="color:#2dd4bf; margin-bottom:10px; font-size:0.9rem;">قائمة فريق العمل</h4>
+                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">قائمة فريق العمل</h4>
                     <div class="table-responsive">
                         <table class="table">
                             <thead>
@@ -273,20 +307,23 @@
                 </div>
             </div>
 
+            <!-- Panel 4: Live Audio / Meeting Panel -->
             <div id="video-panel" class="panel">
                 <div class="card" style="text-align:center;">
-                    <h4 style="color:#2dd4bf; margin-bottom:8px;">🎙️ غرفة التحدث والاجتماع المباشر</h4>
+                    <h4 style="color:var(--accent-light); margin-bottom:8px;">🎙️ غرفة التحدث والاجتماع المباشر</h4>
                     <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px;">تحدث مباشرة وبدون أي تأخير مع أعضاء الفريق</p>
-                    <video id="groupVideoPlayer" autoplay playsinline muted style="width:100%; max-height:240px; background:#000; border-radius:8px; object-fit:cover; margin-bottom:12px; border:1px solid var(--accent-color);"></video>
+                    <video id="groupVideoPlayer" autoplay playsinline muted style="width:100%; max-height:220px; background:#000; border-radius:8px; object-fit:cover; margin-bottom:12px; border:1px solid var(--accent-color);"></video>
                     <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px;">
                         <button class="action-btn" id="toggle-mic-btn" style="background:var(--success-color);" onclick="startLiveAudioCall()">🔊 فتح المايك والتحدث المباشر</button>
                         <button class="action-btn" style="background:var(--danger-color);" onclick="stopCamera()">مغادرة الغرفة</button>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 
+    <!-- Image Modal View -->
     <div class="preview-modal" id="imageModal" onclick="closeImageModal()">
         <span class="close-modal">&times;</span>
         <img id="modalImg" src="" alt="صورة مكبرة">
@@ -370,6 +407,14 @@
         }
 
         function showPanel(panelId) {
+            // Update active state of sub nav tabs
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if(panelId === 'chat-panel') document.getElementById('tab-chat').classList.add('active');
+            if(panelId === 'tasks-panel') document.getElementById('tab-tasks').classList.add('active');
+            if(panelId === 'team-management') document.getElementById('tab-team').classList.add('active');
+            if(panelId === 'video-panel') document.getElementById('tab-video').classList.add('active');
+
+            // Hide all panels then activate chosen one
             document.getElementById('chat-panel').style.display = panelId === 'chat-panel' ? 'flex' : 'none';
             document.getElementById('team-management').classList.remove('active');
             document.getElementById('video-panel').classList.remove('active');
@@ -482,7 +527,6 @@
                     </div>
                 </div>`;
 
-            // بطاقة الرد المقتبس مع خاصية الانتقال للرسالة الأصلية
             if(parsed.replyData) {
                 const targetMsgId = parsed.replyData.id ? `msg-${parsed.replyData.id}` : '';
                 html += `
@@ -806,8 +850,6 @@
                 renderTeamTable();
             }
         }
-
-        function openVideoCall() { showPanel('video-panel'); }
 
         async function startLiveAudioCall() {
             try {

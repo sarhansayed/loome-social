@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Loome Social Pro</title>
+    <title>Loome Social Fast</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -40,12 +40,11 @@
         .chat-box { display: flex; flex-direction: column; height: 100%; gap: 10px; }
         .messages-list { flex: 1; background-color: var(--bg-secondary); border-radius: 10px; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--border-color); }
         
-        .msg-bubble { background-color: var(--border-color); padding: 10px; border-radius: 10px; max-width: 85%; font-size: 0.9rem; align-self: flex-start; display: flex; flex-direction: column; gap: 4px; word-break: break-word; position: relative; }
+        .msg-bubble { background-color: var(--border-color); padding: 10px; border-radius: 10px; max-width: 85%; font-size: 0.9rem; align-self: flex-start; display: flex; flex-direction: column; gap: 4px; word-break: break-word; }
         .msg-bubble.self { align-self: flex-end; background-color: #1e3a8a; }
         .msg-time { font-size: 0.65rem; color: #cbd5e1; align-self: flex-end; margin-top: 2px; }
         
         .file-attach-btn { background: #334155; color: #fff; padding: 8px 12px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; font-size: 1.1rem; }
-        .video-broadcast-card { background: #0284c7; color: white; padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 6px; }
         #groupVideoPlayer { width: 100%; max-height: 60%; background: #000; border-radius: 10px; object-fit: cover; }
         .card { background-color: var(--bg-secondary); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 10px; }
         .room-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 8px; }
@@ -62,7 +61,6 @@
     </header>
 
     <div class="main-content">
-        <!-- 1. شاشة الشات والرسائل -->
         <div id="chat-view" class="view-panel active">
             <div class="chat-box">
                 <div class="messages-list" id="chat-msgs"></div>
@@ -72,22 +70,20 @@
                         <input type="file" id="chat-file" style="display:none;" onchange="handleFileUpload(this)">
                     </label>
                     <button type="button" id="record-btn" class="btn-audio" onclick="toggleRecording()" title="تسجيل صوت">🎙️</button>
-                    <input type="text" id="chat-input" placeholder="اكتب رسالتك وتأكد من الضغط على إرسال...">
+                    <input type="text" id="chat-input" placeholder="اكتب رسالتك...">
                     <button type="submit" class="btn-primary">إرسال</button>
                 </form>
             </div>
         </div>
 
-        <!-- 2. المحادثات الخاصة -->
         <div id="private-contacts" class="view-panel">
             <div class="card">
                 <h4 style="margin-bottom:8px;">محادثة خاصة جديدة</h4>
-                <input type="text" id="pm-user-id" placeholder="اكتب اسم المستلم (مثال: مستخدم_123)..." style="margin-bottom:8px;">
+                <input type="text" id="pm-user-id" placeholder="اسم المستلم..." style="margin-bottom:8px;">
                 <button class="btn-primary" onclick="openPrivateChat()">فتح المحادثة الخاصة</button>
             </div>
         </div>
 
-        <!-- 3. إدارة الغرف -->
         <div id="rooms" class="view-panel">
             <div class="card">
                 <h4 style="margin-bottom:8px;">إنشاء غرفة منفصلة</h4>
@@ -106,10 +102,9 @@
             </div>
         </div>
 
-        <!-- 4. البث والفيديو -->
         <div id="video-call" class="view-panel">
             <div style="display:flex; flex-direction:column; align-items:center; gap:10px; height:100%;">
-                <div id="video-status" style="font-size:0.85rem; color:var(--text-muted);">البث الجماعي المباشر عبر الإنترنت</div>
+                <div style="font-size:0.85rem; color:var(--text-muted);">البث الجماعي المباشر</div>
                 <video id="groupVideoPlayer" autoplay playsinline muted></video>
                 <div style="display:flex; gap:10px;">
                     <button class="btn-primary" style="background:var(--success-color);" onclick="toggleCameraStream()">تفعيل الكاميرا/المايك</button>
@@ -119,7 +114,6 @@
         </div>
     </div>
 
-    <!-- شريط التنقل السفلي -->
     <div class="bottom-nav">
         <button class="nav-btn active" id="btn-public" onclick="switchRoom('public', 'الدردشة العامة')"><span>💬</span><span>العامة</span></button>
         <button class="nav-btn" id="btn-private" onclick="switchView('private-contacts')"><span>🔒</span><span>خاص</span></button>
@@ -137,7 +131,6 @@
         let myUsername = '';
         let mediaRecorder = null, audioChunks = [], recordedAudioBlob = null;
         let localVideoStream = null;
-        let autoRefreshInterval = null;
 
         function initUser() {
             let savedName = localStorage.getItem('loome_username');
@@ -159,55 +152,41 @@
             currentRoomId = roomId;
             document.getElementById('page-title').innerText = title;
             switchView('chat-view');
-            
             document.getElementById('chat-msgs').innerHTML = '';
-            
             loadMessages();
-            listenRealtime();
-
-            if(autoRefreshInterval) clearInterval(autoRefreshInterval);
-            autoRefreshInterval = setInterval(loadMessages, 3000);
         }
 
         async function loadMessages() {
-            const container = document.getElementById('chat-msgs');
-
-            const { data, error } = await db.from('messages').select('*').order('created_at', { ascending: true });
-            if(error) {
-                console.error("خطأ جلب الرسائل:", error);
-            } else if(data) {
+            const { data } = await db.from('messages').select('*').order('created_at', { ascending: true });
+            if(data) {
+                document.getElementById('chat-msgs').innerHTML = '';
                 data.forEach(msg => {
-                    if(!msg.room_id || msg.room_id === currentRoomId) {
-                        renderMessageUI(msg);
-                    }
+                    if(!msg.room_id || msg.room_id === currentRoomId) renderMessageUI(msg);
                 });
             }
         }
 
-        function listenRealtime() {
-            db.channel('public:messages')
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                  if(!payload.new.room_id || payload.new.room_id === currentRoomId) {
-                      renderMessageUI(payload.new);
-                  }
-              }).subscribe();
-        }
+        // الاستماع الفوري السريع
+        db.channel('public:messages')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+              if(!payload.new.room_id || payload.new.room_id === currentRoomId) {
+                  renderMessageUI(payload.new);
+              }
+          }).subscribe();
 
         function formatTime(dateStr) {
-            const date = dateStr ? new Date(dateStr) : new Date();
-            return date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+            return (dateStr ? new Date(dateStr) : new Date()).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
         }
 
         function renderMessageUI(msg) {
             const container = document.getElementById('chat-msgs');
-            
-            const msgKey = msg.id ? 'msg-' + msg.id : 'msg-temp-' + (msg.created_at || Date.now());
+            const msgKey = msg.id ? 'msg-' + msg.id : 'msg-temp-' + Date.now();
             if(document.getElementById(msgKey)) return;
 
             const bubble = document.createElement('div');
             bubble.id = msgKey;
             
-            const senderName = msg.sender || msg.username || msg.user_id || msg.user || 'مستخدم';
+            const senderName = msg.username || msg.user_id || 'مستخدم';
             bubble.className = `msg-bubble ${senderName === myUsername ? 'self' : ''}`;
             
             let contentText = msg.content || '';
@@ -224,15 +203,7 @@
 
             let html = `<div><strong>${senderName}:</strong> ${contentText}</div>`;
             if(audioUrl) html += `<audio controls src="${audioUrl}" style="max-width:100%; margin-top:6px;"></audio>`;
-            if(fileUrl) html += `<a href="${fileUrl}" target="_blank" style="color:#60a5fa; margin-top:6px; display:inline-block; font-weight:bold;">📄 فتح / تحميل الملف المرفق</a>`;
-            if(msg.is_video) {
-                html += `
-                    <div class="video-broadcast-card">
-                        <span>📹 تم بدء بث مباشر</span>
-                        <button class="btn-primary" style="background:#fff; color:#000; font-size:0.8rem; margin-top:4px;" onclick="switchView('video-call')">انضمام للبث</button>
-                    </div>
-                `;
-            }
+            if(fileUrl) html += `<a href="${fileUrl}" target="_blank" style="color:#60a5fa; margin-top:6px; display:inline-block; font-weight:bold;">📄 فتح / تحميل الملف</a>`;
             html += `<div class="msg-time">${formatTime(msg.created_at)}</div>`;
 
             bubble.innerHTML = html;
@@ -246,40 +217,40 @@
             if(!messageText && !recordedAudioBlob) return;
 
             let audioUrl = null;
+
+            // رفع المقطع الصوتي بسرعة فائقة عبر تحويله إلى DataURL مباشر لتجنب التأخير
             if(recordedAudioBlob) {
-                const fileName = `audio_${Date.now()}.webm`;
-                const { data, error: uploadErr } = await db.storage.from('audio-messages').upload(fileName, recordedAudioBlob);
-                if(uploadErr) alert('حدث خطأ في رفـع الصـوت: ' + uploadErr.message);
-                else {
-                    const res = db.storage.from('audio-messages').getPublicUrl(fileName);
-                    audioUrl = res.data.publicUrl;
-                }
+                const reader = new FileReader();
+                reader.readAsDataURL(recordedAudioBlob);
+                reader.onloadend = async () => {
+                    const base64Audio = reader.result;
+                    sendPayload(`[AUDIO]:${base64Audio}`);
+                };
+                recordedAudioBlob = null;
+                return;
             }
 
-            const msgTextToSend = audioUrl ? `[AUDIO]:${audioUrl}` : messageText;
+            if(messageText) sendPayload(messageText);
+            input.value = '';
+        }
 
+        async function sendPayload(contentToSend) {
+            // عرض فوري بالواجهة لتجربة سريعة جداً
             renderMessageUI({
-                sender: myUsername,
-                content: msgTextToSend,
+                username: myUsername,
+                content: contentToSend,
                 room_id: currentRoomId,
                 created_at: new Date().toISOString()
             });
 
-            input.value = '';
-            recordedAudioBlob = null;
-
-            const { data, error } = await db.from('messages').insert([{
-                sender: myUsername,
+            // إرسال البيانات بأسماء الأعمدة الصحيحة تماماً (username فقط)
+            const { error } = await db.from('messages').insert([{
                 username: myUsername,
-                content: msgTextToSend,
+                content: contentToSend,
                 room_id: currentRoomId
             }]);
 
-            if(error) {
-                alert('فشل الإرسال: ' + error.message);
-            } else {
-                loadMessages();
-            }
+            if(error) alert('خطأ في الإرسال: ' + error.message);
         }
 
         async function toggleRecording() {
@@ -296,7 +267,7 @@
                     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                     mediaRecorder.onstop = () => {
                         recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        alert('تم تسجيل المقطع الصوتي، اضغط إرسال.');
+                        sendMessage(); // إرسال تلقائي فوري بعد الانتهاء من التسجيل
                     };
                     mediaRecorder.start();
                     btn.innerText = "⏹️";
@@ -314,22 +285,7 @@
                 if(error) alert('فشل رفع الملف: ' + error.message);
                 else if(data) {
                     const res = db.storage.from('chat-files').getPublicUrl(fileName);
-                    const fileUrl = res.data.publicUrl;
-                    
-                    renderMessageUI({
-                        sender: myUsername,
-                        content: `[FILE]:${fileUrl}`,
-                        room_id: currentRoomId,
-                        created_at: new Date().toISOString()
-                    });
-
-                    await db.from('messages').insert([{
-                        sender: myUsername,
-                        username: myUsername,
-                        content: `[FILE]:${fileUrl}`,
-                        room_id: currentRoomId
-                    }]);
-                    loadMessages();
+                    sendPayload(`[FILE]:${res.data.publicUrl}`);
                 }
             }
         }
@@ -352,17 +308,11 @@
 
         function openPrivateChat() {
             const userInput = document.getElementById('pm-user-id').value.trim();
-            if(userInput) switchRoom('pm_' + userInput, 'محادثة خاصة: ' + userInput);
+            if(userInput) switchRoom('pm_' + userInput, 'خاص: ' + userInput);
         }
 
         async function startContextVideo() {
-            await db.from('messages').insert([{
-                sender: myUsername,
-                username: myUsername,
-                content: 'بدأ بث فيديو مباشر',
-                is_video: true,
-                room_id: currentRoomId
-            }]);
+            sendPayload('بدأ بث فيديو مباشر');
             switchView('video-call');
             toggleCameraStream();
         }
@@ -371,7 +321,7 @@
             try {
                 localVideoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 document.getElementById('groupVideoPlayer').srcObject = localVideoStream;
-            } catch(e) { alert('الرجاء تفعيل الكاميرا والمايك من إعدادات المتصفح'); }
+            } catch(e) { alert('الرجاء تفعيل الكاميرا والمايك'); }
         }
 
         function stopVideoSession() {

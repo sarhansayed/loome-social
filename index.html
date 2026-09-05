@@ -365,7 +365,6 @@
         let localStream = null;
         let activeReplyTarget = null;
 
-        // قائمة المديرين المعتمدة بالتحديد
         let teamMembers = [
             { id: 1, name: 'د دينا علي', role: 'مدير الجودة', dept: 'qc_qa' },
             { id: 2, name: 'م ندى مجدي', role: 'مدير الإنتاج', dept: 'production' },
@@ -665,12 +664,28 @@
             }
 
             const fullContent = `[NAME]:${myUsername}::${finalPayload}`;
-            const { error } = await db.from('messages').insert([{ 
+            
+            // إضافة عرض الرسالة فوراً محلياً لتجربة مستخدم سريعة
+            const tempMsg = {
+                user_id: myUserId,
+                content: fullContent,
+                room_id: currentDept,
+                created_at: new Date().toISOString()
+            };
+            renderMessageUI(tempMsg);
+
+            const { data, error } = await db.from('messages').insert([{ 
                 user_id: myUserId, 
                 content: fullContent, 
                 room_id: currentDept 
-            }]);
-            if(error) alert('خطأ في الإرسال: ' + error.message);
+            }]).select();
+
+            if(error) {
+                alert('خطأ في الإرسال: ' + error.message);
+            } else if(data && data[0]) {
+                // تحديث الرسالة بالـ id الحقيقي القادم من الخادم
+                renderMessageUI(data[0]);
+            }
         }
 
         async function deleteMsg(id, event) {

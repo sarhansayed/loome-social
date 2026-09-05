@@ -69,27 +69,46 @@
         .chat-header { padding: 10px 12px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         .messages-list { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         
-        .msg-bubble { background-color: var(--bg-secondary); padding: 8px 12px; border-radius: 12px; max-width: 88%; font-size: 0.88rem; align-self: flex-start; border: 1px solid var(--border-color); word-break: break-word; position: relative; cursor: pointer; }
+        .msg-bubble { background-color: var(--bg-secondary); padding: 10px 12px; border-radius: 12px; max-width: 88%; font-size: 0.88rem; align-self: flex-start; border: 1px solid var(--border-color); word-break: break-word; position: relative; }
         .msg-bubble.self { align-self: flex-end; background-color: #0f4c5c; border-color: #136f63; }
         .msg-bubble.urgent { border: 2px solid var(--danger-color); background-color: rgba(239, 68, 68, 0.15); }
-        .msg-info { font-size: 0.72rem; color: #2dd4bf; font-weight: bold; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-        .msg-actions { display: flex; gap: 6px; align-items: center; }
-        .reply-btn { background: transparent; border: none; color: #38bdf8; cursor: pointer; font-size: 0.72rem; font-weight: bold; }
-        .msg-time { font-size: 0.65rem; color: var(--text-muted); text-align: left; margin-top: 4px; }
+        .msg-info { font-size: 0.72rem; color: #2dd4bf; font-weight: bold; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .msg-actions { display: flex; gap: 8px; align-items: center; }
+        .reply-btn { background: transparent; border: none; color: #38bdf8; cursor: pointer; font-size: 0.75rem; font-weight: bold; display: flex; align-items: center; gap: 2px; }
+        .msg-time { font-size: 0.65rem; color: var(--text-muted); text-align: left; margin-top: 6px; }
         
-        /* صندوق الاقتباس داخل الرسالة المترودة عليها */
-        .reply-quote { background: rgba(0, 0, 0, 0.3); border-right: 3px solid var(--accent-color); padding: 4px 8px; border-radius: 4px; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px; }
-        .reply-quote-author { font-weight: bold; color: #2dd4bf; font-size: 0.72rem; }
+        /* تنسيق مقتبس الرد داخل فقاعة الرسالة */
+        .reply-quote-box {
+            background: rgba(0, 0, 0, 0.25);
+            border-right: 4px solid #38bdf8;
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+        }
+        .reply-quote-author {
+            color: #38bdf8;
+            font-weight: bold;
+            font-size: 0.72rem;
+            margin-bottom: 2px;
+        }
+        .reply-quote-text {
+            color: #cbd5e1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 240px;
+        }
 
         .audio-player-box { margin-top: 6px; background: #0f172a; border-radius: 12px; padding: 4px 6px; border: 1px solid var(--accent-color); display: flex; align-items: center; gap: 6px; width: 100%; max-width: 260px; }
         .audio-player-box audio { width: 100%; height: 32px; outline: none; }
 
         .chat-input-bar { padding: 8px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
         
-        /* شريط التنبيه المعاين عند الرد على رسالة */
-        .reply-preview-bar { display: none; background: var(--bg-card); padding: 6px 10px; border-radius: 6px; border-right: 3px solid #2dd4bf; justify-content: space-between; align-items: center; font-size: 0.8rem; }
+        /* شريط التنبيه المعاين فوق حقل الكتابة */
+        .reply-preview-bar { display: none; background: #1e293b; padding: 6px 12px; border-radius: 8px; border-right: 4px solid #38bdf8; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
         .reply-preview-bar.active { display: flex; }
-        .cancel-reply { background: none; border: none; color: var(--danger-color); font-weight: bold; cursor: pointer; font-size: 0.9rem; }
+        .cancel-reply { background: none; border: none; color: var(--danger-color); font-weight: bold; cursor: pointer; font-size: 1rem; padding: 0 4px; }
 
         .reactions-quick { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
         .react-btn { background: rgba(0,0,0,0.3); border: none; border-radius: 12px; padding: 4px 8px; font-size: 0.85rem; cursor: pointer; color: #fff; flex-shrink: 0; }
@@ -118,7 +137,7 @@
         .task-item.done { opacity: 0.6; text-decoration: line-through; }
         .urgent-btn { background: var(--danger-color) !important; color: white !important; font-weight: bold; }
         .export-btn { background: var(--bg-card); color: #2dd4bf; border: 1px solid #2dd4bf; padding: 4px 8px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; }
-        .delete-btn { background: transparent; border: none; color: var(--danger-color); cursor: pointer; font-size: 0.72rem; font-weight: bold; }
+        .delete-btn { background: transparent; border: none; color: var(--danger-color); cursor: pointer; font-size: 0.75rem; font-weight: bold; }
 
         .preview-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; justify-content: center; align-items: center; padding: 20px; }
         .preview-modal.active { display: flex; }
@@ -172,10 +191,10 @@
                 <div class="messages-list" id="chat-msgs"></div>
                 
                 <div class="chat-input-bar">
-                    <!-- الشريط المعاين عند وجود رد على رسالة -->
+                    <!-- شريط المعاينة فوق صندوق الكتابة عند إجراء رد -->
                     <div class="reply-preview-bar" id="reply-preview">
                         <div>
-                            <span style="color:#2dd4bf; font-weight:bold; font-size:0.75rem;" id="reply-author">الرد على...</span>
+                            <span style="color:#38bdf8; font-weight:bold; font-size:0.75rem;" id="reply-author">الرد على...</span>
                             <div style="color:var(--text-muted); font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;" id="reply-text-preview"></div>
                         </div>
                         <button class="cancel-reply" onclick="cancelReply()">✕</button>
@@ -195,7 +214,7 @@
                             <input type="file" id="chat-file" accept="image/*,video/*,audio/*,application/pdf" style="display:none;" onchange="handleFileUpload(this)">
                         </label>
                         <button type="button" id="record-btn" class="mic-btn" onclick="toggleRecording()" title="تسجيل صوت">🎙️</button>
-                        <input type="text" id="chat-input" placeholder="اكتب ملاحظة أو اضغط على رسالة للرد...">
+                        <input type="text" id="chat-input" placeholder="اكتب ملاحظة...">
                         <button type="submit" class="action-btn">إرسال</button>
                     </form>
                 </div>
@@ -278,7 +297,7 @@
         let myUserId = '';
         let mediaRecorder = null, audioChunks = [];
         let localStream = null;
-        let activeReplyTarget = null; // تخزين بيانات الرسالة المراد الرد عليها
+        let activeReplyTarget = null;
 
         let teamMembers = [
             { id: 1, name: 'أحمد محمود', role: 'مدير إنتاج', dept: 'production' },
@@ -381,6 +400,35 @@
               }).subscribe();
         }
 
+        function parseMessagePayload(rawText) {
+            let text = rawText || '';
+            let senderName = 'عضو الفريق';
+            let isUrgent = false;
+            let replyData = null;
+
+            if (text.startsWith('[URGENT]:')) {
+                isUrgent = true;
+                text = text.replace('[URGENT]:', '').trim();
+            }
+
+            if (text.startsWith('[REPLY_TO]:')) {
+                const parts = text.split('::[MSG]:');
+                const jsonPart = parts[0].replace('[REPLY_TO]:', '');
+                try {
+                    replyData = JSON.parse(jsonPart);
+                } catch(e){}
+                text = parts[1] || '';
+            }
+
+            if (text.startsWith('[NAME]:')) {
+                const parts = text.split('::');
+                senderName = parts[0].replace('[NAME]:', '');
+                text = parts.slice(1).join('::');
+            }
+
+            return { senderName, isUrgent, replyData, mainText: text };
+        }
+
         function renderMessageUI(msg) {
             const list = document.getElementById('chat-msgs');
             const msgKey = msg.id ? 'msg-' + msg.id : 'msg-temp-' + Date.now();
@@ -390,35 +438,14 @@
                 bubble.id = msgKey;
                 list.appendChild(bubble);
             }
+
             const isSelf = msg.user_id === myUserId;
-            let contentText = msg.content || '';
-            let senderName = isSelf ? myUsername : 'عضو في الفريق';
-            let isUrgent = false;
-            let replyData = null;
+            const parsed = parseMessagePayload(msg.content);
+            let contentText = parsed.mainText;
+            let senderName = isSelf ? myUsername : parsed.senderName;
 
-            if(contentText.startsWith('[URGENT]:')) {
-                isUrgent = true;
-                contentText = contentText.replace('[URGENT]:', '');
-            }
+            bubble.className = `msg-bubble ${isSelf ? 'self' : ''} ${parsed.isUrgent ? 'urgent' : ''}`;
 
-            /* استخراج تفاصيل الرد المقتبس إن وجد */
-            if(contentText.startsWith('[REPLY_TO]:')) {
-                try {
-                    const parts = contentText.split('::[MSG]:');
-                    const replyMeta = parts[0].replace('[REPLY_TO]:', '');
-                    replyData = JSON.parse(replyMeta);
-                    contentText = parts[1] || '';
-                } catch(e){}
-            }
-
-            if(contentText.startsWith('[NAME]:')) {
-                const parts = contentText.split('::');
-                senderName = parts[0].replace('[NAME]:', '');
-                contentText = parts[1] || '';
-            }
-
-            bubble.className = `msg-bubble ${isSelf ? 'self' : ''} ${isUrgent ? 'urgent' : ''}`;
-            
             let audioUrl = '', videoUrl = '', fileUrl = '';
 
             if(contentText.startsWith('[AUDIO]:')) {
@@ -432,31 +459,25 @@
                 contentText = fileUrl.startsWith('data:image/') ? '📷 صورة مرفقة' : '📄 ملف مرفق';
             }
 
-            // إمكانية النقر للرد
             const summaryForReply = contentText;
             const authorForReply = senderName;
-            bubble.onclick = (e) => {
-                if(e.target.tagName !== 'BUTTON' && e.target.tagName !== 'IMG' && e.target.tagName !== 'AUDIO' && e.target.tagName !== 'VIDEO') {
-                    setReplyTarget(senderName, summaryForReply);
-                }
-            };
 
             let deleteBtnHtml = msg.id ? `<button class="delete-btn" onclick="deleteMsg('${msg.id}', event)">🗑️ حذف</button>` : '';
 
             let html = `
                 <div class="msg-info">
-                    <span>${senderName} ${isUrgent ? '🚨 (بلاغ عاجل)' : ''}</span>
+                    <span>${senderName} ${parsed.isUrgent ? '🚨 (عاجل)' : ''}</span>
                     <div class="msg-actions">
-                        <button class="reply-btn" onclick="setReplyTarget('${senderName}', '${summaryForReply.replace(/'/g, "\\'")}')">↩️ رد</button>
+                        <button class="reply-btn" onclick="setReplyTarget('${senderName.replace(/'/g, "\\'")}', '${summaryForReply.replace(/'/g, "\\'")}')">↩️ رد</button>
                         ${deleteBtnHtml}
                     </div>
                 </div>`;
 
-            if(replyData) {
+            if(parsed.replyData) {
                 html += `
-                <div class="reply-quote">
-                    <div class="reply-quote-author">رد على: ${replyData.author}</div>
-                    <div>${replyData.text}</div>
+                <div class="reply-quote-box">
+                    <div class="reply-quote-author">رد على: ${parsed.replyData.author}</div>
+                    <div class="reply-quote-text">${parsed.replyData.text}</div>
                 </div>`;
             }
 
@@ -494,7 +515,6 @@
             list.scrollTop = list.scrollHeight;
         }
 
-        /* دوال معالجة وإلغاء الرد */
         function setReplyTarget(author, text) {
             activeReplyTarget = { author, text };
             document.getElementById('reply-author').innerText = 'الرد على: ' + author;

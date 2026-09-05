@@ -1,361 +1,271 @@
 document.addEventListener('DOMContentLoaded', () => {
     const client = window.supabaseClient || window.supabase;
 
-    const authForm = document.getElementById('auth-form');
-    const authTitle = document.getElementById('auth-title');
-    const btnSubmit = document.getElementById('btn-submit');
-    const toggleAuth = document.getElementById('toggle-auth');
-    const toggleMsg = document.getElementById('toggle-msg');
-    const authError = document.getElementById('auth-error');
-    const btnAnon = document.getElementById('btn-anon');
-
-    const authContainer = document.getElementById('auth-container');
-    const mainContent = document.getElementById('main-content');
-    const btnLogout = document.getElementById('btn-logout');
-
     let currentUser = null;
-    let isSignUp = false;
-
-    // متغيرات التسجيل الصوتي
+    let activeVideoTarget = null; // chat أو dm
     let mediaRecorder = null;
-    let audioChunks = [];
+    let chunks = [];
+    let videoStream = null;
 
-    if (toggleAuth) {
-        toggleAuth.addEventListener('click', (e) => {
-            e.preventDefault();
-            isSignUp = !isSignUp;
-            authTitle.textContent = isSignUp ? "إنشاء حساب جديد" : "تسجيل الدخول";
-            btnSubmit.textContent = isSignUp ? "إنشاء حساب" : "تسجيل الدخول";
-            toggleMsg.textContent = isSignUp ? "لديك حساب بالفعل؟" : "ليس لديك حساب؟";
-            toggleAuth.textContent = isSignUp ? "تسجيل الدخول" : "إنشاء حساب جديد";
-            authError.style.display = 'none';
-        });
-    }
-
+    // تسجيل الدخول والخروج
+    const authForm = document.getElementById('auth-form');
     if (authForm) {
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            authError.style.display = 'none';
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-
-            try {
-                if (isSignUp) {
-                    const { data, error } = await client.auth.signUp({ email, password });
-                    if (error) throw error;
-                    alert("تم إنشاء الحساب بنجاح!");
-                    showMainContent();
-                } else {
-                    const { data, error } = await client.auth.signInWithPassword({ email, password });
-                    if (error) throw error;
-                    showMainContent();
-                }
-            } catch (err) {
-                authError.textContent = err.message || "حدث خطأ أثناء الاتصال";
-                authError.style.display = 'block';
-            }
+            const { error } = await client.auth.signInWithPassword({ email, password });
+            if (error) alert(error.message);
+            else initApp();
         });
     }
 
-    if (btnAnon) {
-        btnAnon.addEventListener('click', async () => {
-            authError.style.display = 'none';
-            try {
-                if (client && client.auth && client.auth.signInAnonymously) {
-                    await client.auth.signInAnonymously();
-                } else {
-                    const anonEmail = `guest_${Date.now()}@loome.com`;
-                    const anonPass = "Guest123456!";
-                    await client.auth.signUp({ email: anonEmail, password: anonPass });
-                }
-                showMainContent();
-            } catch (err) {
-                authError.textContent = err.message || "فشل الدخول كزائر";
-                authError.style.display = 'block';
-            }
-        });
-    }
+    document.getElementById('btn-anon').addEventListener('click', async () => {
+        const anonEmail = `guest_${Date.now()}@loome.com`;
+        await client.auth.signUp({ email: anonEmail, password: "Guest123456!" });
+        initApp();
+    });
 
-    if (btnLogout) {
-        btnLogout.addEventListener('click', async () => {
-            await client.auth.signOut();
-            authContainer.style.display = 'block';
-            mainContent.style.display = 'none';
-        });
-    }
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+        await client.auth.signOut();
+        location.reload();
+    });
 
-    async function showMainContent() {
+    async function initApp() {
         const { data: { user } } = await client.auth.getUser();
         currentUser = user;
+        document.getElementById('auth-container').style.display = 'none';
+        document.getElementById('main-content').style.display = 'flex';
 
-        authContainer.style.display = 'none';
-        mainContent.style.display = 'flex';
+        fetchChat();
         fetchPosts();
-        fetchMessages();
-        subscribeToMessages();
+        
+        // الاستماع الفوري لرسائل الدردشة العامة
+        client.channel('chat-room').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, fetchChat).subscribe();
     }
 
-    // --- إدارة المنشورات ---
+    // --- معالجة صيغ الوسائط (صوت - صورة - فيديو) ---
+    function renderMediaContent(content) {
+        if (content.startsWith('[AUDIO]:')) {
+            return `<audio controls src="${content.replace('[AUDIO]:', '')}" style="max-width:100%; height:35px;"></audio>`;
+        }
+        if (content.startsWith('[IMAGE]:')) {
+            return `<img src="${content.replace('[IMAGE]:', '')}" style="max-width:100%; border-radius:8px;">`;
+        }
+        if (content.startsWith('[VIDEO]:')) {
+            return `<video controls src="${content.replace('[VIDEO]:', '')}" style="max-width:100%; border-radius:8px;"></video>`;
+        }
+        return `<div>${content}</div>`;
+    }
+
+    // --- 1. الدردشة الجماعية ---
+    async function fetchChat() {
+        const box = document.getElementById('chat-box');
+        const { data } = await client.from('messages').select('*').order('created_at', { ascending: true });
+        if (!data) return;
+
+        const myEmail = currentUser ? (currentUser.email || 'زائر') : 'زائر';
+        box.innerHTML = data.map(m => `
+            <div class="message-bubble ${m.sender_email === myEmail ? 'msg-me' : 'msg-other'}">
+                <div style="font-size:10px; opacity:0.8;">${m.sender_email === myEmail ? 'أنت' : m.sender_email}</div>
+                ${renderMediaContent(m.content)}
+            </div>
+        `).join('');
+        box.scrollTop = box.scrollHeight;
+    }
+
+    document.getElementById('btn-send-chat').addEventListener('click', async () => {
+        const input = document.getElementById('chat-input');
+        if (!input.value.trim()) return;
+        await client.from('messages').insert([{ content: input.value.trim(), sender_email: currentUser?.email || 'زائر' }]);
+        input.value = '';
+    });
+
+    // رفع ملفات بالدردشة
+    document.getElementById('chat-file-input').addEventListener('change', (e) => uploadAndSend(e.target.files[0], 'chat'));
+
+    // --- 2. الرسائل الخاصة ---
+    const dmTarget = document.getElementById('dm-target-email');
+    dmTarget.addEventListener('change', fetchDM);
+
+    async function fetchDM() {
+        const target = dmTarget.value.trim();
+        const box = document.getElementById('dm-box');
+        if (!target) return;
+
+        const myEmail = currentUser?.email || 'زائر';
+        const { data } = await client.from('direct_messages').select('*')
+            .or(`and(sender_email.eq.${myEmail},receiver_email.eq.${target}),and(sender_email.eq.${target},receiver_email.eq.${myEmail})`)
+            .order('created_at', { ascending: true });
+
+        box.innerHTML = (data || []).map(m => `
+            <div class="message-bubble ${m.sender_email === myEmail ? 'msg-me' : 'msg-other'}">
+                ${renderMediaContent(m.content)}
+            </div>
+        `).join('');
+        box.scrollTop = box.scrollHeight;
+    }
+
+    document.getElementById('btn-send-dm').addEventListener('click', async () => {
+        const input = document.getElementById('dm-input');
+        const target = dmTarget.value.trim();
+        if (!input.value.trim() || !target) return alert("أدخل بريد المستلم ورسالتك");
+
+        await client.from('direct_messages').insert([{ content: input.value.trim(), sender_email: currentUser?.email || 'زائر', receiver_email: target }]);
+        input.value = '';
+        fetchDM();
+    });
+
+    document.getElementById('dm-file-input').addEventListener('change', (e) => uploadAndSend(e.target.files[0], 'dm'));
+
+    // --- 3. المنشورات العامة ---
+    let pendingPostMedia = null;
+    document.getElementById('post-file-input').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const bucket = file.type.startsWith('image/') ? 'chat-images' : 'chat-videos';
+        const name = `post_${Date.now()}_${file.name}`;
+        
+        document.getElementById('post-file-status').innerText = "جاري رفع الملف...";
+        const { error } = await client.storage.from(bucket).upload(name, file);
+        if (!error) {
+            const url = client.storage.from(bucket).getPublicUrl(name).data.publicUrl;
+            pendingPostMedia = `${file.type.startsWith('image/') ? '[IMAGE]:' : '[VIDEO]:'}${url}`;
+            document.getElementById('post-file-status').innerText = "تم إرفاق الملف ✓";
+        }
+    });
+
+    document.getElementById('btn-send-post').addEventListener('click', async () => {
+        const input = document.getElementById('post-input');
+        let text = input.value.trim();
+        if (!text && !pendingPostMedia) return;
+
+        if (pendingPostMedia) text = `${text} ${pendingPostMedia}`;
+        await client.from('posts').insert([{ content: text, user_id: currentUser?.id }]);
+        input.value = '';
+        pendingPostMedia = null;
+        document.getElementById('post-file-status').innerText = '';
+        fetchPosts();
+    });
+
     async function fetchPosts() {
-        const postsContainer = document.getElementById('posts-container');
-        if (!postsContainer) return;
+        const box = document.getElementById('posts-box');
+        const { data } = await client.from('posts').select('*').order('created_at', { ascending: false });
+        if (!data) return;
 
-        const { data: posts, error } = await client.from('posts').select('*').order('created_at', { ascending: false });
-
-        if (error) {
-            postsContainer.innerHTML = "<p style='color:red;'>خطأ في تحميل المنشورات</p>";
-            return;
-        }
-
-        if (!posts || posts.length === 0) {
-            postsContainer.innerHTML = "<p style='color:#888;'>لا توجد منشورات بعد.</p>";
-            return;
-        }
-
-        postsContainer.innerHTML = posts.map(post => `
-            <div class="post-card">
-                <p style="font-size: 15px; color: #1c1e21;">${post.content}</p>
-                <small style="color: #65676b; margin-top: 8px; display: block;">${new Date(post.created_at).toLocaleString('ar-EG')}</small>
+        box.innerHTML = data.map(p => `
+            <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #e4e6eb;">
+                ${renderMediaContent(p.content)}
             </div>
         `).join('');
     }
 
-    const btnPost = document.getElementById('btn-post');
-    if (btnPost) {
-        btnPost.addEventListener('click', async () => {
-            const input = document.getElementById('post-input');
-            const content = input.value.trim();
-            if (!content) return;
+    // --- وظيفة الرفع العامة ---
+    async function uploadAndSend(file, type) {
+        if (!file) return;
+        const isImg = file.type.startsWith('image/');
+        const bucket = isImg ? 'chat-images' : 'chat-videos';
+        const name = `${type}_${Date.now()}_${file.name}`;
 
-            const { error } = await client.from('posts').insert([{ content: content, user_id: currentUser ? currentUser.id : null }]);
-            if (!error) {
-                input.value = '';
-                fetchPosts();
-            }
-        });
-    }
+        const { error } = await client.storage.from(bucket).upload(name, file);
+        if (error) return alert("فشل الرفع: " + error.message);
 
-    // --- إدارة الدردشة الجماعية والمقاطع الصوتية ---
-    async function fetchMessages() {
-        const chatBox = document.getElementById('chat-box');
-        if (!chatBox) return;
+        const url = client.storage.from(bucket).getPublicUrl(name).data.publicUrl;
+        const formatted = `${isImg ? '[IMAGE]:' : '[VIDEO]:'}${url}`;
 
-        const { data: messages, error } = await client
-            .from('messages')
-            .select('*')
-            .order('created_at', { ascending: true });
-
-        if (error) {
-            chatBox.innerHTML = "<p style='color:red;'>خطأ في تحميل الرسائل</p>";
-            return;
+        if (type === 'chat') {
+            await client.from('messages').insert([{ content: formatted, sender_email: currentUser?.email || 'زائر' }]);
+            fetchChat();
+        } else if (type === 'dm') {
+            const target = dmTarget.value.trim();
+            if (!target) return alert("أدخل بريد المستلم");
+            await client.from('direct_messages').insert([{ content: formatted, sender_email: currentUser?.email || 'زائر', receiver_email: target }]);
+            fetchDM();
         }
-
-        if (!messages || messages.length === 0) {
-            chatBox.innerHTML = "<p style='color:#888; text-align:center;'>لا توجد رسائل بعد. ابدأ المحادثة الآن!</p>";
-            return;
-        }
-
-        const myEmail = currentUser ? (currentUser.email || 'زائر') : 'زائر';
-
-        chatBox.innerHTML = messages.map(msg => {
-            const isMe = msg.sender_email === myEmail;
-            const isAudio = msg.content.startsWith('[AUDIO]:');
-            const audioSrc = isAudio ? msg.content.replace('[AUDIO]:', '') : '';
-
-            return `
-                <div class="message-bubble ${isMe ? 'msg-me' : 'msg-other'}">
-                    <div class="msg-author">${isMe ? 'أنت' : (msg.sender_email || 'زائر')}</div>
-                    ${isAudio 
-                        ? `<audio controls src="${audioSrc}" style="max-width: 100%; margin-top: 5px; height: 35px;"></audio>` 
-                        : `<div>${msg.content}</div>`
-                    }
-                </div>
-            `;
-        }).join('');
-
-        chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    function subscribeToMessages() {
-        client
-            .channel('public:messages')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
-                fetchMessages();
-            })
-            .subscribe();
-    }
-
-    // إرسال النص
-    const btnSendChat = document.getElementById('btn-send-chat');
-    if (btnSendChat) {
-        btnSendChat.addEventListener('click', async () => {
-            const input = document.getElementById('chat-input');
-            const content = input.value.trim();
-            if (!content) return;
-
-            const senderEmail = currentUser ? (currentUser.email || 'زائر') : 'زائر';
-            const userId = currentUser ? currentUser.id : null;
-
-            const { error } = await client.from('messages').insert([{
-                content: content,
-                user_id: userId,
-                sender_email: senderEmail
-            }]);
-
-            if (!error) {
-                input.value = '';
-                fetchMessages();
-            }
-        });
-    }
-
-    // التسجيل الصوتي المباشر
-    const btnMic = document.getElementById('btn-mic');
-    if (btnMic) {
-        btnMic.addEventListener('click', async () => {
+    // --- التسجيل الصوتي المباشر (لشاشة Chat و DM) ---
+    function setupMic(btnId, targetType) {
+        const btn = document.getElementById(btnId);
+        btn.addEventListener('click', async () => {
             if (!mediaRecorder || mediaRecorder.state === 'inactive') {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
-                    audioChunks = [];
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                chunks = [];
+                mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                mediaRecorder.onstop = async () => {
+                    const blob = new Blob(chunks, { type: 'audio/webm' });
+                    const name = `audio_${Date.now()}.webm`;
+                    await client.storage.from('audio-messages').upload(name, blob);
+                    const url = client.storage.from('audio-messages').getPublicUrl(name).data.publicUrl;
+                    const formatted = `[AUDIO]:${url}`;
 
-                    mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
-
-                    mediaRecorder.onstop = async () => {
-                        btnMic.textContent = '⏳';
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        const fileName = `voice_${Date.now()}.webm`;
-
-                        // رفع الملف إلى Supabase Storage
-                        const { data, error } = await client.storage
-                            .from('audio-messages')
-                            .upload(fileName, audioBlob);
-
-                        if (error) {
-                            alert("فشل رفع المقطع الصوتي: " + error.message);
-                            btnMic.style.background = '#28a745';
-                            btnMic.textContent = '🎤';
-                            return;
+                    if (targetType === 'chat') {
+                        await client.from('messages').insert([{ content: formatted, sender_email: currentUser?.email || 'زائر' }]);
+                        fetchChat();
+                    } else {
+                        const target = dmTarget.value.trim();
+                        if (target) {
+                            await client.from('direct_messages').insert([{ content: formatted, sender_email: currentUser?.email || 'زائر', receiver_email: target }]);
+                            fetchDM();
                         }
-
-                        // جلب رابط الصوت المباشر
-                        const { data: publicUrlData } = client.storage
-                            .from('audio-messages')
-                            .getPublicUrl(fileName);
-
-                        const audioUrl = publicUrlData.publicUrl;
-                        const senderEmail = currentUser ? (currentUser.email || 'زائر') : 'زائر';
-
-                        // إرسال كرسالة صوتية
-                        await client.from('messages').insert([{
-                            content: `[AUDIO]:${audioUrl}`,
-                            user_id: currentUser ? currentUser.id : null,
-                            sender_email: senderEmail
-                        }]);
-
-                        btnMic.style.background = '#28a745';
-                        btnMic.textContent = '🎤';
-                        fetchMessages();
-                    };
-
-                    mediaRecorder.start();
-                    btnMic.style.background = '#dc3545';
-                    btnMic.textContent = '⏹️';
-                } catch (err) {
-                    alert("يرجى إعطاء إذن استخدام الميكروفون للبدء بالتسجيل.");
-                }
+                    }
+                    btn.style.background = '#28a745';
+                };
+                mediaRecorder.start();
+                btn.style.background = '#dc3545';
             } else {
                 mediaRecorder.stop();
             }
         });
     }
 
-    // --- إدارة الرسائل الخاصة (Direct Messages) ---
-    const btnSendDm = document.getElementById('btn-send-dm');
-    const dmRecipientInput = document.getElementById('dm-recipient-email');
+    setupMic('btn-chat-mic', 'chat');
+    setupMic('btn-dm-mic', 'dm');
 
-    async function fetchDirectMessages() {
-        const dmBox = document.getElementById('dm-chat-box');
-        const recipientEmail = dmRecipientInput ? dmRecipientInput.value.trim() : '';
+    // --- تسجيل الفيديو المباشر من الكاميرا ---
+    const videoModal = document.getElementById('video-modal');
+    const videoPreview = document.getElementById('video-preview');
 
-        if (!dmBox) return;
+    document.getElementById('btn-chat-cam').addEventListener('click', async () => {
+        try {
+            videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            videoPreview.srcObject = videoStream;
+            videoModal.style.display = 'flex';
 
-        if (!recipientEmail) {
-            dmBox.innerHTML = "<p style='text-align: center; color: #888;'>أدخل بريد المستلم لفتح المحادثة</p>";
-            return;
+            chunks = [];
+            mediaRecorder = new MediaRecorder(videoStream);
+            mediaRecorder.ondataavailable = e => chunks.push(e.data);
+            mediaRecorder.onstop = async () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                const name = `cam_${Date.now()}.webm`;
+                await client.storage.from('chat-videos').upload(name, blob);
+                const url = client.storage.from('chat-videos').getPublicUrl(name).data.publicUrl;
+
+                await client.from('messages').insert([{ content: `[VIDEO]:${url}`, sender_email: currentUser?.email || 'زائر' }]);
+                fetchChat();
+                closeCam();
+            };
+            mediaRecorder.start();
+        } catch (err) {
+            alert("يرجى إعطاء إذن استخدام الكاميرا والميكروفون.");
         }
+    });
 
-        const myEmail = currentUser ? (currentUser.email || 'زائر') : 'زائر';
+    document.getElementById('btn-stop-video').addEventListener('click', () => {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    });
 
-        const { data: dmList, error } = await client
-            .from('direct_messages')
-            .select('*')
-            .or(`and(sender_email.eq.${myEmail},receiver_email.eq.${recipientEmail}),and(sender_email.eq.${recipientEmail},receiver_email.eq.${myEmail})`)
-            .order('created_at', { ascending: true });
+    document.getElementById('btn-cancel-video').addEventListener('click', closeCam);
 
-        if (error) {
-            dmBox.innerHTML = "<p style='color:red;'>خطأ في جلب الرسائل الخاصة</p>";
-            return;
-        }
-
-        if (!dmList || dmList.length === 0) {
-            dmBox.innerHTML = "<p style='text-align: center; color: #888;'>لا توجد رسائل خاصة بينكما بعد.</p>";
-            return;
-        }
-
-        dmBox.innerHTML = dmList.map(msg => {
-            const isMe = msg.sender_email === myEmail;
-            return `
-                <div class="message-bubble ${isMe ? 'msg-me' : 'msg-other'}">
-                    <div class="msg-author">${isMe ? 'أنت' : msg.sender_email}</div>
-                    <div>${msg.content}</div>
-                </div>
-            `;
-        }).join('');
-
-        dmBox.scrollTop = dmBox.scrollHeight;
+    function closeCam() {
+        if (videoStream) videoStream.getTracks().forEach(t => t.stop());
+        videoModal.style.display = 'none';
     }
 
-    if (dmRecipientInput) {
-        dmRecipientInput.addEventListener('change', fetchDirectMessages);
-    }
-
-    if (btnSendDm) {
-        btnSendDm.addEventListener('click', async () => {
-            const dmInput = document.getElementById('dm-input');
-            const content = dmInput ? dmInput.value.trim() : '';
-            const recipientEmail = dmRecipientInput ? dmRecipientInput.value.trim() : '';
-
-            if (!content || !recipientEmail) {
-                alert("يرجى إدخال بريد المستلم ونص الرسالة.");
-                return;
-            }
-
-            const senderEmail = currentUser ? (currentUser.email || 'زائر') : 'زائر';
-
-            const { error } = await client.from('direct_messages').insert([{
-                content: content,
-                sender_email: senderEmail,
-                receiver_email: recipientEmail,
-                sender_id: currentUser ? currentUser.id : null
-            }]);
-
-            if (error) {
-                alert("فشل إرسال الرسالة الخاصة: " + error.message);
-            } else {
-                dmInput.value = '';
-                fetchDirectMessages();
-            }
-        });
-    }
-
-    async function checkUser() {
-        if (!client) return;
+    // التحقق المباشر من وجود جلسة
+    (async () => {
         const { data: { user } } = await client.auth.getUser();
-        if (user) {
-            showMainContent();
-        }
-    }
-
-    checkUser();
+        if (user) initApp();
+    })();
 });

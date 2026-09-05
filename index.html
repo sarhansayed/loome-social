@@ -69,12 +69,13 @@
         .chat-header { padding: 10px 12px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         .messages-list { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         
-        .msg-bubble { background-color: var(--bg-secondary); padding: 8px 12px; border-radius: 12px; max-width: 85%; font-size: 0.88rem; align-self: flex-start; border: 1px solid var(--border-color); word-wrap: break-word; overflow: hidden; }
+        .msg-bubble { background-color: var(--bg-secondary); padding: 8px 12px; border-radius: 12px; max-width: 85%; font-size: 0.88rem; align-self: flex-start; border: 1px solid var(--border-color); word-break: break-word; }
         .msg-bubble.self { align-self: flex-end; background-color: #0f4c5c; border-color: #136f63; }
         .msg-info { font-size: 0.72rem; color: #2dd4bf; font-weight: bold; margin-bottom: 3px; }
         .msg-time { font-size: 0.65rem; color: var(--text-muted); text-align: left; margin-top: 4px; }
         
-        .chat-audio-player { width: 100%; max-width: 240px; height: 36px; margin-top: 4px; outline: none; border-radius: 20px; }
+        .audio-wrapper { width: 100%; max-width: 200px; margin-top: 4px; }
+        .audio-wrapper audio { width: 100%; height: 32px; border-radius: 16px; }
 
         .chat-input-bar { padding: 8px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
         .reactions-quick { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
@@ -275,16 +276,14 @@
         }
 
         async function loadMessages() {
-            const { data, error } = await db.from('messages')
+            const { data } = await db.from('messages')
                 .select('*')
                 .or(`room_id.eq.${currentDept},room_id.is.null`)
                 .order('created_at', { ascending: true });
             
             const list = document.getElementById('chat-msgs');
             list.innerHTML = '';
-            if(data) {
-                data.forEach(msg => renderMessageUI(msg));
-            }
+            if(data) data.forEach(msg => renderMessageUI(msg));
         }
 
         function subscribeRealtime() {
@@ -317,8 +316,8 @@
             bubble.className = `msg-bubble ${isSelf ? 'self' : ''}`;
 
             let contentText = msg.content || '';
-            let audioUrl = msg.audio_url;
-            let fileUrl = msg.file_url;
+            let audioUrl = '';
+            let fileUrl = '';
 
             if(contentText.startsWith('[AUDIO]:')) {
                 audioUrl = contentText.replace('[AUDIO]:', '').trim();
@@ -332,8 +331,12 @@
             if(contentText) html += `<div>${contentText}</div>`;
 
             if(audioUrl) {
-                html += `<div><audio class="chat-audio-player" controls controlsList="nodownload" src="${audioUrl}"></audio></div>`;
+                html += `
+                <div class="audio-wrapper">
+                    <audio controls controlsList="nodownload" src="${audioUrl}"></audio>
+                </div>`;
             }
+
             if(fileUrl) {
                 html += `<a href="${fileUrl}" target="_blank" style="color:#60a5fa; margin-top:4px; display:inline-block; font-size:0.8rem; font-weight:bold;">📄 عرض الملف المرفق</a>`;
             }
@@ -356,8 +359,8 @@
             const messageText = input.value.trim();
 
             if(messageText) {
-                sendPayload(messageText);
                 input.value = '';
+                await sendPayload(messageText);
             }
         }
 
@@ -367,7 +370,7 @@
                 content: content, 
                 room_id: currentDept 
             }]);
-            if(error) console.error('خطأ إرسال:', error.message);
+            if(error) alert('خطأ في الإرسال: ' + error.message);
         }
 
         async function deleteMsg(id) {
@@ -398,15 +401,23 @@
                     mediaRecorder.onstop = async () => {
                         btn.innerText = "⏳";
                         const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-                        const fileName = `voice_${Date.now()}.mp3`;
-                        
-                        // رفع التسجيل للسيرفر مباشرة لمنع التشوه
-                        const { data, error } = await db.storage.from('chat-files').upload(fileName, audioBlob);
-                        if(!error) {
-                            const res = db.storage.from('chat-files').getPublicUrl(fileName);
-                            sendPayload(`[AUDIO]:${res.data.publicUrl}`);
-                        } else {
-                            alert('تعذر رفع الصوت، يرجى المحاولة مرة أخرى');
+                        const formData = new FormData();
+                        formData.append('file', audioBlob);
+                        formData.append('upload_preset', 'ml_default');
+
+                        try {
+                            const res = await fetch('https://api.cloudinary.com/v1_1/demo/video/upload', {
+                                method: 'POST',
+                                body: formData
+                            });
+                            const data = await res.json();
+                            if(data.secure_url) {
+                                sendPayload(`[AUDIO]:${data.secure_url}`);
+                            } else {
+                                alert('يرجى كتابة نص، أو إرسال التسجيل الصوتي مرة أخرى');
+                            }
+                        } catch(e) {
+                            alert('تعذر إرسال الصوت عبر الشبكة');
                         }
                         btn.innerText = "🎙️";
                     };
@@ -414,19 +425,25 @@
                     mediaRecorder.start();
                     btn.innerText = "⏹️";
                     btn.style.backgroundColor = "#ef4444";
-                } catch (e) { alert('برجاء تفعيل صلاحية تسجيل الصوت من إعدادات المتصفح'); }
+                } catch (e) { alert('برجاء تفعيل صلاحية المايكروفون'); }
             }
         }
 
         async function handleFileUpload(input) {
             if(input.files && input.files[0]) {
                 const file = input.files[0];
-                const fileName = `factory_${Date.now()}_${file.name}`;
-                const { data, error } = await db.storage.from('chat-files').upload(fileName, file);
-                if(!error) {
-                    const res = db.storage.from('chat-files').getPublicUrl(fileName);
-                    sendPayload(`[FILE]:${res.data.publicUrl}`);
-                }
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', 'ml_default');
+
+                try {
+                    const res = await fetch('https://api.cloudinary.com/v1_1/demo/image/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await res.json();
+                    if(data.secure_url) sendPayload(`[FILE]:${data.secure_url}`);
+                } catch(e) { alert('تعذر رفع الملف'); }
             }
         }
 

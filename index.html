@@ -32,8 +32,8 @@
         .auth-box button.btn-anon { background: #edf2f7; color: #4a5568; border: none; font-weight: 600; cursor: pointer; }
 
         .main-dashboard { display: flex; width: 100%; height: 100%; flex-direction: column; }
-        .sidebar { width: 100%; border-bottom: 1px solid var(--border); display: flex; padding: 10px; background: #ffffff; order: 2; gap: 5px; }
-        .nav-btn { flex: 1; padding: 10px 5px; border: none; background: transparent; cursor: pointer; border-radius: 12px; font-weight: 600; font-size: 13px; color: #718096; text-align: center; }
+        .sidebar { width: 100%; border-bottom: 1px solid var(--border); display: flex; padding: 10px; background: #ffffff; order: 2; gap: 5px; overflow-x: auto; }
+        .nav-btn { flex: 1; min-width: 80px; padding: 10px 5px; border: none; background: transparent; cursor: pointer; border-radius: 12px; font-weight: 600; font-size: 12px; color: #718096; text-align: center; }
         .nav-btn.active { background: var(--primary-grad); color: white; }
 
         .content-area { flex: 1; display: flex; flex-direction: column; order: 1; overflow: hidden; background: #ffffff; }
@@ -66,7 +66,7 @@
 
         @media (min-width: 768px) {
             .main-dashboard { flex-direction: row; }
-            .sidebar { width: 220px; border-left: 1px solid var(--border); border-bottom: none; flex-direction: column; justify-content: start; order: 1; padding: 20px 10px; }
+            .sidebar { width: 220px; border-left: 1px solid var(--border); border-bottom: none; flex-direction: column; justify-content: start; order: 1; padding: 20px 10px; overflow-x: visible; }
             .content-area { flex: 1; order: 2; }
             .nav-btn { width: 100%; text-align: right; margin-bottom: 8px; padding: 12px 15px; }
         }
@@ -86,10 +86,11 @@
         <button id="btn-anon" class="btn-anon">⚡ الدخول السريع كزائر</button>
     </div>
 
-    <!-- قائمة الضغط المطول (Context Menu) -->
+    <!-- قائمة الضغط المطول (Context Menu) الشاملة -->
     <div id="context-menu" class="context-menu">
         <h4 style="text-align:center; color:#718096; margin-bottom:5px;">خيارات المحتوى</h4>
-        <button id="ctx-edit" class="context-btn" style="color:#2b6cb0;">✏️ تعديل / استبدال</button>
+        <button id="ctx-resend" class="context-btn" style="color:#2b6cb0;">🔄 إعادة إرسال / توجيه</button>
+        <button id="ctx-edit" class="context-btn" style="color:#319795;">✏️ تعديل / استبدال</button>
         <button id="ctx-delete" class="context-btn" style="color:#e53e3e;">🗑️ حذف</button>
         <button id="ctx-cancel" class="context-btn" style="background:#edf2f7;">إلغاء</button>
     </div>
@@ -124,8 +125,8 @@
     <div id="main-content" class="main-dashboard" style="display: none;">
         <div class="sidebar">
             <div style="font-weight:800; font-size:20px; color:#2575fc; margin-bottom:20px; text-align:center;">Loome ✨</div>
-            <button class="nav-btn active" onclick="switchTab('tab-chat', this)">💬 الدردشة العامة</button>
-            <button class="nav-btn" onclick="switchTab('tab-rooms', this)">🔒 الغرف الخاصة</button>
+            <button class="nav-btn active" onclick="switchTab('tab-chat', this)">💬 العامة</button>
+            <button class="nav-btn" onclick="switchTab('tab-rooms', this)">🔒 الغرف</button>
             <button class="nav-btn" onclick="switchTab('tab-dm', this)">✉️ الخاص</button>
             <button class="nav-btn" onclick="switchTab('tab-posts', this)">📑 المنشورات</button>
             <button id="btn-logout" class="nav-btn" style="color:#e53e3e; margin-top:auto;">🚪 خروج</button>
@@ -140,7 +141,7 @@
                 </div>
                 <div id="chat-box" class="chat-messages"></div>
                 <div class="chat-input-area">
-                    <input type="text" id="chat-input" placeholder="اكتب رسالتك... (اضغط مطولاً على أي رسالة للخيارات)">
+                    <input type="text" id="chat-input" placeholder="اكتب رسالتك... (اضغط مطولاً للخيارات)">
                     <button class="icon-btn" style="background:#28a745;" id="btn-chat-mic" title="تسجيل صوت">🎤</button>
                     <label class="icon-btn" style="background:#48bb78;" title="إرفاق ملف">
                         📁 <input type="file" id="chat-file-input" style="display:none;">
@@ -159,12 +160,10 @@
                     </div>
                 </div>
 
-                <!-- قائمة الغرف -->
                 <div id="rooms-list-container" style="flex:1; display:flex; flex-direction:column; overflow-y:auto; padding-top:10px;">
                     <div id="rooms-list"></div>
                 </div>
 
-                <!-- داخل الغرفة الخاصة النشطة -->
                 <div id="active-room-container" style="display:none; flex:1; flex-direction:column;">
                     <div id="room-requests-panel" style="display:none; background:#fff5f5; border:1px solid #feb2b2; padding:10px; border-radius:12px; margin-bottom:10px;">
                         <h5 style="color:#c53030; margin-bottom:5px;">📥 طلبات الانضمام المعلقة:</h5>
@@ -198,9 +197,9 @@
                 </div>
             </div>
 
-            <!-- 4. المنشورات -->
+            <!-- 4. المنشورات التفاعلية -->
             <div id="tab-posts" class="tab-content">
-                <div class="chat-header">📑 المنشورات العامة</div>
+                <div class="chat-header">📑 المنشورات العامة والتفاعلات</div>
                 <div class="chat-input-area" style="margin-bottom:12px;">
                     <input type="text" id="post-input" placeholder="شارِك أفكارك ولحظاتك المبهجة...">
                     <button class="icon-btn" style="background:#28a745;" id="btn-post-mic">🎤</button>
@@ -214,11 +213,11 @@
         </div>
     </div>
 
-    <!-- نافذة الاجتماع المرئي والصوتي Live -->
+    <!-- نافذة الاجتماع المرئي المباشر بدون إعلانات وتطبيقات -->
     <div id="meeting-modal" class="modal">
         <div style="width:95%; height:90%; background:#111; border-radius:20px; overflow:hidden; display:flex; flex-direction:column;">
             <div style="padding:10px 20px; background:#222; color:white; display:flex; justify-content:space-between; align-items:center;">
-                <span id="meeting-title" style="font-weight:bold;">📹 اجتماع حقيقي</span>
+                <span id="meeting-title" style="font-weight:bold;">📹 اجتماع حي</span>
                 <button id="btn-close-meeting" style="background:#e53e3e; color:white; border:none; padding:6px 14px; border-radius:8px; cursor:pointer; font-weight:bold;">إغلاق ✖</button>
             </div>
             <div id="jitsi-container" style="flex:1; width:100%;"></div>

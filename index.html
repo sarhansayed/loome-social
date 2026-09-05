@@ -3,234 +3,443 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loome Social & Games</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-config.js"></script>
-    <script src="https://meet.jit.si/external_api.js"></script>
-    <script src="app.js" defer></script>
+    <title>تطبيق التواصل المتكامل الاحترافي</title>
     <style>
         :root {
-            --primary-grad: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            --accent-grad: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%);
-            --bg-grad: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-            --panel-bg: rgba(255, 255, 255, 0.98);
-            --chat-bg: #f8fafc;
-            --border: #cbd5e1;
-            --text-dark: #0f172a;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --success-color: #10b981;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; user-select: none; }
-        html, body { height: 100%; width: 100%; background: var(--bg-grad); overflow: hidden; color: var(--text-dark); }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-        .app-container { width: 100%; height: 100%; display: flex; flex-direction: column; background: var(--panel-bg); }
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-        .auth-box { width: 90%; max-width: 420px; margin: auto; padding: 30px; background: #ffffff; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; }
-        .auth-box h2 { font-size: 28px; background: var(--primary-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; font-weight: 800; }
-        .auth-box input, .auth-box button { width: 100%; padding: 14px 16px; margin-bottom: 12px; border-radius: 14px; border: 1px solid var(--border); outline: none; font-size: 14px; }
-        .auth-box button.btn-login { background: var(--primary-grad); color: white; font-weight: bold; border: none; cursor: pointer; }
-        .auth-box button.btn-anon { background: #edf2f7; color: #4a5568; border: none; font-weight: 600; cursor: pointer; }
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 240px;
+            background-color: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 10px;
+        }
 
-        .main-dashboard { display: flex; width: 100%; height: 100%; flex-direction: column; }
-        .sidebar { width: 100%; border-top: 1px solid var(--border); display: flex; padding: 10px; background: #ffffff; order: 2; gap: 8px; overflow-x: auto; justify-content: space-around; }
-        .nav-btn { flex: 1; min-width: 70px; padding: 10px 5px; border: none; background: transparent; cursor: pointer; border-radius: 14px; font-weight: 700; font-size: 13px; color: #64748b; text-align: center; }
-        .nav-btn.active { background: var(--primary-grad); color: white; }
+        .brand {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-bottom: 30px;
+            text-align: center;
+        }
 
-        .content-area { flex: 1; display: flex; flex-direction: column; order: 1; overflow: hidden; background: #ffffff; }
-        .tab-content { display: none; flex-direction: column; height: 100%; padding: 15px; }
-        .tab-content.active { display: flex; }
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 12px 15px;
+            text-align: right;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+        }
 
-        .chat-header { padding-bottom: 12px; border-bottom: 1px solid var(--border); font-weight: 700; font-size: 16px; display: flex; justify-content: space-between; align-items: center; }
-        .chat-messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 14px; background: var(--chat-bg); margin: 10px 0; border-radius: 20px; border: 1px solid #f1f5f9; }
+        .nav-btn:hover, .nav-btn.active {
+            background-color: var(--accent-color);
+            color: #fff;
+        }
 
-        .message-bubble { max-width: 82%; padding: 12px 16px; border-radius: 18px; word-break: break-word; font-size: 14px; position: relative; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
-        .msg-me { background: var(--primary-grad); color: white; align-self: flex-end; border-bottom-left-radius: 4px; }
-        .msg-other { background: #ffffff; color: var(--text-dark); align-self: flex-start; border: 1px solid var(--border); border-bottom-right-radius: 4px; }
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
 
-        .reply-quote { background: rgba(0,0,0,0.06); border-right: 3px solid #4f46e5; padding: 6px 10px; border-radius: 8px; margin-bottom: 8px; font-size: 12px; opacity: 0.9; }
-        .reply-preview-bar { display: none; background: #e2e8f0; padding: 8px 12px; border-radius: 12px; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 13px; }
-        .reaction-badges { display: flex; gap: 4px; position: absolute; bottom: -12px; left: 10px; background: white; border: 1px solid var(--border); border-radius: 12px; padding: 2px 6px; font-size: 11px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        header {
+            height: 60px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            background-color: var(--bg-secondary);
+        }
 
-        .chat-input-area { display: flex; gap: 6px; align-items: center; background: #f1f5f9; padding: 8px 12px; border-radius: 25px; }
-        .chat-input-area input[type="text"] { flex: 1; padding: 10px; border: none; outline: none; background: transparent; font-size: 14px; }
-        .icon-btn { width: 38px; height: 38px; border-radius: 50%; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-        .btn-send { padding: 10px 20px; border-radius: 20px; border: none; background: var(--primary-grad); color: white; cursor: pointer; font-weight: bold; }
+        .quick-call-btn {
+            background-color: var(--success-color);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
 
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
-        .modal-body { background: white; padding: 25px; border-radius: 24px; width: 90%; max-width: 450px; }
+        .view-panel {
+            display: none;
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
 
-        .context-menu { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-radius: 24px 24px 0 0; padding: 20px; box-shadow: 0 -5px 25px rgba(0,0,0,0.15); z-index: 2000; flex-direction: column; gap: 12px; }
-        .reactions-row { display: flex; justify-content: space-around; font-size: 24px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-        .reactions-row span { cursor: pointer; transition: transform 0.15s; }
-        .reactions-row span:hover { transform: scale(1.3); }
-        .context-btn { padding: 12px; border: none; border-radius: 12px; background: #f1f5f9; font-weight: bold; cursor: pointer; text-align: center; }
+        .view-panel.active {
+            display: flex;
+            flex-direction: column;
+        }
 
-        .room-card { background: #f8fafc; border: 1px solid var(--border); padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        /* Chat View */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
 
-        @media (min-width: 768px) {
-            .main-dashboard { flex-direction: row; }
-            .sidebar { width: 220px; border-left: 1px solid var(--border); border-top: none; flex-direction: column; justify-content: start; order: 1; padding: 20px 12px; gap: 12px; }
-            .content-area { flex: 1; order: 2; }
-            .nav-btn { width: 100%; text-align: right; padding: 12px 16px; }
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            background-color: var(--border-color);
+            padding: 10px 14px;
+            border-radius: 8px;
+            max-width: 70%;
+        }
+
+        .message.self {
+            align-self: flex-end;
+            background-color: var(--accent-color);
+        }
+
+        .chat-input-area {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid var(--border-color);
+            gap: 10px;
+        }
+
+        input[type="text"], select, textarea {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+        }
+
+        .btn-send {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* Private Messaging */
+        .pm-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 20px;
+            height: 100%;
+        }
+
+        .pm-form {
+            background-color: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .pm-history {
+            background-color: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow-y: auto;
+        }
+
+        /* Embedded Video Call View */
+        .video-container {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Game View */
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 15px;
+        }
+
+        canvas {
+            background-color: var(--bg-secondary);
+            border: 2px solid var(--accent-color);
+            border-radius: 8px;
+            cursor: crosshair;
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        /* Notification Toast */
+        .toast {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: none;
         }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div id="auth-container" class="auth-box">
-        <h2>✨ Loome Social</h2>
-        <p style="color:#64748b; margin-bottom:20px; font-size:14px;">تواصل، تفاعل، والعب مع الأصدقاء</p>
-        <form id="auth-form">
-            <input type="email" id="email" placeholder="البريد الإلكتروني" required>
-            <input type="password" id="password" placeholder="كلمة المرور" required>
-            <button type="submit" class="btn-login">تسجيل الدخول</button>
-        </form>
-        <button id="btn-anon" class="btn-anon">⚡ الدخول السريع كزائر</button>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="brand">منصة التواصل PRO</div>
+        <button class="nav-btn active" onclick="switchView('public-chat')">غرفة الدردشة العامة</button>
+        <button class="nav-btn" onclick="switchView('private-chat')">الرسائل الخاصة</button>
+        <button class="nav-btn" onclick="switchView('video-call')">اجتماع الفيديو المباشر</button>
+        <button class="nav-btn" onclick="switchView('game')">مركز الألعاب</button>
     </div>
 
-    <!-- قائمة الخيارات والتفاعلات -->
-    <div id="context-menu" class="context-menu">
-        <div class="reactions-row">
-            <span onclick="addReaction('👍')">👍</span>
-            <span onclick="addReaction('❤️')">❤️</span>
-            <span onclick="addReaction('😂')">😂</span>
-            <span onclick="addReaction('😮')">😮</span>
-            <span onclick="addReaction('😢')">😢</span>
-        </div>
-        <button id="ctx-reply" class="context-btn" style="color:#4f46e5;">↩️ رد على الرسالة</button>
-        <button id="ctx-delete" class="context-btn" style="color:#e53e3e; display:none;">🗑️ حذف الغرفة (للمالك فقط)</button>
-        <button id="ctx-cancel" class="context-btn" style="background:#e2e8f0;">إلغاء</button>
-    </div>
+    <!-- Main Content -->
+    <div class="main-content">
+        <header>
+            <span id="current-view-title">غرفة الدردشة العامة</span>
+            <button class="quick-call-btn" onclick="switchView('video-call')">📹 بدء فيديو مباشر</button>
+        </header>
 
-    <!-- نافذة إنشاء غرفة -->
-    <div id="create-room-modal" class="modal">
-        <div class="modal-body">
-            <h3 style="margin-bottom:12px;">🔒 إنشاء غرفة خاصة جديدة</h3>
-            <input type="text" id="new-room-name" placeholder="اسم الغرفة..." style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--border); margin-bottom:12px;">
-            <div style="display:flex; justify-content:flex-end; gap:10px;">
-                <button id="btn-cancel-room" style="padding:8px 16px; border-radius:8px; border:none; background:#e2e8f0;">إلغاء</button>
-                <button id="btn-save-room" style="padding:8px 16px; border-radius:8px; border:none; background:var(--primary-grad); color:white; font-weight:bold;">إنشاء الغرفة</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- التطبيق الرئيسي -->
-    <div id="main-content" class="main-dashboard" style="display: none;">
-        <div class="sidebar">
-            <div style="font-weight:800; font-size:22px; color:#4f46e5; margin-bottom:20px; text-align:center;">Loome ✨</div>
-            <button class="nav-btn active" onclick="switchTab('tab-chat', this)">💬 العامة</button>
-            <button class="nav-btn" onclick="switchTab('tab-rooms', this)">🔒 الغرف</button>
-            <button class="nav-btn" onclick="switchTab('tab-dm', this)">✉️ الخاص</button>
-            <button class="nav-btn" onclick="switchTab('tab-games', this)">🎮 الألعاب</button>
-            <button id="btn-logout" class="nav-btn" style="color:#e53e3e; margin-top:auto;">🚪 خروج</button>
-        </div>
-
-        <div class="content-area">
-            <!-- 1. المحادثة العامة -->
-            <div id="tab-chat" class="tab-content active">
-                <div class="chat-header">
-                    <span>💬 المحادثة العامة</span>
-                    <button id="btn-start-global-meeting" style="background:var(--accent-grad); color:white; border:none; padding:8px 16px; border-radius:20px; cursor:pointer; font-size:12px; font-weight:bold;">📹 اجتماع Zoom حي</button>
+        <!-- Public Chat Panel -->
+        <div id="public-chat" class="view-panel active">
+            <div class="chat-container">
+                <div class="chat-messages" id="public-messages">
+                    <div class="message">مرحباً بك في الغرفة العامة!</div>
                 </div>
-                
-                <div id="chat-box" class="chat-messages"></div>
-
-                <div id="reply-preview" class="reply-preview-bar">
-                    <span id="reply-preview-text">الرد على: ...</span>
-                    <button onclick="cancelReply()" style="border:none; background:transparent; cursor:pointer; font-weight:bold;">✖</button>
-                </div>
-
                 <div class="chat-input-area">
-                    <input type="text" id="chat-input" placeholder="اكتب رسالتك...">
-                    <button class="icon-btn" style="background:#10b981;" id="btn-chat-mic">🎤</button>
-                    <label class="icon-btn" style="background:#06b6d4;" title="إرفاق ملف">
-                        📁 <input type="file" id="chat-file-input" style="display:none;">
-                    </label>
-                    <button class="btn-send" id="btn-send-chat">إرسال</button>
+                    <input type="text" id="public-input" placeholder="اكتب رسالتك العامة هنا...">
+                    <button class="btn-send" onclick="sendPublicMessage()">إرسال</button>
                 </div>
             </div>
+        </div>
 
-            <!-- 2. الغرف الخاصة -->
-            <div id="tab-rooms" class="tab-content">
-                <div class="chat-header">
-                    <span id="room-view-title">🔒 الغرف الخاصة</span>
-                    <div>
-                        <button id="btn-back-rooms" style="display:none; padding:6px 12px; border-radius:15px; border:none; background:#edf2f7; margin-left:5px; cursor:pointer;">⬅️ خروج</button>
-                        <button id="btn-open-create-room" style="background:var(--primary-grad); color:white; border:none; padding:8px 14px; border-radius:18px; cursor:pointer; font-size:12px; font-weight:bold;">+ إنشاء غرفة</button>
-                    </div>
+        <!-- Private Chat Panel -->
+        <div id="private-chat" class="view-panel">
+            <div class="pm-layout">
+                <div class="pm-form">
+                    <h3>إرسال خاص</h3>
+                    <label>اختر المستلم:</label>
+                    <select id="pm-recipient">
+                        <option value="أحمد (مدير)">أحمد (مدير)</option>
+                        <option value="سارة (دعم)">سارة (دعم)</option>
+                        <option value="علي (مطور)">علي (مطور)</option>
+                    </select>
+
+                    <label>الرسالة:</label>
+                    <textarea id="pm-text" rows="5" placeholder="اكتب رسالتك الخاصة..."></textarea>
+                    
+                    <button class="btn-send" style="padding: 10px;" onclick="sendPrivateMessage()">إرسال الرسالة</button>
                 </div>
-                <div id="rooms-list-container" style="flex:1; overflow-y:auto; padding-top:10px;">
-                    <div id="rooms-list"></div>
-                </div>
-                <div id="active-room-container" style="display:none; flex:1; flex-direction:column;">
-                    <div id="room-requests-panel" style="display:none; background:#fff5f5; border:1px solid #feb2b2; padding:10px; border-radius:12px; margin-bottom:10px;">
-                        <h5 style="color:#c53030; margin-bottom:5px;">📥 طلبات الانضمام:</h5>
-                        <div id="room-requests-list"></div>
-                    </div>
-                    <div id="room-chat-box" class="chat-messages"></div>
-                    <div class="chat-input-area">
-                        <input type="text" id="room-chat-input" placeholder="اكتب في الغرفة الخاصة...">
-                        <button class="icon-btn" style="background:#10b981;" id="btn-room-mic">🎤</button>
-                        <label class="icon-btn" style="background:#06b6d4;">
-                            📁 <input type="file" id="room-file-input" style="display:none;">
-                        </label>
-                        <button class="btn-send" id="btn-send-room-chat">إرسال</button>
-                        <button id="btn-start-room-meeting" style="background:var(--accent-grad); color:white; border:none; padding:8px 12px; border-radius:20px; font-weight:bold; cursor:pointer;">📹 فيديو</button>
-                    </div>
+                <div class="pm-history">
+                    <h3>سجل المحادثات الخاصة</h3>
+                    <hr style="border-color: var(--border-color); margin: 10px 0;">
+                    <div id="pm-messages-list"></div>
                 </div>
             </div>
+        </div>
 
-            <!-- 3. المحادثات الخاصة -->
-            <div id="tab-dm" class="tab-content">
-                <div class="chat-header">✉️ الرسائل المباشرة</div>
-                <input type="email" id="dm-target-email" placeholder="بريد المستلم..." style="padding:12px; border-radius:12px; border:1px solid var(--border); margin:10px 0; outline:none;">
-                <div id="dm-box" class="chat-messages"></div>
-                <div class="chat-input-area">
-                    <input type="text" id="dm-input" placeholder="رسالة خاصة...">
-                    <button class="icon-btn" style="background:#10b981;" id="btn-dm-mic">🎤</button>
-                    <label class="icon-btn" style="background:#06b6d4;">
-                        📁 <input type="file" id="dm-file-input" style="display:none;">
-                    </label>
-                    <button class="btn-send" id="btn-send-dm">إرسال</button>
-                </div>
+        <!-- Video Call Panel -->
+        <div id="video-call" class="view-panel">
+            <div class="video-container">
+                <!-- Using embedded Meet/Jitsi iframe directly for instant offline/online compatibility -->
+                <iframe src="https://meet.jit.si/ProAppIntegratedRoomRoom2026" allow="camera; microphone; fullscreen; display-capture"></iframe>
             </div>
+        </div>
 
-            <!-- 4. الألعاب والمسابقات -->
-            <div id="tab-games" class="tab-content">
-                <div class="chat-header">🎮 الألعاب والمسابقات الجماعية</div>
-                <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:15px; color:#64748b;">
-                    <div style="font-size:50px;">🎯</div>
-                    <h3>صالة التحديات والمسابقات</h3>
-                    <p>ألعاب سريعة ولوحة المتصدرين للأعضاء</p>
-                    <button style="padding:12px 24px; border-radius:20px; border:none; background:var(--primary-grad); color:white; font-weight:bold; cursor:pointer;">بدء لعبة XO جماعية</button>
+        <!-- Game Panel -->
+        <div id="game" class="view-panel">
+            <div class="game-container">
+                <div class="game-controls">
+                    <span>النقاط: <strong id="score">0</strong></span>
+                    <button class="btn-send" onclick="startGame()">بدء / إعادة اللعب</button>
                 </div>
+                <canvas id="gameCanvas" width="500" height="350"></canvas>
             </div>
         </div>
     </div>
 
-    <!-- نافذة الاجتماع المرئي -->
-    <div id="meeting-modal" class="modal">
-        <div style="width:95%; height:90%; background:#0f172a; border-radius:24px; overflow:hidden; display:flex; flex-direction:column;">
-            <div style="padding:12px 20px; background:#1e293b; color:white; display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-weight:bold;">📹 اجتماع Zoom/Jitsi المباشر</span>
-                <button id="btn-close-meeting" style="background:#ef4444; color:white; border:none; padding:6px 14px; border-radius:10px; cursor:pointer; font-weight:bold;">إغلاق ✖</button>
-            </div>
-            <div id="jitsi-container" style="flex:1; width:100%;"></div>
-        </div>
-    </div>
-</div>
+    <div class="toast" id="toast-notification">تنبيه!</div>
 
-<script>
-    function switchTab(tabId, btn) {
-        document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        if(btn) btn.classList.add('active');
-    }
-    function cancelReply() {
-        document.getElementById('reply-preview').style.display = 'none';
-        if (typeof currentReplyId !== 'undefined') currentReplyId = null;
-    }
-</script>
+    <script>
+        // Switch Panels
+        function switchView(viewId) {
+            document.querySelectorAll('.view-panel').forEach(panel => panel.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(viewId).classList.add('active');
+            
+            const titles = {
+                'public-chat': 'غرفة الدردشة العامة',
+                'private-chat': 'الرسائل الخاصة',
+                'video-call': 'اجتماع الفيديو المباشر',
+                'game': 'مركز الألعاب'
+            };
+            document.getElementById('current-view-title').innerText = titles[viewId];
+            
+            if(viewId === 'game') {
+                initGame();
+            }
+        }
+
+        // Public Chat Logic
+        function sendPublicMessage() {
+            const input = document.getElementById('public-input');
+            if(input.value.trim() === "") return;
+            
+            const msgList = document.getElementById('public-messages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = "message self";
+            msgDiv.innerText = input.value;
+            msgList.appendChild(msgDiv);
+            
+            input.value = "";
+            msgList.scrollTop = msgList.scrollHeight;
+        }
+
+        // Private Messaging Logic
+        function sendPrivateMessage() {
+            const recipient = document.getElementById('pm-recipient').value;
+            const text = document.getElementById('pm-text').value;
+
+            if(text.trim() === "") return;
+
+            const list = document.getElementById('pm-messages-list');
+            const item = document.createElement('div');
+            item.style.marginBottom = "10px";
+            item.style.padding = "8px";
+            item.style.backgroundColor = "var(--bg-primary)";
+            item.style.borderRadius = "6px";
+            item.innerHTML = `<strong style="color:var(--accent-color)">إلى ${recipient}:</strong> <p>${text}</p>`;
+
+            list.prepend(item);
+            document.getElementById('pm-text').value = "";
+            showToast("تم إرسال الرسالة الخاصة بنجاح!");
+        }
+
+        // Interactive Game Engine (Canvas)
+        let canvas, ctx;
+        let target = { x: 50, y: 50, radius: 20 };
+        let score = 0;
+        let gameActive = false;
+
+        function initGame() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            
+            canvas.onclick = function(e) {
+                if(!gameActive) return;
+                const rect = canvas.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+
+                const dist = Math.hypot(clickX - target.x, clickY - target.y);
+                if(dist < target.radius) {
+                    score += 10;
+                    document.getElementById('score').innerText = score;
+                    moveTarget();
+                }
+            };
+            
+            drawTarget();
+        }
+
+        function startGame() {
+            score = 0;
+            document.getElementById('score').innerText = score;
+            gameActive = true;
+            moveTarget();
+            showToast("بدأت اللعبة! اضغط على الدائرة الحمراء");
+        }
+
+        function moveTarget() {
+            target.x = Math.random() * (canvas.width - 60) + 30;
+            target.y = Math.random() * (canvas.height - 60) + 30;
+            drawTarget();
+        }
+
+        function drawTarget() {
+            if(!ctx) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.arc(target.x, target.y, target.radius, 0, Math.PI * 2);
+            ctx.fillStyle = "#ef4444";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        // Notification Helper
+        function showToast(msg) {
+            const toast = document.getElementById('toast-notification');
+            toast.innerText = msg;
+            toast.style.display = "block";
+            setTimeout(() => { toast.style.display = "none"; }, 3000);
+        }
+    </script>
 </body>
 </html>

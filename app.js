@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mainContent = document.getElementById('main-content');
     const btnLogout = document.getElementById('btn-logout');
 
+    let currentUser = null;
     let isSignUp = false;
 
     if (toggleAuth) {
@@ -57,13 +58,11 @@ document.addEventListener('DOMContentLoaded', () => {
             authError.style.display = 'none';
             try {
                 if (client && client.auth && client.auth.signInAnonymously) {
-                    const { data, error } = await client.auth.signInAnonymously();
-                    if (error) throw error;
+                    await client.auth.signInAnonymously();
                 } else {
                     const anonEmail = `guest_${Date.now()}@loome.com`;
                     const anonPass = "Guest123456!";
-                    const { data, error } = await client.auth.signUp({ email: anonEmail, password: anonPass });
-                    if (error) throw error;
+                    await client.auth.signUp({ email: anonEmail, password: anonPass });
                 }
                 showMainContent();
             } catch (err) {
@@ -81,9 +80,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function showMainContent() {
+    async function showMainContent() {
+        const { data: { user } } = await client.auth.getUser();
+        currentUser = user;
+
         authContainer.style.display = 'none';
-        mainContent.style.display = 'block';
+        mainContent.style.display = 'flex';
         fetchPosts();
         fetchMessages();
         subscribeToMessages();
@@ -97,19 +99,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const { data: posts, error } = await client.from('posts').select('*').order('created_at', { ascending: false });
 
         if (error) {
-            postsContainer.innerHTML = "<p style='color:red;'>حدث خطأ أثناء تحميل المنشورات: " + error.message + "</p>";
+            postsContainer.innerHTML = "<p style='color:red;'>خطأ في تحميل المنشورات</p>";
             return;
         }
 
         if (!posts || posts.length === 0) {
-            postsContainer.innerHTML = "<p>لا توجد منشورات بعد. كن أول من ينشر!</p>";
+            postsContainer.innerHTML = "<p style='color:#888;'>لا توجد منشورات بعد.</p>";
             return;
         }
 
         postsContainer.innerHTML = posts.map(post => `
-            <div style="border: 1px solid #ddd; padding: 12px; margin-bottom: 10px; border-radius: 6px; background-color: #ffffff; text-align: right;">
-                <p style="margin: 0 0 8px 0; font-size: 16px; color: #333;">${post.content}</p>
-                <small style="color: #777;">${new Date(post.created_at).toLocaleString('ar-EG')}</small>
+            <div class="post-card">
+                <p style="font-size: 15px; color: #1c1e21;">${post.content}</p>
+                <small style="color: #65676b; margin-top: 8px; display: block;">${new Date(post.created_at).toLocaleString('ar-EG')}</small>
             </div>
         `).join('');
     }
@@ -119,25 +121,17 @@ document.addEventListener('DOMContentLoaded', () => {
         btnPost.addEventListener('click', async () => {
             const input = document.getElementById('post-input');
             const content = input.value.trim();
-            if (!content) {
-                alert("يرجى كتابة نص المنشور أولاً");
-                return;
-            }
+            if (!content) return;
 
-            const { data: { user } } = await client.auth.getUser();
-            const userId = user ? user.id : null;
-
-            const { error } = await client.from('posts').insert([{ content: content, user_id: userId }]);
-            if (error) {
-                alert("فشل نشر المحتوى: " + error.message);
-            } else {
+            const { error } = await client.from('posts').insert([{ content: content, user_id: currentUser ? currentUser.id : null }]);
+            if (!error) {
                 input.value = '';
                 fetchPosts();
             }
         });
     }
 
-    // --- إدارة الدردشة الجماعية ---
+    // --- إدارة الدردشة الجماعية الاحترافية ---
     async function fetchMessages() {
         const chatBox = document.getElementById('chat-box');
         if (!chatBox) return;
@@ -153,16 +147,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!messages || messages.length === 0) {
-            chatBox.innerHTML = "<p style='color:#888;'>لا توجد رسائل بعد. ابدأ المحادثة الآن!</p>";
+            chatBox.innerHTML = "<p style='color:#888; text-align:center;'>لا توجد رسائل بعد. ابدأ المحادثة الآن!</p>";
             return;
         }
 
-        chatBox.innerHTML = messages.map(msg => `
-            <div style="margin-bottom: 8px; background: #fff; padding: 8px; border-radius: 5px; border-right: 3px solid #007bff;">
-                <strong style="color: #007bff; font-size: 12px;">${msg.sender_email || 'زائر'}</strong>
-                <p style="margin: 3px 0 0 0; color: #333;">${msg.content}</p>
-            </div>
-        `).join('');
+        const myEmail = currentUser ? (currentUser.email || 'زائر') : 'زائر';
+
+        chatBox.innerHTML = messages.map(msg => {
+            const isMe = msg.sender_email === myEmail;
+            return `
+                <div class="message-bubble ${isMe ? 'msg-me' : 'msg-other'}">
+                    <div class="msg-author">${isMe ? 'أنت' : (msg.sender_email || 'زائر')}</div>
+                    <div>${msg.content}</div>
+                </div>
+            `;
+        }).join('');
 
         chatBox.scrollTop = chatBox.scrollHeight;
     }
@@ -183,9 +182,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const content = input.value.trim();
             if (!content) return;
 
-            const { data: { user } } = await client.auth.getUser();
-            const userId = user ? user.id : null;
-            const senderEmail = user ? (user.email || 'زائر') : 'زائر';
+            const senderEmail = currentUser ? (currentUser.email || 'زائر') : 'زائر';
+            const userId = currentUser ? currentUser.id : null;
 
             const { error } = await client.from('messages').insert([{
                 content: content,
@@ -193,10 +191,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 sender_email: senderEmail
             }]);
 
-            if (error) {
-                alert("فشل إرسال الرسالة: " + error.message);
-            } else {
+            if (!error) {
                 input.value = '';
+                fetchMessages();
             }
         });
     }

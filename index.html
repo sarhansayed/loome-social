@@ -334,20 +334,20 @@
             <!-- Panel 4: Multi-User Live Video Room Panel -->
             <div id="video-panel" class="panel">
                 <div class="card" style="text-align:center;">
-                    <h4 style="color:var(--accent-light); margin-bottom:8px;">🎙️ غرفة التحدث والاجتماع المباشر (تتسع لعدد متعدد)</h4>
-                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px;">تحدث وشاهد الكاميرات مباشرة بدون أي حدود لعدد المستخدمين</p>
+                    <h4 style="color:var(--accent-light); margin-bottom:8px;">🎙️ غرفة التحدث والاجتماع المباشر بالفيديو</h4>
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px;">تواصل بالصوت والصورة المباشرة بين كافة الأعضاء</p>
                     
                     <!-- شبكة مقاطع الفيديو التفاعلية المتعددة -->
                     <div class="video-grid" id="videoGrid">
                         <div class="video-card" id="card-local">
                             <video id="localVideo" autoplay playsinline muted></video>
-                            <span class="video-label">أنت (كاميرتك)</span>
+                            <span class="video-label">كاميرتك</span>
                         </div>
                     </div>
 
                     <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px;">
-                        <button class="action-btn" id="toggle-mic-btn" style="background:var(--success-color);" onclick="startMultiLiveCall()">🔊 الانضمام وفتح المايك/الكاميرا</button>
-                        <button class="action-btn" style="background:var(--danger-color);" onclick="stopMultiCall()">مغادرة الغرفة</button>
+                        <button class="action-btn" id="toggle-mic-btn" style="background:var(--success-color);" onclick="startMultiLiveCall()">🔊 الانضمام للبث المباشر</button>
+                        <button class="action-btn" style="background:var(--danger-color);" onclick="stopMultiCall()">مغادرة البث</button>
                     </div>
                 </div>
             </div>
@@ -367,25 +367,30 @@
         let myUserId = '';
         let mediaRecorder = null, audioChunks = [];
         let localStream = null;
-        let peerConnections = {}; // دعم اتصالات متعددة لجميع المستخدمين
+        let peerConnections = {}; 
         let videoChannel = null;
         let activeReplyTarget = null;
         let typingTimeout = null;
         let msgReactions = {};
 
+        // تحديث سيرفرات الاتصال المباشر (WebRTC ICE Servers) لفتح المنافذ بدون أخطاء
         const rtcConfig = {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' }
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' }
             ]
         };
 
+        // تم التعديل رسميًا: "م هاجر عماد" - نائب مدير الانتاج ومدير البحث والتطوير
         let teamMembers = [
             { id: 1, name: 'د دينا علي', role: 'مدير الجودة', dept: 'qc_qa' },
             { id: 2, name: 'م ندى مجدي', role: 'مدير الإنتاج', dept: 'production' },
-            { id: 3, name: 'أحمد إدريس', role: 'مدير المخازن', dept: 'inventory' },
-            { id: 4, name: 'أ مصطفى حسني', role: 'مدير الإدارة المالية', dept: 'finance' },
-            { id: 5, name: 'أ شهد', role: 'الشؤون الإدارية', dept: 'admin_hr' }
+            { id: 3, name: 'م هاجر عماد', role: 'نائب مدير الإنتاج ومدير البحث والتطوير', dept: 'production' },
+            { id: 4, name: 'أحمد إدريس', role: 'مدير المخازن', dept: 'inventory' },
+            { id: 5, name: 'أ مصطفى حسني', role: 'مدير الإدارة المالية', dept: 'finance' },
+            { id: 6, name: 'أ شهد', role: 'الشؤون الإدارية', dept: 'admin_hr' }
         ];
         let deptTasks = {};
 
@@ -511,9 +516,7 @@
               }).subscribe();
         }
 
-        // -----------------------------------------------------------------
-        // نظام WebRTC المطور لـ (Multi-User Mesh Network) - دعم أي عدد مستخدمين
-        // -----------------------------------------------------------------
+        // إشارة الربط المباشر بالفيديو بين الأعضاء دون أي أخطاء
         function initMultiVideoSignaling() {
             videoChannel = db.channel('factory-multi-video-room');
 
@@ -566,7 +569,7 @@
 
                     const label = document.createElement('span');
                     label.className = 'video-label';
-                    label.innerText = 'عضو في المحادثة';
+                    label.innerText = 'عضو مصل للغرفة';
 
                     remoteCard.appendChild(remoteVideo);
                     remoteCard.appendChild(label);
@@ -613,7 +616,7 @@
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 document.getElementById('localVideo').srcObject = localStream;
-                document.getElementById('toggle-mic-btn').innerText = "🔊 البث متعدد المستخدمين يعمل";
+                document.getElementById('toggle-mic-btn').innerText = "🔊 أنت متصل الآن في الغرفة المباشرة";
 
                 videoChannel.send({
                     type: 'broadcast',
@@ -621,7 +624,7 @@
                     payload: { senderId: myUserId }
                 });
             } catch(e) {
-                alert('يرجى السماح بالوصول للميكروفون والكاميرا لبدء البث.');
+                alert('يرجى السماح بالكاميرا والميكروفون للانضمام للبث المباشر.');
             }
         }
 
@@ -675,13 +678,10 @@
             }
             peerConnections = {};
             document.getElementById('localVideo').srcObject = null;
-            document.getElementById('toggle-mic-btn').innerText = "🔊 الانضمام وفتح المايك/الكاميرا";
+            document.getElementById('toggle-mic-btn').innerText = "🔊 الانضمام للبث المباشر";
             showPanel('chat-panel');
         }
 
-        // -----------------------------------------------------------------
-        // وظائف المحادثات والمهام والملفات
-        // -----------------------------------------------------------------
         function parseMessagePayload(rawText) {
             let text = rawText || '';
             let senderName = 'عضو الفريق';
@@ -1013,7 +1013,6 @@
             const title = input.value.trim();
             if(!title) return;
             
-            // Re-sync tasks state from localStorage
             let savedTasks = localStorage.getItem('loome_dept_tasks');
             if(savedTasks) {
                 try { deptTasks = JSON.parse(savedTasks); } catch(e){}

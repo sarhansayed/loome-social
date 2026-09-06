@@ -287,10 +287,10 @@
             <div id="tasks-panel" class="panel">
                 <div class="card">
                     <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">إضافة مَهمة جديدة للقسم</h4>
-                    <div class="form-group">
+                    <form onsubmit="event.preventDefault(); addNewTask();" class="form-group">
                         <input type="text" id="task-title-input" class="form-control" placeholder="عنوان المَهمة المطلوب تنفيذها...">
-                        <button class="action-btn" style="width:100%;" onclick="addNewTask()">+ إضافة المَهمة</button>
-                    </div>
+                        <button type="submit" class="action-btn" style="width:100%;">+ إضافة المَهمة</button>
+                    </form>
                 </div>
                 <div class="card">
                     <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">قائمة المهام وحالة التنفيذ</h4>
@@ -478,6 +478,9 @@
             document.getElementById('tasks-panel').classList.remove('active');
             if(panelId !== 'chat-panel') {
                 document.getElementById(panelId).classList.add('active');
+            }
+            if(panelId === 'tasks-panel') {
+                renderTasks();
             }
         }
 
@@ -1009,6 +1012,13 @@
             const input = document.getElementById('task-title-input');
             const title = input.value.trim();
             if(!title) return;
+            
+            // Re-sync tasks state from localStorage
+            let savedTasks = localStorage.getItem('loome_dept_tasks');
+            if(savedTasks) {
+                try { deptTasks = JSON.parse(savedTasks); } catch(e){}
+            }
+
             if(!deptTasks[currentDept]) deptTasks[currentDept] = [];
             deptTasks[currentDept].push({ id: Date.now(), title, done: false });
             localStorage.setItem('loome_dept_tasks', JSON.stringify(deptTasks));
@@ -1017,6 +1027,10 @@
         }
 
         function toggleTask(taskId) {
+            let savedTasks = localStorage.getItem('loome_dept_tasks');
+            if(savedTasks) {
+                try { deptTasks = JSON.parse(savedTasks); } catch(e){}
+            }
             if(deptTasks[currentDept]) {
                 const task = deptTasks[currentDept].find(t => t.id === taskId);
                 if(task) task.done = !task.done;
@@ -1026,6 +1040,10 @@
         }
 
         function deleteTask(taskId) {
+            let savedTasks = localStorage.getItem('loome_dept_tasks');
+            if(savedTasks) {
+                try { deptTasks = JSON.parse(savedTasks); } catch(e){}
+            }
             if(deptTasks[currentDept]) {
                 deptTasks[currentDept] = deptTasks[currentDept].filter(t => t.id !== taskId);
                 localStorage.setItem('loome_dept_tasks', JSON.stringify(deptTasks));
@@ -1037,6 +1055,12 @@
             const list = document.getElementById('dept-tasks-list');
             if(!list) return;
             list.innerHTML = '';
+            
+            let savedTasks = localStorage.getItem('loome_dept_tasks');
+            if(savedTasks) {
+                try { deptTasks = JSON.parse(savedTasks); } catch(e){}
+            }
+
             const tasks = deptTasks[currentDept] || [];
             if(tasks.length === 0) {
                 list.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem;">لا توجد مهام حالية لهذا القسم.</div>';

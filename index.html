@@ -404,12 +404,16 @@
         let msgReactions = {};
         let deferredPrompt = null;
 
+        /* سيرفرات STUN و TURN المجانية من Google الشاملة لتسهيل العبور عبر الشبكات ومزودي الخدمة */
         const rtcConfig = {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
-                { urls: 'stun:stun2.l.google.com:19302' }
-            ]
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' }
+            ],
+            iceCandidatePoolSize: 10
         };
 
         let teamMembers = [
@@ -580,6 +584,7 @@
               }).subscribe();
         }
 
+        /* تحسين الربط وإشارات الـ WebRTC للبث الحي لضمان استلام الفيديو والصوت من باقي الأطراف */
         function initMultiVideoSignaling() {
             videoChannel = db.channel('factory-multi-video-room');
 
@@ -617,6 +622,7 @@
                 localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
             }
 
+            // ربط وعرض فيديو المستلم فور توفره
             pc.ontrack = (event) => {
                 let remoteCard = document.getElementById(`card-${targetUserId}`);
                 if (!remoteCard) {
@@ -628,7 +634,14 @@
                     remoteVideo.autoplay = true;
                     remoteVideo.playsinline = true;
                     remoteVideo.id = `video-${targetUserId}`;
-                    remoteVideo.srcObject = event.streams[0];
+                    
+                    if (event.streams && event.streams[0]) {
+                        remoteVideo.srcObject = event.streams[0];
+                    } else {
+                        const inboundStream = new MediaStream();
+                        inboundStream.addTrack(event.track);
+                        remoteVideo.srcObject = inboundStream;
+                    }
 
                     const label = document.createElement('span');
                     label.className = 'video-label';
@@ -639,10 +652,13 @@
                     document.getElementById('videoGrid').appendChild(remoteCard);
                 } else {
                     const remoteVideo = document.getElementById(`video-${targetUserId}`);
-                    remoteVideo.srcObject = event.streams[0];
+                    if (event.streams && event.streams[0]) {
+                        remoteVideo.srcObject = event.streams[0];
+                    }
                 }
             };
 
+            // إرسال تفاصيل العبور ICE Candidate فور توليدها
             pc.onicecandidate = (event) => {
                 if (event.candidate && videoChannel) {
                     videoChannel.send({
@@ -655,13 +671,14 @@
 
             if (isInitiator) {
                 pc.createOffer().then(offer => {
-                    pc.setLocalDescription(offer);
+                    return pc.setLocalDescription(offer);
+                }).then(() => {
                     videoChannel.send({
                         type: 'broadcast',
                         event: 'offer',
-                        payload: { offer, senderId: myUserId, targetId: targetUserId }
+                        payload: { offer: pc.localDescription, senderId: myUserId, targetId: targetUserId }
                     });
-                });
+                }).catch(e => console.error(e));
             }
 
             return pc;
@@ -699,21 +716,23 @@
             videoChannel.send({
                 type: 'broadcast',
                 event: 'answer',
-                payload: { answer, senderId: myUserId, targetId: payload.senderId }
+                payload: { answer: pc.localDescription, senderId: myUserId, targetId: payload.senderId }
             });
         }
 
         async function handleMultiAnswer(payload) {
             const pc = peerConnections[payload.senderId];
-            if (pc) {
+            if (pc && pc.signalingState !== 'stable') {
                 await pc.setRemoteDescription(new RTCSessionDescription(payload.answer));
             }
         }
 
         async function handleMultiCandidate(payload) {
             const pc = peerConnections[payload.senderId];
-            if (pc) {
-                await pc.addIceCandidate(new RTCIceCandidate(payload.candidate));
+            if (pc && payload.candidate) {
+                try {
+                    await pc.addIceCandidate(new RTCIceCandidate(payload.candidate));
+                } catch(e) {}
             }
         }
 

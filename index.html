@@ -160,6 +160,26 @@
 
         .action-btn { background: var(--accent-primary); color: white; border: none; padding: 10px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 0.85rem; transition: 0.2s; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2); }
         .action-btn:hover { background: #0f766e; }
+        
+        /* زر إرسال مطور وأيقونة واضحة */
+        .send-btn {
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: 0.2s;
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+        }
+        .send-btn:hover { background: #0f766e; transform: scale(1.05); }
+
         .mic-btn { background: #6366f1; width: 40px; height: 40px; border-radius: 12px; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1rem; }
         .mic-btn.recording { background: var(--danger); animation: pulse 1s infinite; }
 
@@ -292,7 +312,8 @@
                         </label>
                         <button type="button" id="record-btn" class="mic-btn" onclick="toggleRecording()" title="تسجيل صوت">🎙️</button>
                         <input type="text" id="chat-input" placeholder="اكتب رسالة أو ملاحظة..." oninput="handleTyping()">
-                        <button type="submit" class="action-btn">إرسال</button>
+                        <!-- زر الإرسال المطور بالأيقونة الواضحة -->
+                        <button type="submit" class="send-btn" title="إرسال">✈️</button>
                     </form>
                 </div>
             </div>
@@ -404,7 +425,6 @@
         let msgReactions = {};
         let deferredPrompt = null;
 
-        /* سيرفرات STUN و TURN المجانية من Google الشاملة لتسهيل العبور عبر الشبكات ومزودي الخدمة */
         const rtcConfig = {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
@@ -437,7 +457,6 @@
             }
         ];
 
-        /* PWA App Installer Event */
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
@@ -584,7 +603,6 @@
               }).subscribe();
         }
 
-        /* تحسين الربط وإشارات الـ WebRTC للبث الحي لضمان استلام الفيديو والصوت من باقي الأطراف */
         function initMultiVideoSignaling() {
             videoChannel = db.channel('factory-multi-video-room');
 
@@ -622,7 +640,6 @@
                 localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
             }
 
-            // ربط وعرض فيديو المستلم فور توفره
             pc.ontrack = (event) => {
                 let remoteCard = document.getElementById(`card-${targetUserId}`);
                 if (!remoteCard) {
@@ -658,7 +675,6 @@
                 }
             };
 
-            // إرسال تفاصيل العبور ICE Candidate فور توليدها
             pc.onicecandidate = (event) => {
                 if (event.candidate && videoChannel) {
                     videoChannel.send({

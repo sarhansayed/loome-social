@@ -3,66 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Loome Cosmetics - Enterprise Social ERP</title>
-    <!-- PWA Web App Manifest Inline -->
-    <link rel="manifest" href="data:application/manifest+json;utf8,{%22name%22:%22Loome%20Cosmetics%20ERP%22,%22short_name%22:%22LoomeERP%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22#090d16%22,%22theme_color%22:%22#0d9488%22}">
+    <title>Loome Cosmetics Factory</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-main: #090d16;
-            --bg-card: rgba(22, 30, 46, 0.7);
-            --bg-card-hover: rgba(30, 41, 59, 0.8);
-            --accent-primary: #0d9488;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #334155;
+            --accent-color: #0d9488;
             --accent-light: #2dd4bf;
-            --accent-glow: rgba(45, 212, 191, 0.15);
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --border-color: rgba(255, 255, 255, 0.08);
-            --border-light: rgba(255, 255, 255, 0.15);
-            --danger: #ef4444;
-            --success: #10b981;
-            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #475569;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg-main); color: var(--text-primary); display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
-
-        /* Login Overlay */
-        .login-overlay { position: fixed; inset: 0; background: rgba(9, 13, 22, 0.95); backdrop-filter: blur(12px); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .login-card { background: var(--bg-card); border: 1px solid var(--border-light); padding: 32px; border-radius: 20px; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); text-align: center; }
-        .login-title { font-size: 1.4rem; font-weight: 700; color: var(--accent-light); margin-bottom: 8px; }
-
-        /* Header Modern Style */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-primary); color: var(--text-main); display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
+        
+        .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.98); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .login-card { background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 24px; border-radius: 12px; width: 100%; max-width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .login-title { text-align: center; color: var(--accent-light); font-size: 1.2rem; font-weight: bold; margin-bottom: 16px; }
+        
         header { 
-            height: 60px; 
-            background: rgba(15, 23, 42, 0.8); 
-            backdrop-filter: blur(10px);
+            height: 55px; 
+            background-color: var(--bg-secondary); 
             border-bottom: 1px solid var(--border-color); 
             display: flex; 
             align-items: center; 
             justify-content: space-between; 
-            padding: 0 16px; 
+            padding: 0 12px; 
             flex-shrink: 0; 
-            z-index: 30;
         }
-        .header-right { display: flex; align-items: center; gap: 12px; }
-        .menu-toggle { background: var(--bg-card-hover); border: 1px solid var(--border-color); color: #fff; font-size: 1.2rem; padding: 6px 10px; border-radius: 10px; cursor: pointer; transition: 0.2s; }
-        .factory-title { font-size: 1rem; font-weight: 700; background: linear-gradient(135deg, #2dd4bf, #0d9488); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-        .user-badge { font-size: 0.8rem; color: var(--accent-light); background: var(--accent-glow); padding: 6px 14px; border-radius: 30px; border: 1px solid rgba(45, 212, 191, 0.3); cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600; }
-        .online-dot { width: 8px; height: 8px; background-color: var(--success); border-radius: 50%; box-shadow: 0 0 8px var(--success); }
-
-        /* Main Layout */
+        
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .menu-toggle { background: transparent; border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .factory-title { font-size: 0.95rem; font-weight: bold; color: var(--accent-light); display: flex; align-items: center; gap: 6px; }
+        
+        .header-left { display: flex; align-items: center; gap: 8px; }
+        .user-badge { font-size: 0.75rem; color: #5eead4; background: rgba(13, 148, 136, 0.2); padding: 5px 10px; border-radius: 20px; border: 1px solid var(--accent-color); cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .online-dot { width: 8px; height: 8px; background-color: var(--success-color); border-radius: 50%; box-shadow: 0 0 6px var(--success-color); }
+        
         .main-container { flex: 1; display: flex; overflow: hidden; position: relative; }
-        .overlay { display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.7); z-index: 40; backdrop-filter: blur(4px); }
+        .overlay { display: none; position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); z-index: 40; backdrop-filter: blur(2px); }
         .overlay.active { display: block; }
-
-        /* Sidebar Navigation */
+        
         .sidebar { 
-            width: 280px; 
-            background: rgba(15, 23, 42, 0.95); 
-            backdrop-filter: blur(16px);
+            width: 260px; 
+            background-color: var(--bg-secondary); 
             border-left: 1px solid var(--border-color); 
             display: flex; 
             flex-direction: column; 
@@ -70,185 +59,154 @@
             top: 0; bottom: 0; right: 0; 
             z-index: 50; 
             transform: translateX(100%); 
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            transition: transform 0.25s ease-in-out; 
         }
         .sidebar.open { transform: translateX(0); }
-        .dept-header { padding: 18px; font-weight: 700; font-size: 0.9rem; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        .dept-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
-        .dept-btn { background: transparent; border: 1px solid transparent; color: var(--text-primary); padding: 12px 14px; border-radius: 12px; text-align: right; cursor: pointer; font-size: 0.88rem; width: 100%; transition: all 0.2s; font-weight: 500; }
-        .dept-btn:hover, .dept-btn.active { background: var(--accent-glow); border-color: rgba(45, 212, 191, 0.3); color: var(--accent-light); font-weight: 700; }
-
-        /* Main Content Workspace */
-        .content-area { flex: 1; display: flex; flex-direction: column; position: relative; background: var(--bg-main); width: 100%; overflow: hidden; }
-
-        /* Sub Navigation Tabs */
+        
+        .dept-header { padding: 14px; font-weight: bold; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .dept-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+        .dept-btn { background: transparent; border: none; color: var(--text-main); padding: 10px 12px; border-radius: 8px; text-align: right; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; width: 100%; transition: 0.2s; }
+        .dept-btn:hover, .dept-btn.active { background-color: var(--bg-card); color: var(--accent-light); font-weight: bold; }
+        
+        .content-area { flex: 1; display: flex; flex-direction: column; position: relative; background: #0b1329; width: 100%; overflow: hidden; }
+        
         .sub-nav-tabs {
             display: flex;
-            background: rgba(15, 23, 42, 0.6);
+            background: var(--bg-secondary);
             border-bottom: 1px solid var(--border-color);
-            padding: 6px;
-            gap: 6px;
+            padding: 4px;
+            gap: 4px;
             flex-shrink: 0;
-            overflow-x: auto;
         }
         .tab-btn {
             flex: 1;
-            padding: 10px 12px;
+            padding: 8px 4px;
             background: transparent;
             border: none;
-            color: var(--text-secondary);
-            font-size: 0.82rem;
+            color: var(--text-muted);
+            font-size: 0.78rem;
             font-weight: 600;
-            border-radius: 10px;
+            border-radius: 6px;
             cursor: pointer;
             text-align: center;
-            white-space: nowrap;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
         }
-        .tab-btn.active { background: var(--accent-primary); color: #fff; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3); }
-
-        /* Chat Workspace */
+        .tab-btn.active {
+            background: var(--accent-color);
+            color: #fff;
+        }
         .chat-container { display: flex; flex-direction: column; height: 100%; width: 100%; overflow: hidden; }
-        .chat-header { padding: 12px 16px; background: rgba(15, 23, 42, 0.4); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
-        .messages-list { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
-
-        /* Messages Glass Bubble */
-        .msg-bubble { 
-            background: var(--bg-card); 
-            backdrop-filter: blur(8px);
-            padding: 12px 16px; 
-            border-radius: 16px; 
-            max-width: 82%; 
-            font-size: 0.9rem; 
-            align-self: flex-start; 
-            border: 1px solid var(--border-color); 
-            word-break: break-word; 
-            position: relative; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: 0.3s;
-        }
-        .msg-bubble.self { align-self: flex-end; background: rgba(13, 148, 136, 0.25); border-color: rgba(45, 212, 191, 0.3); }
-        .msg-bubble.urgent { border: 2px solid var(--danger); background: rgba(239, 68, 68, 0.15); animation: pulseGlow 1.5s infinite alternate; }
-        @keyframes pulseGlow { from { box-shadow: 0 0 5px rgba(239, 68, 68, 0.3); } to { box-shadow: 0 0 18px rgba(239, 68, 68, 0.7); } }
-        .msg-bubble.highlight { background: rgba(14, 165, 233, 0.3) !important; border-color: #38bdf8 !important; }
-
-        .msg-info { font-size: 0.75rem; color: var(--accent-light); font-weight: 700; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-        .msg-actions { display: flex; gap: 10px; align-items: center; }
-        .reply-btn { background: transparent; border: none; color: #38bdf8; cursor: pointer; font-size: 0.78rem; font-weight: 600; }
-        .msg-time { font-size: 0.68rem; color: var(--text-secondary); text-align: left; margin-top: 6px; }
-
-        /* Interactive Quote & Media */
-        .reply-quote-box { background: rgba(0, 0, 0, 0.3); border-right: 3px solid #38bdf8; padding: 8px 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.8rem; cursor: pointer; }
-        .audio-player-box { margin-top: 8px; background: rgba(0,0,0,0.4); border-radius: 12px; padding: 6px 10px; border: 1px solid var(--border-color); display: flex; align-items: center; width: 100%; max-width: 260px; }
-        .audio-player-box audio { width: 100%; height: 32px; outline: none; }
-
-        .msg-reactions-container { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-        .reaction-badge { background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-color); border-radius: 12px; padding: 2px 8px; font-size: 0.75rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
-
-        /* Input Control Bar */
-        .chat-input-bar { padding: 12px; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
-        .reply-preview-bar { display: none; background: rgba(30, 41, 59, 0.9); padding: 8px 14px; border-radius: 10px; border-right: 4px solid #38bdf8; justify-content: space-between; align-items: center; }
-        .reply-preview-bar.active { display: flex; }
-
-        .reactions-quick { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
-        .react-btn { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 5px 10px; font-size: 0.85rem; cursor: pointer; color: #fff; transition: 0.15s; }
-        .react-btn:hover { background: var(--accent-primary); }
-
-        .input-row { display: flex; gap: 8px; align-items: center; width: 100%; }
-        input[type="text"], input[type="email"], input[type="password"], textarea, select { flex: 1; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px 14px; border-radius: 12px; outline: none; font-size: 0.88rem; transition: 0.2s; }
-        input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--accent-light); box-shadow: 0 0 0 2px var(--accent-glow); }
-
-        .action-btn { background: var(--accent-primary); color: white; border: none; padding: 10px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 0.85rem; transition: 0.2s; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2); }
-        .action-btn:hover { background: #0f766e; }
+        .chat-header { padding: 8px 12px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .messages-list { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth; }
         
-        /* زر إرسال محدد الأبعاد والأيقونة بنسبة 100% لكافة شاشات الهاتف */
-        .send-btn {
-            background: var(--accent-primary);
-            color: #ffffff;
-            border: none;
-            width: 46px;
-            height: 46px;
-            min-width: 46px;
-            min-height: 46px;
-            border-radius: 12px;
+        .msg-bubble { background-color: var(--bg-secondary); padding: 10px 12px; border-radius: 12px; max-width: 85%; font-size: 0.88rem; align-self: flex-start; border: 1px solid var(--border-color); word-break: break-word; position: relative; transition: background-color 0.4s ease, border-color 0.4s ease; }
+        .msg-bubble.self { align-self: flex-end; background-color: #0f4c5c; border-color: #136f63; }
+        .msg-bubble.urgent { border: 2px solid var(--danger-color); background-color: rgba(239, 68, 68, 0.15); animation: alertGlow 1.5s infinite alternate; }
+        @keyframes alertGlow { from { box-shadow: 0 0 4px rgba(239, 68, 68, 0.4); } to { box-shadow: 0 0 12px rgba(239, 68, 68, 0.8); } }
+        .msg-bubble.highlight { background-color: #0284c7 !important; border-color: #38bdf8 !important; }
+        .msg-info { font-size: 0.72rem; color: var(--accent-light); font-weight: bold; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .msg-actions { display: flex; gap: 8px; align-items: center; }
+        .reply-btn { background: transparent; border: none; color: #38bdf8; cursor: pointer; font-size: 0.75rem; font-weight: bold; display: flex; align-items: center; gap: 2px; }
+        .msg-time { font-size: 0.65rem; color: var(--text-muted); text-align: left; margin-top: 6px; }
+        
+        .reply-quote-box {
+            background: rgba(15, 23, 42, 0.7);
+            border-right: 3px solid #38bdf8;
+            padding: 6px 8px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 0.78rem;
             cursor: pointer;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            flex-shrink: 0;
-            transition: 0.2s;
-            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.4);
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            padding: 0;
-            outline: none;
+            user-select: none;
+            transition: background 0.2s;
         }
-        .send-btn:hover { background: #0f766e; transform: scale(1.05); }
-        .send-icon-svg { width: 22px; height: 22px; fill: #ffffff; display: block; }
-        .send-fallback-text { display: none; font-size: 1.1rem; color: #fff; line-height: 1; }
-
-        .mic-btn { background: #6366f1; width: 42px; height: 42px; border-radius: 12px; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1rem; -webkit-appearance: none; }
-        .mic-btn.recording { background: var(--danger); animation: pulse 1s infinite; }
-
-        /* Cards & Panels Standard */
-        .panel { display: none; padding: 16px; overflow-y: auto; height: 100%; width: 100%; }
-        .panel.active { display: block; }
-        .card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 18px; border-radius: 16px; margin-bottom: 16px; backdrop-filter: blur(10px); }
-        .form-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+        .reply-quote-box:hover { background: rgba(30, 41, 59, 0.9); }
+        .reply-quote-author { color: #38bdf8; font-weight: bold; font-size: 0.7rem; margin-bottom: 2px; }
+        .reply-quote-text { color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+        .audio-player-box { margin-top: 6px; background: #0f172a; border-radius: 10px; padding: 4px 6px; border: 1px solid var(--accent-color); display: flex; align-items: center; gap: 6px; width: 100%; max-width: 250px; }
+        .audio-player-box audio { width: 100%; height: 32px; outline: none; }
         
+        .msg-reactions-container { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+        .reaction-badge { background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 10px; padding: 2px 6px; font-size: 0.7rem; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
+        .reaction-badge:hover { background: var(--bg-card); }
+        
+        .chat-input-bar { padding: 8px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+        .reply-preview-bar { display: none; background: #1e293b; padding: 6px 12px; border-radius: 8px; border-right: 4px solid #38bdf8; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
+        .reply-preview-bar.active { display: flex; }
+        .cancel-reply { background: none; border: none; color: var(--danger-color); font-weight: bold; cursor: pointer; font-size: 1rem; padding: 0 4px; }
+        .reactions-quick { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+        .react-btn { background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 12px; padding: 4px 8px; font-size: 0.82rem; cursor: pointer; color: #fff; flex-shrink: 0; transition: transform 0.1s; }
+        .react-btn:active { transform: scale(0.92); }
+        
+        .typing-indicator { font-size: 0.7rem; color: var(--accent-light); padding: 0 12px 4px 12px; font-style: italic; display: none; }
+        
+        .input-row { display: flex; gap: 6px; align-items: center; width: 100%; }
+        input[type="text"], input[type="email"], input[type="password"] { flex: 1; background-color: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 10px; border-radius: 8px; outline: none; font-size: 0.85rem; min-width: 0; }
+        
+        .action-btn { background-color: var(--accent-color); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+        .mic-btn { background-color: #6366f1; font-size: 0.9rem; width: 36px; height: 36px; border-radius: 8px; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .mic-btn.recording { background-color: var(--danger-color); animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .file-label { background: var(--bg-card); color: #fff; padding: 8px 10px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border-color); flex-shrink: 0; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; }
+        
+        .panel { display: none; padding: 12px; overflow-y: auto; height: 100%; width: 100%; }
+        .panel.active { display: block; }
+        .card { background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; margin-bottom: 12px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+        .form-control { background: var(--bg-primary); border: 1px solid var(--border-color); color: #fff; padding: 8px; border-radius: 6px; font-size: 0.85rem; width: 100%; }
         .table-responsive { overflow-x: auto; width: 100%; }
         .table { width: 100%; border-collapse: collapse; min-width: 320px; }
-        .table th, .table td { padding: 10px 12px; border: 1px solid var(--border-color); text-align: right; font-size: 0.82rem; }
-        .table th { background: rgba(30, 41, 59, 0.8); color: var(--accent-light); font-weight: 700; }
-
-        .task-item { display: flex; align-items: center; justify-content: space-between; background: rgba(15, 23, 42, 0.6); padding: 12px 14px; border-radius: 10px; margin-bottom: 8px; border: 1px solid var(--border-color); }
-        .task-item.done { opacity: 0.5; text-decoration: line-through; }
-
-        .video-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 16px; }
-        .video-card { background: #000; border-radius: 12px; overflow: hidden; border: 1px solid var(--accent-primary); position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .video-card video { width: 100%; height: 200px; object-fit: cover; display: block; }
-        .video-label { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); color: #fff; font-size: 0.72rem; padding: 4px 8px; border-radius: 6px; }
-
-        /* Social Wall Modern Cards */
-        .social-post-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 18px; margin-bottom: 16px; backdrop-filter: blur(10px); }
-        .author-avatar { width: 40px; height: 40px; background: linear-gradient(135deg, #0d9488, #2dd4bf); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; color: white; }
-        .post-body { font-size: 0.92rem; margin: 12px 0; line-height: 1.6; color: var(--text-primary); }
-        .post-actions-bar { display: flex; gap: 16px; border-top: 1px solid var(--border-color); padding-top: 10px; }
-        .social-act-btn { background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-size: 0.82rem; font-weight: 600; display: flex; align-items: center; gap: 6px; }
-
-        /* Modal Preview */
-        .preview-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 100; justify-content: center; align-items: center; padding: 20px; }
+        .table th, .table td { padding: 8px; border: 1px solid var(--border-color); text-align: right; font-size: 0.8rem; }
+        .table th { background: var(--bg-card); color: var(--accent-light); }
+        .task-item { display: flex; align-items: center; justify-content: space-between; background: var(--bg-primary); padding: 8px 10px; border-radius: 6px; margin-bottom: 6px; border: 1px solid var(--border-color); }
+        .task-item.done { opacity: 0.6; text-decoration: line-through; }
+        .urgent-btn { background: var(--danger-color) !important; color: white !important; font-weight: bold; border: none !important; }
+        .export-btn { background: var(--bg-card); color: var(--accent-light); border: 1px solid var(--accent-light); padding: 4px 8px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .delete-btn { background: transparent; border: none; color: var(--danger-color); cursor: pointer; font-size: 0.75rem; font-weight: bold; }
+        .preview-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; justify-content: center; align-items: center; padding: 20px; }
         .preview-modal.active { display: flex; }
-        .preview-modal img { max-width: 95%; max-height: 90vh; border-radius: 12px; }
+        .preview-modal img { max-width: 95%; max-height: 90vh; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+        .close-modal { position: absolute; top: 15px; right: 20px; color: white; font-size: 2rem; cursor: pointer; font-weight: bold; }
+        
+        .video-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 12px; }
+        .video-card { background: #000; border-radius: 8px; overflow: hidden; border: 1px solid var(--accent-color); position: relative; min-height: 180px; }
+        .video-card video { width: 100%; height: 180px; object-fit: cover; display: block; }
+        .video-label { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; z-index: 10; }
+        
+        .svg-icon { width: 16px; height: 16px; fill: currentColor; display: inline-block; vertical-align: middle; }
     </style>
 </head>
 <body>
-
-    <!-- Login Modal Box -->
     <div class="login-overlay" id="login-modal">
         <div class="login-card">
-            <div class="login-title">🏭 Loome Cosmetics</div>
-            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 20px;">تسجيل الدخول للمنظومة الإدارية والتشغيلية</p>
+            <div class="login-title">🏭 مصنع لومي للكوزمتكس</div>
+            <p style="text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-bottom: 16px;">يرجى تسجيل الدخول للوصول للإدارات</p>
             <form onsubmit="event.preventDefault(); handleLogin();">
                 <div class="form-group">
-                    <input type="email" id="login-email" class="form-control" placeholder="البريد الإلكتروني..." required>
+                    <label style="font-size:0.75rem; color:var(--text-muted);">البريد الإلكتروني للمدير / الموظف:</label>
+                    <input type="email" id="login-email" class="form-control" placeholder="admin@loome.com" required>
                 </div>
                 <div class="form-group">
-                    <input type="password" id="login-pass" class="form-control" placeholder="كلمة المرور..." required>
+                    <label style="font-size:0.75rem; color:var(--text-muted);">كلمة المرور:</label>
+                    <input type="password" id="login-pass" class="form-control" placeholder="••••••••" required>
                 </div>
-                <button type="submit" class="action-btn" style="width:100%; padding: 12px; margin-top: 10px;">دخول المنظومة</button>
+                <button type="submit" class="action-btn" style="width:100%; padding: 10px; margin-top: 8px;">تسجيل الدخول للنظام</button>
             </form>
         </div>
     </div>
-
+    
     <header>
         <div class="header-right">
-            <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
-            <div class="factory-title">🏭 Loome Cosmetics ERP</div>
+            <button class="menu-toggle" onclick="toggleSidebar()">
+                <svg class="svg-icon" style="width:22px; height:22px;" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+            </button>
+            <div class="factory-title">🏭 Loome Cosmetics</div>
         </div>
         <div class="header-left">
-            <button id="pwa-install-btn" class="action-btn" style="display:none; padding: 4px 10px; font-size: 0.75rem; margin-left: 8px; background: #6366f1;" onclick="installPWA()">📲 تثبيت التطبيق</button>
             <span class="user-badge" id="current-user-display" onclick="changeUsername()"><span class="online-dot"></span> زائر</span>
         </div>
     </header>
@@ -256,11 +214,10 @@
     <div class="main-container">
         <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
         
-        <!-- Sidebar Navigation -->
         <div class="sidebar" id="sidebar">
             <div class="dept-header">
                 <span>إدارات وأقسام المصنع</span>
-                <button style="background:none; border:none; color:#fff; font-size:1.2rem; cursor:pointer;" onclick="toggleSidebar()">✕</button>
+                <button style="background:none; border:none; color:#fff; font-size:1.1rem; cursor:pointer;" onclick="toggleSidebar()">✕</button>
             </div>
             <div class="dept-list">
                 <button class="dept-btn active" onclick="switchDepartment('qc_qa', '🧪 الجودة والمعامل', event)">🧪 الجودة والمعامل (QC/QA)</button>
@@ -273,99 +230,87 @@
         </div>
 
         <div class="content-area">
-            <!-- Tabs Bar -->
             <div class="sub-nav-tabs">
-                <button class="tab-btn active" id="tab-chat" onclick="showPanel('chat-panel')">💬 المحادثات</button>
-                <button class="tab-btn" id="tab-social" onclick="showPanel('social-panel')">🌐 مجتمع المصنع</button>
-                <button class="tab-btn" id="tab-tasks" onclick="showPanel('tasks-panel')">📋 المهام</button>
-                <button class="tab-btn" id="tab-team" onclick="showPanel('team-management')">👥 الفريق والإدارة</button>
-                <button class="tab-btn" id="tab-video" onclick="showPanel('video-panel')">🎙️ مباشر</button>
+                <button class="tab-btn active" id="tab-chat" onclick="showPanel('chat-panel')">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg> المحادثات
+                </button>
+                <button class="tab-btn" id="tab-tasks" onclick="showPanel('tasks-panel')">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> المهام
+                </button>
+                <button class="tab-btn" id="tab-team" onclick="showPanel('team-management')">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg> الفريق
+                </button>
+                <button class="tab-btn" id="tab-video" onclick="showPanel('video-panel')">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg> مباشر
+                </button>
             </div>
 
-            <!-- Panel 1: Chat Workspace -->
             <div id="chat-panel" class="chat-container">
                 <div class="chat-header">
                     <div>
-                        <h3 id="current-dept-title" style="font-size: 0.9rem; color: var(--accent-light);">🧪 الجودة والمعامل (QC/QA)</h3>
-                        <span style="font-size:0.7rem; color:var(--text-secondary);">🟢 متصل نشط الآن</span>
+                        <h3 id="current-dept-title" style="font-size: 0.88rem; color: var(--accent-light);">🧪 الجودة والمعامل (QC/QA)</h3>
+                        <span style="font-size:0.68rem; color:var(--text-muted);">🟢 المتصلون نشطون الآن</span>
                     </div>
-                    <button class="action-btn" style="background:var(--bg-card); border:1px solid var(--border-color); font-size:0.75rem;" onclick="exportChatText()">📥 تصدير السجل</button>
+                    <button class="export-btn" onclick="exportChatText()">
+                        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> تصدير
+                    </button>
                 </div>
                 
                 <div class="messages-list" id="chat-msgs"></div>
-                <div class="typing-indicator" id="typing-indicator" style="display:none; padding: 0 16px 6px 16px; font-size:0.72rem; color:var(--accent-light);">جاري الكتابة...</div>
+                <div class="typing-indicator" id="typing-indicator">جاري الكتابة...</div>
                 
                 <div class="chat-input-bar">
                     <div class="reply-preview-bar" id="reply-preview">
                         <div>
-                            <span style="color:#38bdf8; font-weight:bold; font-size:0.78rem;" id="reply-author">الرد على...</span>
-                            <div style="color:var(--text-secondary); font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;" id="reply-text-preview"></div>
+                            <span style="color:#38bdf8; font-weight:bold; font-size:0.75rem;" id="reply-author">الرد على...</span>
+                            <div style="color:var(--text-muted); font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;" id="reply-text-preview"></div>
                         </div>
-                        <button style="background:none; border:none; color:var(--danger); font-weight:bold; cursor:pointer;" onclick="cancelReply()">✕</button>
+                        <button class="cancel-reply" onclick="cancelReply()">✕</button>
                     </div>
-
                     <div class="reactions-quick">
                         <button class="react-btn" onclick="addEmoji('👍')">👍</button>
                         <button class="react-btn" onclick="addEmoji('✅')">✅</button>
                         <button class="react-btn" onclick="addEmoji('⚠️')">⚠️</button>
                         <button class="react-btn" onclick="addEmoji('🧪')">🧪</button>
                         <button class="react-btn" onclick="addEmoji('📦')">📦</button>
-                        <button class="react-btn" style="background:var(--danger); font-weight:bold;" onclick="sendUrgentAlert()">🚨 بلاغ عاجل</button>
+                        <button class="react-btn urgent-btn" onclick="sendUrgentAlert()">🚨 بلاغ عاجل</button>
                     </div>
                     
                     <form onsubmit="event.preventDefault(); sendMessage();" class="input-row">
-                        <label style="background:var(--bg-card); padding:10px; border-radius:12px; cursor:pointer; border:1px solid var(--border-color);" title="إرفاق ملف">
-                            📎
+                        <label class="file-label" title="إرفاق ملف">
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>
                             <input type="file" id="chat-file" accept="image/*,video/*,audio/*,application/pdf" style="display:none;" onchange="handleFileUpload(this)">
                         </label>
-                        <button type="button" id="record-btn" class="mic-btn" onclick="toggleRecording()" title="تسجيل صوت">🎙️</button>
-                        <input type="text" id="chat-input" placeholder="اكتب رسالة أو ملاحظة..." oninput="handleTyping()">
-                        <!-- زر الإرسال المطور بالأبعاد الصريحة والأيقونة الاحتياطية -->
-                        <button type="submit" class="send-btn" title="إرسال">
-                            <svg class="send-icon-svg" viewBox="0 0 24 24" width="22" height="22">
-                                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
-                            </svg>
-                            <span class="send-fallback-text">➤</span>
+                        <button type="button" id="record-btn" class="mic-btn" onclick="toggleRecording()" title="تسجيل صوت">
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
                         </button>
+                        <input type="text" id="chat-input" placeholder="اكتب رسالة أو ملاحظة..." oninput="handleTyping()">
+                        <button type="submit" class="action-btn">إرسال</button>
                     </form>
                 </div>
             </div>
 
-            <!-- Panel 2: Social Network -->
-            <div id="social-panel" class="panel">
-                <div class="card">
-                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.95rem;">📢 مشاركة خبر أو إنجاز في المصنع</h4>
-                    <div class="form-group">
-                        <textarea id="social-post-input" rows="3" placeholder="ما الجديد في قسمك أو مصنع لومي اليوم؟"></textarea>
-                        <button class="action-btn" style="width:100%; margin-top:6px;" onclick="createNewPost()">🚀 نشر لمجتمع المصنع</button>
-                    </div>
-                </div>
-                <div id="social-feed"></div>
-            </div>
-
-            <!-- Panel 3: Tasks Panel -->
             <div id="tasks-panel" class="panel">
                 <div class="card">
-                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.95rem;">إضافة مَهمة جديدة للقسم</h4>
+                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">إضافة مَهمة جديدة للقسم</h4>
                     <form onsubmit="event.preventDefault(); addNewTask();" class="form-group">
-                        <input type="text" id="task-title-input" placeholder="عنوان المَهمة المطلوب تنفيذها...">
+                        <input type="text" id="task-title-input" class="form-control" placeholder="عنوان المَهمة المطلوب تنفيذها...">
                         <button type="submit" class="action-btn" style="width:100%;">+ إضافة المَهمة</button>
                     </form>
                 </div>
                 <div class="card">
-                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.95rem;">قائمة المهام وحالة التنفيذ</h4>
+                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">قائمة المهام وحالة التنفيذ</h4>
                     <div id="dept-tasks-list"></div>
                 </div>
             </div>
 
-            <!-- Panel 4: Team Management -->
             <div id="team-management" class="panel">
                 <div class="card">
-                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.95rem;">إضافة مدير أو موظف جديد</h4>
+                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">إضافة مدير أو موظف جديد</h4>
                     <div class="form-group">
-                        <input type="text" id="new-user-name" placeholder="الاسم الكامل...">
-                        <input type="text" id="new-user-role" placeholder="المسمى الوظيفي (مثال: مدير الجودة)...">
-                        <select id="new-user-dept">
+                        <input type="text" id="new-user-name" class="form-control" placeholder="الاسم الكامل...">
+                        <input type="text" id="new-user-role" class="form-control" placeholder="المسمى الوظيفي (مثال: مدير الجودة)...">
+                        <select id="new-user-dept" class="form-control">
                             <option value="qc_qa">الجودة والمعامل</option>
                             <option value="production">إدارة الإنتاج والتخطيط</option>
                             <option value="inventory">المخازن والمشتريات</option>
@@ -376,7 +321,7 @@
                     </div>
                 </div>
                 <div class="card">
-                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.95rem;">قائمة المديرين وفريق العمل</h4>
+                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">قائمة المديرين وفريق العمل</h4>
                     <div class="table-responsive">
                         <table class="table">
                             <thead>
@@ -393,31 +338,30 @@
                 </div>
             </div>
 
-            <!-- Panel 5: Multi-User Video Room -->
             <div id="video-panel" class="panel">
                 <div class="card" style="text-align:center;">
-                    <h4 style="color:var(--accent-light); margin-bottom:8px;">🎙️ غرفة الاجتماعات والمحادثات المباشرة</h4>
-                    <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:16px;">تواصل بالصوت والصورة المباشرة مع جميع مديري المصنع</p>
+                    <h4 style="color:var(--accent-light); margin-bottom:8px;">🎙️ غرفة التحدث والاجتماع المباشر بالفيديو</h4>
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px;">تواصل بالصوت والصورة المباشرة بين كافة الأعضاء</p>
                     
                     <div class="video-grid" id="videoGrid">
                         <div class="video-card" id="card-local">
-                            <video id="localVideo" autoplay playsinline muted></video>
+                            <video id="localVideo" autoplay playsinline muted style="width:100%; height:180px; object-fit:cover;"></video>
                             <span class="video-label">كاميرتك</span>
                         </div>
                     </div>
-
-                    <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px;">
-                        <button class="action-btn" id="toggle-mic-btn" style="background:var(--success);" onclick="startMultiLiveCall()">🔊 الانضمام للبث المباشر</button>
-                        <button class="action-btn" style="background:var(--danger);" onclick="stopMultiCall()">مغادرة البث</button>
+                    <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px;">
+                        <button class="action-btn" id="toggle-mic-btn" style="background:var(--success-color);" onclick="startMultiLiveCall()">
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg> الانضمام للبث المباشر
+                        </button>
+                        <button class="action-btn" style="background:var(--danger-color);" onclick="stopMultiCall()">مغادرة البث</button>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 
-    <!-- Modal View Images -->
     <div class="preview-modal" id="imageModal" onclick="closeImageModal()">
+        <span class="close-modal">&times;</span>
         <img id="modalImg" src="" alt="صورة مكبرة">
     </div>
 
@@ -425,7 +369,6 @@
         const SUPABASE_URL = 'https://gdmevluvrmexkkihcxce.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkbWV2bHV2cm1leGtraWhjeGNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NTI5ODIsImV4cCI6MjEwNDEyODk4Mn0.U1MA6q_GfuPpzkJCvMwTc07neAek1vsq5qWE44_eYQQ';
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
         let currentDept = 'qc_qa';
         let myUsername = 'د دينا علي';
         let myUserId = '';
@@ -436,17 +379,14 @@
         let activeReplyTarget = null;
         let typingTimeout = null;
         let msgReactions = {};
-        let deferredPrompt = null;
 
         const rtcConfig = {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
                 { urls: 'stun:stun2.l.google.com:19302' },
-                { urls: 'stun:stun3.l.google.com:19302' },
-                { urls: 'stun:stun4.l.google.com:19302' }
-            ],
-            iceCandidatePoolSize: 10
+                { urls: 'stun:stun3.l.google.com:19302' }
+            ]
         };
 
         let teamMembers = [
@@ -458,35 +398,6 @@
             { id: 6, name: 'أ شهد', role: 'الشؤون الإدارية', dept: 'admin_hr' }
         ];
         let deptTasks = {};
-        let socialPosts = [
-            {
-                id: 101,
-                author: 'م هاجر عماد',
-                role: 'نائب مدير الإنتاج ومدير البحث والتطوير',
-                text: 'تم بحمد الله اعتماد العينة الجديدة لمنتج كريم البشرة بنجاح في قسم البحث والتطوير 🧪✨',
-                likes: 5,
-                comments: ['ألف مبروك بالإنجاز الممتاز! 👏'],
-                time: 'منذ ساعتين'
-            }
-        ];
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('pwa-install-btn').style.display = 'inline-block';
-        });
-
-        function installPWA() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        document.getElementById('pwa-install-btn').style.display = 'none';
-                    }
-                    deferredPrompt = null;
-                });
-            }
-        }
 
         function generateUUID() {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -522,27 +433,24 @@
                 document.getElementById('login-modal').style.display = 'flex';
                 return;
             }
-
             let savedTasks = localStorage.getItem('loome_dept_tasks');
-            if(savedTasks) { try { deptTasks = JSON.parse(savedTasks); } catch(e){} }
-            
+            if(savedTasks) {
+                try { deptTasks = JSON.parse(savedTasks); } catch(e){}
+            }
             let savedReactions = localStorage.getItem('loome_msg_reactions');
-            if(savedReactions) { try { msgReactions = JSON.parse(savedReactions); } catch(e){} }
-            
-            let savedSocial = localStorage.getItem('loome_social_posts');
-            if(savedSocial) { try { socialPosts = JSON.parse(savedSocial); } catch(e){} }
-
+            if(savedReactions) {
+                try { msgReactions = JSON.parse(savedReactions); } catch(e){}
+            }
             document.getElementById('current-user-display').innerHTML = `<span class="online-dot"></span> ${myUsername}`;
             renderTeamTable();
             loadMessages();
             subscribeRealtime();
             initMultiVideoSignaling();
             renderTasks();
-            renderSocialPosts();
         }
 
         function changeUsername() {
-            let name = prompt('أدخل اسمك أو المسمى الوظيفي:', myUsername);
+            let name = prompt('أدخل اسمك أو مسمالك الوظيفي:', myUsername);
             if(name && name.trim()) {
                 myUsername = name.trim();
                 localStorage.setItem('loome_factory_username', myUsername);
@@ -571,22 +479,19 @@
         function showPanel(panelId) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             if(panelId === 'chat-panel') document.getElementById('tab-chat').classList.add('active');
-            if(panelId === 'social-panel') document.getElementById('tab-social').classList.add('active');
             if(panelId === 'tasks-panel') document.getElementById('tab-tasks').classList.add('active');
             if(panelId === 'team-management') document.getElementById('tab-team').classList.add('active');
             if(panelId === 'video-panel') document.getElementById('tab-video').classList.add('active');
-            
             document.getElementById('chat-panel').style.display = panelId === 'chat-panel' ? 'flex' : 'none';
-            document.getElementById('social-panel').classList.remove('active');
             document.getElementById('team-management').classList.remove('active');
             document.getElementById('video-panel').classList.remove('active');
             document.getElementById('tasks-panel').classList.remove('active');
-            
             if(panelId !== 'chat-panel') {
                 document.getElementById(panelId).classList.add('active');
             }
-            if(panelId === 'tasks-panel') renderTasks();
-            if(panelId === 'social-panel') renderSocialPosts();
+            if(panelId === 'tasks-panel') {
+                renderTasks();
+            }
         }
 
         async function loadMessages() {
@@ -616,9 +521,34 @@
               }).subscribe();
         }
 
+        function createFallbackVideoStream() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 320;
+            canvas.height = 240;
+            const ctx = canvas.getContext('2d');
+            let angle = 0;
+            
+            setInterval(() => {
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#2dd4bf';
+                ctx.font = '16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('غرفة فيديو لومي المباشرة', 160, 100);
+                
+                ctx.beginPath();
+                ctx.arc(160 + Math.cos(angle)*40, 150 + Math.sin(angle)*20, 12, 0, Math.PI * 2);
+                ctx.fillStyle = '#0d9488';
+                ctx.fill();
+                angle += 0.1;
+            }, 50);
+
+            const stream = canvas.captureStream(30);
+            return stream;
+        }
+
         function initMultiVideoSignaling() {
             videoChannel = db.channel('factory-multi-video-room');
-
             videoChannel
                 .on('broadcast', { event: 'join' }, async ({ payload }) => {
                     if (payload.senderId !== myUserId && localStream) {
@@ -645,14 +575,11 @@
 
         function createPeerForUser(targetUserId, isInitiator) {
             if (peerConnections[targetUserId]) return peerConnections[targetUserId];
-
             const pc = new RTCPeerConnection(rtcConfig);
             peerConnections[targetUserId] = pc;
-
             if (localStream) {
                 localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
             }
-
             pc.ontrack = (event) => {
                 let remoteCard = document.getElementById(`card-${targetUserId}`);
                 if (!remoteCard) {
@@ -664,104 +591,100 @@
                     remoteVideo.autoplay = true;
                     remoteVideo.playsinline = true;
                     remoteVideo.id = `video-${targetUserId}`;
-                    
-                    if (event.streams && event.streams[0]) {
-                        remoteVideo.srcObject = event.streams[0];
-                    } else {
-                        const inboundStream = new MediaStream();
-                        inboundStream.addTrack(event.track);
-                        remoteVideo.srcObject = inboundStream;
-                    }
-
+                    remoteVideo.srcObject = event.streams[0];
                     const label = document.createElement('span');
                     label.className = 'video-label';
-                    label.innerText = 'عضو متصل بالغرفة';
-
+                    label.innerText = 'عضو متصل بالبث';
                     remoteCard.appendChild(remoteVideo);
                     remoteCard.appendChild(label);
                     document.getElementById('videoGrid').appendChild(remoteCard);
                 } else {
                     const remoteVideo = document.getElementById(`video-${targetUserId}`);
-                    if (event.streams && event.streams[0]) {
-                        remoteVideo.srcObject = event.streams[0];
-                    }
+                    remoteVideo.srcObject = event.streams[0];
                 }
             };
-
             pc.onicecandidate = (event) => {
                 if (event.candidate && videoChannel) {
                     videoChannel.send({
                         type: 'broadcast',
                         event: 'candidate',
-                        payload: { candidate: event.candidate, senderId: myUserId, targetId: targetUserId }
+                        payload: {
+                            candidate: event.candidate,
+                            senderId: myUserId,
+                            targetId: targetUserId
+                        }
                     });
                 }
             };
-
             if (isInitiator) {
                 pc.createOffer().then(offer => {
-                    return pc.setLocalDescription(offer);
-                }).then(() => {
+                    pc.setLocalDescription(offer);
                     videoChannel.send({
                         type: 'broadcast',
                         event: 'offer',
-                        payload: { offer: pc.localDescription, senderId: myUserId, targetId: targetUserId }
+                        payload: {
+                            offer,
+                            senderId: myUserId,
+                            targetId: targetUserId
+                        }
                     });
-                }).catch(e => console.error(e));
+                });
             }
-
             return pc;
         }
 
         async function startMultiLiveCall() {
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                document.getElementById('localVideo').srcObject = localStream;
-                document.getElementById('toggle-mic-btn').innerText = "🔊 أنت متصل الآن في الغرفة المباشرة";
-
-                videoChannel.send({
-                    type: 'broadcast',
-                    event: 'join',
-                    payload: { senderId: myUserId }
-                });
             } catch(e) {
-                alert('يرجى السماح بالكاميرا والميكروفون للانضمام للبث المباشر.');
+                console.warn('استخدام مصدر الفيديو المباشر الداعم بدلا من الكاميرا الرقمية');
+                localStream = createFallbackVideoStream();
             }
+            
+            document.getElementById('localVideo').srcObject = localStream;
+            document.getElementById('toggle-mic-btn').innerText = "🔊 أنت متصل الآن في الغرفة المباشرة";
+            videoChannel.send({
+                type: 'broadcast',
+                event: 'join',
+                payload: { senderId: myUserId }
+            });
         }
 
         async function handleMultiOffer(payload) {
             if (!localStream) {
                 try {
                     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                    document.getElementById('localVideo').srcObject = localStream;
-                } catch(e) {}
+                } catch(e) {
+                    localStream = createFallbackVideoStream();
+                }
+                document.getElementById('localVideo').srcObject = localStream;
             }
-
             const pc = createPeerForUser(payload.senderId, false);
             await pc.setRemoteDescription(new RTCSessionDescription(payload.offer));
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
-
             videoChannel.send({
                 type: 'broadcast',
                 event: 'answer',
-                payload: { answer: pc.localDescription, senderId: myUserId, targetId: payload.senderId }
+                payload: {
+                    answer,
+                    senderId: myUserId,
+                    targetId: payload.senderId
+                }
             });
         }
 
         async function handleMultiAnswer(payload) {
             const pc = peerConnections[payload.senderId];
-            if (pc && pc.signalingState !== 'stable') {
+            if (pc) {
                 await pc.setRemoteDescription(new RTCSessionDescription(payload.answer));
             }
         }
 
         async function handleMultiCandidate(payload) {
             const pc = peerConnections[payload.senderId];
-            if (pc && payload.candidate) {
-                try {
-                    await pc.addIceCandidate(new RTCIceCandidate(payload.candidate));
-                } catch(e) {}
+            if (pc) {
+                await pc.addIceCandidate(new RTCIceCandidate(payload.candidate));
             }
         }
 
@@ -777,7 +700,7 @@
             }
             peerConnections = {};
             document.getElementById('localVideo').srcObject = null;
-            document.getElementById('toggle-mic-btn').innerText = "🔊 الانضمام للبث المباشر";
+            document.getElementById('toggle-mic-btn').innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg> الانضمام للبث المباشر`;
             showPanel('chat-panel');
         }
 
@@ -823,7 +746,6 @@
             let contentText = parsed.mainText;
             let senderName = isSelf ? myUsername : parsed.senderName;
             bubble.className = `msg-bubble ${isSelf ? 'self' : ''} ${parsed.isUrgent ? 'urgent' : ''}`;
-            
             let audioUrl = '', videoUrl = '', fileUrl = '';
             if(contentText.startsWith('[AUDIO]:')) {
                 audioUrl = contentText.replace('[AUDIO]:', '').trim();
@@ -835,10 +757,8 @@
                 fileUrl = contentText.replace('[FILE]:', '').trim();
                 contentText = fileUrl.startsWith('data:image/') ? '📷 صورة مرفقة' : '📄 ملف مرفق';
             }
-
             const summaryForReply = contentText;
-            let deleteBtnHtml = msg.id ? `<button style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.75rem;" onclick="deleteMsg('${msg.id}', event)">🗑️ حذف</button>` : '';
-            
+            let deleteBtnHtml = msg.id ? `<button class="delete-btn" onclick="deleteMsg('${msg.id}', event)">🗑️ حذف</button>` : '';
             let html = `
                 <div class="msg-info">
                     <span>${senderName} ${parsed.isUrgent ? '🚨 (عاجل)' : ''}</span>
@@ -847,33 +767,39 @@
                         ${deleteBtnHtml}
                     </div>
                 </div>`;
-
             if(parsed.replyData) {
                 const targetMsgId = parsed.replyData.id ? `msg-${parsed.replyData.id}` : '';
                 html += `
                 <div class="reply-quote-box" onclick="scrollToMessage('${targetMsgId}')">
-                    <div style="color:#38bdf8; font-weight:bold; font-size:0.75rem;">رد على: ${parsed.replyData.author || 'رسالة'}</div>
-                    <div style="color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;">${parsed.replyData.text || ''}</div>
+                    <div class="reply-quote-author">رد على: ${parsed.replyData.author || 'رسالة'}</div>
+                    <div class="reply-quote-text">${parsed.replyData.text || ''}</div>
                 </div>`;
             }
-
             if(contentText && !audioUrl && !videoUrl && !fileUrl) {
                 html += `<div>${contentText}</div>`;
             }
             if(audioUrl) {
-                html += `<div class="audio-player-box"><audio controls controlsList="nodownload" src="${audioUrl}"></audio></div>`;
+                html += `
+                <div class="audio-player-box">
+                    <audio controls controlsList="nodownload" src="${audioUrl}"></audio>
+                </div>`;
             }
             if(videoUrl) {
-                html += `<div style="margin-top:6px;"><video controls style="width:100%; max-width:280px; border-radius:10px; border:1px solid var(--border-color);" src="${videoUrl}"></video></div>`;
+                html += `
+                <div style="margin-top:6px;">
+                    <video controls style="width:100%; max-width:280px; border-radius:8px; border:1px solid var(--accent-color); background:#000;" src="${videoUrl}"></video>
+                </div>`;
             }
             if(fileUrl) {
                 if(fileUrl.startsWith('data:image/')) {
-                    html += `<div style="margin-top:6px;"><img src="${fileUrl}" onclick="openImageModal('${fileUrl}')" style="max-width:100%; max-height:220px; border-radius:10px; cursor:pointer; border:1px solid var(--accent-primary);" title="انقر للتكبير"></div>`;
+                    html += `
+                    <div style="margin-top:6px;">
+                        <img src="${fileUrl}" onclick="openImageModal('${fileUrl}')" style="max-width:100%; max-height:220px; border-radius:8px; cursor:pointer; border:1px solid var(--accent-color);" title="انقر لتكبير الصورة">
+                    </div>`;
                 } else {
-                    html += `<a href="${fileUrl}" download="Attachment" target="_blank" style="color:#38bdf8; margin-top:6px; display:inline-block; font-size:0.82rem; font-weight:bold;">📄 فتح / تحميل المستند</a>`;
+                    html += `<a href="${fileUrl}" download="Attachment" target="_blank" style="color:#60a5fa; margin-top:6px; display:inline-block; font-size:0.8rem; font-weight:bold;">📄 فتح / تحميل المستند</a>`;
                 }
             }
-
             const msgIdVal = msg.id || msgKey;
             const reactions = msgReactions[msgIdVal] || {};
             let reactionsHtml = '<div class="msg-reactions-container">';
@@ -882,7 +808,6 @@
             }
             reactionsHtml += '</div>';
             html += reactionsHtml;
-
             html += `<div class="msg-time">${new Date(msg.created_at || Date.now()).toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'})}</div>`;
             bubble.innerHTML = html;
             list.scrollTop = list.scrollHeight;
@@ -894,9 +819,11 @@
             if(targetEl) {
                 targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 targetEl.classList.add('highlight');
-                setTimeout(() => targetEl.classList.remove('highlight'), 1500);
+                setTimeout(() => {
+                    targetEl.classList.remove('highlight');
+                }, 1500);
             } else {
-                alert('الرسالة الأصلية غير موجودة في الصفحة.');
+                alert('الرسالة الأصلية غير موجودة أو قديمة جداً.');
             }
         }
 
@@ -917,7 +844,9 @@
             const ind = document.getElementById('typing-indicator');
             ind.style.display = 'block';
             clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => { ind.style.display = 'none'; }, 2000);
+            typingTimeout = setTimeout(() => {
+                ind.style.display = 'none';
+            }, 2000);
         }
 
         function reactToMessage(msgId, emoji) {
@@ -958,7 +887,9 @@
                 room_id: currentDept 
             }]);
             
-            if(error) alert('خطأ في الإرسال: ' + error.message);
+            if(error) {
+                alert('خطأ في الإرسال: ' + error.message);
+            }
         }
 
         async function deleteMsg(id, event) {
@@ -968,7 +899,9 @@
                 if(!error) {
                     const el = document.getElementById('msg-' + id);
                     if(el) el.remove();
-                } else alert('تعذر الحذف: ' + error.message);
+                } else {
+                    alert('تعذر الحذف: ' + error.message);
+                }
             }
         }
 
@@ -982,14 +915,16 @@
             if (mediaRecorder && mediaRecorder.state === "recording") {
                 mediaRecorder.stop();
                 btn.classList.remove('recording');
-                btn.innerText = "🎙️";
+                btn.innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>`;
             } else {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     let options = {};
-                    if (MediaRecorder.isTypeSupported('audio/webm')) options = { mimeType: 'audio/webm' };
-                    else if (MediaRecorder.isTypeSupported('audio/mp4')) options = { mimeType: 'audio/mp4' };
-                    
+                    if (MediaRecorder.isTypeSupported('audio/webm')) {
+                        options = { mimeType: 'audio/webm' };
+                    } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                        options = { mimeType: 'audio/mp4' };
+                    }
                     mediaRecorder = new MediaRecorder(stream, options);
                     audioChunks = [];
                     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
@@ -1001,34 +936,40 @@
                         reader.readAsDataURL(audioBlob);
                         reader.onloadend = () => {
                             sendPayload(`[AUDIO]:${reader.result}`);
-                            btn.innerText = "🎙️";
+                            btn.innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>`;
                             btn.classList.remove('recording');
                         };
                     };
                     mediaRecorder.start();
                     btn.classList.add('recording');
-                    btn.innerText = "⏹️";
-                } catch (e) { alert('يرجى السماح بالوصول للميكروفون.'); }
+                    btn.innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>`;
+                } catch (e) { alert('يرجى السماح بالوصول للميكروفون لبدء التسجيل.'); }
             }
         }
 
         function handleFileUpload(input) {
             if(input.files && input.files[0]) {
                 const file = input.files[0];
+                
                 if(file.size > 15 * 1024 * 1024) {
-                    alert('حجم الملف كبير جداً (أقصى حد 15 ميجابايت)');
+                    alert('حجم الملف كبير جداً، يرجى اختيار ملف بحجم أقل من 15 ميجابايت.');
                     input.value = '';
                     return;
                 }
-                if(file.type.startsWith('image/')) compressAndSendImage(file);
-                else {
+                if(file.type.startsWith('image/')) {
+                    compressAndSendImage(file);
+                } else if(file.type.startsWith('video/')) {
                     const reader = new FileReader();
                     reader.readAsDataURL(file);
-                    reader.onloadend = () => {
-                        if(file.type.startsWith('video/')) sendPayload(`[VIDEO]:${reader.result}`);
-                        else if(file.type.startsWith('audio/')) sendPayload(`[AUDIO]:${reader.result}`);
-                        else sendPayload(`[FILE]:${reader.result}`);
-                    };
+                    reader.onloadend = () => sendPayload(`[VIDEO]:${reader.result}`);
+                } else if(file.type.startsWith('audio/')) {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onloadend = () => sendPayload(`[AUDIO]:${reader.result}`);
+                } else {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onloadend = () => sendPayload(`[FILE]:${reader.result}`);
                 }
                 input.value = '';
             }
@@ -1042,13 +983,26 @@
                 img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    let width = img.width, height = img.height, max_size = 1000;
-                    if (width > height) { if (width > max_size) { height *= max_size / width; width = max_size; } }
-                    else { if (height > max_size) { width *= max_size / height; height = max_size; } }
-                    canvas.width = width; canvas.height = height;
+                    let width = img.width;
+                    let height = img.height;
+                    const max_size = 1000;
+                    if (width > height) {
+                        if (width > max_size) {
+                            height *= max_size / width;
+                            width = max_size;
+                        }
+                    } else {
+                        if (height > max_size) {
+                            width *= max_size / height;
+                            height = max_size;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
-                    sendPayload(`[FILE]:${canvas.toDataURL('image/jpeg', 0.7)}`);
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    sendPayload(`[FILE]:${compressedBase64}`);
                 };
             };
         }
@@ -1057,7 +1011,10 @@
             document.getElementById('modalImg').src = src;
             document.getElementById('imageModal').classList.add('active');
         }
-        function closeImageModal() { document.getElementById('imageModal').classList.remove('active'); }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').classList.remove('active');
+        }
 
         function exportChatText() {
             const msgs = document.querySelectorAll('.msg-bubble');
@@ -1071,63 +1028,15 @@
             link.click();
         }
 
-        /* Social Wall Functions */
-        function createNewPost() {
-            const txt = document.getElementById('social-post-input').value.trim();
-            if(!txt) return alert('يرجى كتابة منشور أولاً');
-            socialPosts.unshift({ id: Date.now(), author: myUsername, role: 'عضو إدارة لومي', text: txt, likes: 0, comments: [], time: 'الآن' });
-            localStorage.setItem('loome_social_posts', JSON.stringify(socialPosts));
-            document.getElementById('social-post-input').value = '';
-            renderSocialPosts();
-        }
-
-        function likePost(postId) {
-            const p = socialPosts.find(x => x.id === postId);
-            if(p) { p.likes += 1; localStorage.setItem('loome_social_posts', JSON.stringify(socialPosts)); renderSocialPosts(); }
-        }
-
-        function addPostComment(postId) {
-            const c = prompt('أضف تعليقك:');
-            if(c && c.trim()) {
-                const p = socialPosts.find(x => x.id === postId);
-                if(p) { p.comments.push(`${myUsername}: ${c.trim()}`); localStorage.setItem('loome_social_posts', JSON.stringify(socialPosts)); renderSocialPosts(); }
-            }
-        }
-
-        function renderSocialPosts() {
-            const container = document.getElementById('social-feed');
-            if(!container) return;
-            container.innerHTML = '';
-
-            socialPosts.forEach(p => {
-                const card = document.createElement('div');
-                card.className = 'social-post-card';
-                let commentsHtml = p.comments.map(cm => `<div style="background:rgba(15, 23, 42, 0.6); padding:8px 10px; border-radius:8px; margin-top:6px; font-size:0.8rem;">💬 ${cm}</div>`).join('');
-
-                card.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
-                        <div class="author-avatar">${p.author.substring(0,2)}</div>
-                        <div>
-                            <div style="font-weight:bold; font-size:0.9rem; color:var(--accent-light);">${p.author}</div>
-                            <div style="font-size:0.75rem; color:var(--text-secondary);">${p.role} • ${p.time}</div>
-                        </div>
-                    </div>
-                    <div class="post-body">${p.text}</div>
-                    <div class="post-actions-bar">
-                        <button class="social-act-btn" onclick="likePost(${p.id})">❤️ ${p.likes} إعجاب</button>
-                        <button class="social-act-btn" onclick="addPostComment(${p.id})">💬 تعليق (${p.comments.length})</button>
-                    </div>
-                    ${commentsHtml ? `<div style="margin-top:12px; border-top:1px dashed var(--border-color); padding-top:8px;">${commentsHtml}</div>` : ''}
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        /* Tasks Functions */
         function addNewTask() {
             const input = document.getElementById('task-title-input');
             const title = input.value.trim();
             if(!title) return;
+            
+            let savedTasks = localStorage.getItem('loome_dept_tasks');
+            if(savedTasks) {
+                try { deptTasks = JSON.parse(savedTasks); } catch(e){}
+            }
             if(!deptTasks[currentDept]) deptTasks[currentDept] = [];
             deptTasks[currentDept].push({ id: Date.now(), title, done: false });
             localStorage.setItem('loome_dept_tasks', JSON.stringify(deptTasks));
@@ -1136,6 +1045,10 @@
         }
 
         function toggleTask(taskId) {
+            let savedTasks = localStorage.getItem('loome_dept_tasks');
+            if(savedTasks) {
+                try { deptTasks = JSON.parse(savedTasks); } catch(e){}
+            }
             if(deptTasks[currentDept]) {
                 const task = deptTasks[currentDept].find(t => t.id === taskId);
                 if(task) task.done = !task.done;
@@ -1145,6 +1058,10 @@
         }
 
         function deleteTask(taskId) {
+            let savedTasks = localStorage.getItem('loome_dept_tasks');
+            if(savedTasks) {
+                try { deptTasks = JSON.parse(savedTasks); } catch(e){}
+            }
             if(deptTasks[currentDept]) {
                 deptTasks[currentDept] = deptTasks[currentDept].filter(t => t.id !== taskId);
                 localStorage.setItem('loome_dept_tasks', JSON.stringify(deptTasks));
@@ -1156,17 +1073,22 @@
             const list = document.getElementById('dept-tasks-list');
             if(!list) return;
             list.innerHTML = '';
+            
+            let savedTasks = localStorage.getItem('loome_dept_tasks');
+            if(savedTasks) {
+                try { deptTasks = JSON.parse(savedTasks); } catch(e){}
+            }
             const tasks = deptTasks[currentDept] || [];
             if(tasks.length === 0) {
-                list.innerHTML = '<div style="color:var(--text-secondary); font-size:0.82rem;">لا توجد مهام حالية لهذا القسم.</div>';
+                list.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem;">لا توجد مهام حالية لهذا القسم.</div>';
                 return;
             }
             tasks.forEach(t => {
                 const item = document.createElement('div');
                 item.className = `task-item ${t.done ? 'done' : ''}`;
                 item.innerHTML = `
-                    <span style="font-size:0.88rem; cursor:pointer;" onclick="toggleTask(${t.id})">${t.done ? '✅' : '⬛'} ${t.title}</span>
-                    <button style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.78rem;" onclick="deleteTask(${t.id})">حذف</button>
+                    <span style="font-size:0.85rem; cursor:pointer;" onclick="toggleTask(${t.id})">${t.done ? '✅' : '⬛'} ${t.title}</span>
+                    <button style="background:none; border:none; color:var(--danger-color); cursor:pointer; font-size:0.75rem;" onclick="deleteTask(${t.id})">حذف</button>
                 `;
                 list.appendChild(item);
             });
@@ -1181,7 +1103,7 @@
                     <td><strong>${m.name}</strong></td>
                     <td>${m.role}</td>
                     <td>${getDeptLabel(m.dept)}</td>
-                    <td><button style="background:var(--danger); color:#fff; border:none; padding:4px 8px; border-radius:6px; font-size:0.75rem; cursor:pointer;" onclick="removeMember(${m.id})">إزالة</button></td>
+                    <td><button style="background:var(--danger-color); color:#fff; border:none; padding:3px 6px; border-radius:4px; font-size:0.7rem; cursor:pointer;" onclick="removeMember(${m.id})">إزالة</button></td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -1196,7 +1118,7 @@
             const name = document.getElementById('new-user-name').value.trim();
             const role = document.getElementById('new-user-role').value.trim();
             const dept = document.getElementById('new-user-dept').value;
-            if(!name || !role) return alert('أدخل بيانات المسؤول كاملة');
+            if(!name || !role) return alert('أدخل بيانات المدير / الموظف كاملة');
             teamMembers.push({ id: Date.now(), name, role, dept });
             renderTeamTable();
             document.getElementById('new-user-name').value = '';

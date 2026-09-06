@@ -161,15 +161,16 @@
         .action-btn { background: var(--accent-primary); color: white; border: none; padding: 10px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 0.85rem; transition: 0.2s; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2); }
         .action-btn:hover { background: #0f766e; }
         
-        /* زر إرسال مطور وأيقونة واضحة */
+        /* زر إرسال مضمون الظهور بحجم ثابت وأيقونة SVG متجهة للموبايل */
         .send-btn {
             background: var(--accent-primary);
             color: white;
             border: none;
-            width: 42px;
-            height: 42px;
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            min-height: 44px;
             border-radius: 12px;
-            font-size: 1.1rem;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -177,10 +178,13 @@
             flex-shrink: 0;
             transition: 0.2s;
             box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+            -webkit-appearance: none;
+            padding: 0;
         }
         .send-btn:hover { background: #0f766e; transform: scale(1.05); }
+        .send-btn svg { width: 20px; height: 20px; fill: currentColor; }
 
-        .mic-btn { background: #6366f1; width: 40px; height: 40px; border-radius: 12px; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1rem; }
+        .mic-btn { background: #6366f1; width: 40px; height: 40px; border-radius: 12px; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1rem; -webkit-appearance: none; }
         .mic-btn.recording { background: var(--danger); animation: pulse 1s infinite; }
 
         /* Cards & Panels Standard */
@@ -312,8 +316,12 @@
                         </label>
                         <button type="button" id="record-btn" class="mic-btn" onclick="toggleRecording()" title="تسجيل صوت">🎙️</button>
                         <input type="text" id="chat-input" placeholder="اكتب رسالة أو ملاحظة..." oninput="handleTyping()">
-                        <!-- زر الإرسال المطور بالأيقونة الواضحة -->
-                        <button type="submit" class="send-btn" title="إرسال">✈️</button>
+                        <!-- زر الإرسال المطور بأيقونة SVG صريحة تظهر في كافة الأجهزة -->
+                        <button type="submit" class="send-btn" title="إرسال">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                            </svg>
+                        </button>
                     </form>
                 </div>
             </div>

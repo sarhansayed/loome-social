@@ -179,6 +179,12 @@
         .preview-modal.active { display: flex; }
         .preview-modal img { max-width: 95%; max-height: 90vh; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
         .close-modal { position: absolute; top: 15px; right: 20px; color: white; font-size: 2rem; cursor: pointer; font-weight: bold; }
+        
+        /* Video Grid Dynamic Layout for Multi-users */
+        .video-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 12px; }
+        .video-card { background: #000; border-radius: 8px; overflow: hidden; border: 1px solid var(--accent-color); position: relative; }
+        .video-card video { width: 100%; height: 180px; object-fit: cover; display: block; }
+        .video-label { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -325,15 +331,23 @@
                     </div>
                 </div>
             </div>
-            <!-- Panel 4: Live Audio / Meeting Panel -->
+            <!-- Panel 4: Multi-User Live Video Room Panel -->
             <div id="video-panel" class="panel">
                 <div class="card" style="text-align:center;">
-                    <h4 style="color:var(--accent-light); margin-bottom:8px;">🎙️ غرفة التحدث والاجتماع المباشر</h4>
-                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px;">تحدث مباشرة وبدون أي تأخير مع أعضاء الفريق والمديرين</p>
-                    <video id="groupVideoPlayer" autoplay playsinline muted style="width:100%; max-height:220px; background:#000; border-radius:8px; object-fit:cover; margin-bottom:12px; border:1px solid var(--accent-color);"></video>
+                    <h4 style="color:var(--accent-light); margin-bottom:8px;">🎙️ غرفة التحدث والاجتماع المباشر (تتسع لعدد متعدد)</h4>
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px;">تحدث وشاهد الكاميرات مباشرة بدون أي حدود لعدد المستخدمين</p>
+                    
+                    <!-- شبكة مقاطع الفيديو التفاعلية المتعددة -->
+                    <div class="video-grid" id="videoGrid">
+                        <div class="video-card" id="card-local">
+                            <video id="localVideo" autoplay playsinline muted></video>
+                            <span class="video-label">أنت (كاميرتك)</span>
+                        </div>
+                    </div>
+
                     <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px;">
-                        <button class="action-btn" id="toggle-mic-btn" style="background:var(--success-color);" onclick="startLiveAudioCall()">🔊 فتح المايك والتحدث المباشر</button>
-                        <button class="action-btn" style="background:var(--danger-color);" onclick="stopCamera()">مغادرة الغرفة</button>
+                        <button class="action-btn" id="toggle-mic-btn" style="background:var(--success-color);" onclick="startMultiLiveCall()">🔊 الانضمام وفتح المايك/الكاميرا</button>
+                        <button class="action-btn" style="background:var(--danger-color);" onclick="stopMultiCall()">مغادرة الغرفة</button>
                     </div>
                 </div>
             </div>
@@ -353,9 +367,18 @@
         let myUserId = '';
         let mediaRecorder = null, audioChunks = [];
         let localStream = null;
+        let peerConnections = {}; // دعم اتصالات متعددة لجميع المستخدمين
+        let videoChannel = null;
         let activeReplyTarget = null;
         let typingTimeout = null;
         let msgReactions = {};
+
+        const rtcConfig = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        };
 
         let teamMembers = [
             { id: 1, name: 'د دينا علي', role: 'مدير الجودة', dept: 'qc_qa' },
@@ -412,6 +435,7 @@
             renderTeamTable();
             loadMessages();
             subscribeRealtime();
+            initMultiVideoSignaling();
             renderTasks();
         }
 
@@ -484,6 +508,177 @@
               }).subscribe();
         }
 
+        // -----------------------------------------------------------------
+        // نظام WebRTC المطور لـ (Multi-User Mesh Network) - دعم أي عدد مستخدمين
+        // -----------------------------------------------------------------
+        function initMultiVideoSignaling() {
+            videoChannel = db.channel('factory-multi-video-room');
+
+            videoChannel
+                .on('broadcast', { event: 'join' }, async ({ payload }) => {
+                    if (payload.senderId !== myUserId && localStream) {
+                        createPeerForUser(payload.senderId, true);
+                    }
+                })
+                .on('broadcast', { event: 'offer' }, async ({ payload }) => {
+                    if (payload.targetId === myUserId) {
+                        await handleMultiOffer(payload);
+                    }
+                })
+                .on('broadcast', { event: 'answer' }, async ({ payload }) => {
+                    if (payload.targetId === myUserId) {
+                        await handleMultiAnswer(payload);
+                    }
+                })
+                .on('broadcast', { event: 'candidate' }, async ({ payload }) => {
+                    if (payload.targetId === myUserId) {
+                        await handleMultiCandidate(payload);
+                    }
+                })
+                .subscribe();
+        }
+
+        function createPeerForUser(targetUserId, isInitiator) {
+            if (peerConnections[targetUserId]) return peerConnections[targetUserId];
+
+            const pc = new RTCPeerConnection(rtcConfig);
+            peerConnections[targetUserId] = pc;
+
+            if (localStream) {
+                localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+            }
+
+            pc.ontrack = (event) => {
+                let remoteCard = document.getElementById(`card-${targetUserId}`);
+                if (!remoteCard) {
+                    remoteCard = document.createElement('div');
+                    remoteCard.className = 'video-card';
+                    remoteCard.id = `card-${targetUserId}`;
+                    
+                    const remoteVideo = document.createElement('video');
+                    remoteVideo.autoplay = true;
+                    remoteVideo.playsinline = true;
+                    remoteVideo.id = `video-${targetUserId}`;
+                    remoteVideo.srcObject = event.streams[0];
+
+                    const label = document.createElement('span');
+                    label.className = 'video-label';
+                    label.innerText = 'عضو في المحادثة';
+
+                    remoteCard.appendChild(remoteVideo);
+                    remoteCard.appendChild(label);
+                    document.getElementById('videoGrid').appendChild(remoteCard);
+                } else {
+                    const remoteVideo = document.getElementById(`video-${targetUserId}`);
+                    remoteVideo.srcObject = event.streams[0];
+                }
+            };
+
+            pc.onicecandidate = (event) => {
+                if (event.candidate && videoChannel) {
+                    videoChannel.send({
+                        type: 'broadcast',
+                        event: 'candidate',
+                        payload: {
+                            candidate: event.candidate,
+                            senderId: myUserId,
+                            targetId: targetUserId
+                        }
+                    });
+                }
+            };
+
+            if (isInitiator) {
+                pc.createOffer().then(offer => {
+                    pc.setLocalDescription(offer);
+                    videoChannel.send({
+                        type: 'broadcast',
+                        event: 'offer',
+                        payload: {
+                            offer,
+                            senderId: myUserId,
+                            targetId: targetUserId
+                        }
+                    });
+                });
+            }
+
+            return pc;
+        }
+
+        async function startMultiLiveCall() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('localVideo').srcObject = localStream;
+                document.getElementById('toggle-mic-btn').innerText = "🔊 البث متعدد المستخدمين يعمل";
+
+                videoChannel.send({
+                    type: 'broadcast',
+                    event: 'join',
+                    payload: { senderId: myUserId }
+                });
+            } catch(e) {
+                alert('يرجى السماح بالوصول للميكروفون والكاميرا لبدء البث.');
+            }
+        }
+
+        async function handleMultiOffer(payload) {
+            if (!localStream) {
+                try {
+                    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    document.getElementById('localVideo').srcObject = localStream;
+                } catch(e) {}
+            }
+
+            const pc = createPeerForUser(payload.senderId, false);
+            await pc.setRemoteDescription(new RTCSessionDescription(payload.offer));
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+
+            videoChannel.send({
+                type: 'broadcast',
+                event: 'answer',
+                payload: {
+                    answer,
+                    senderId: myUserId,
+                    targetId: payload.senderId
+                }
+            });
+        }
+
+        async function handleMultiAnswer(payload) {
+            const pc = peerConnections[payload.senderId];
+            if (pc) {
+                await pc.setRemoteDescription(new RTCSessionDescription(payload.answer));
+            }
+        }
+
+        async function handleMultiCandidate(payload) {
+            const pc = peerConnections[payload.senderId];
+            if (pc) {
+                await pc.addIceCandidate(new RTCIceCandidate(payload.candidate));
+            }
+        }
+
+        function stopMultiCall() {
+            if (localStream) {
+                localStream.getTracks().forEach(t => t.stop());
+                localStream = null;
+            }
+            for (let uid in peerConnections) {
+                peerConnections[uid].close();
+                const card = document.getElementById(`card-${uid}`);
+                if (card) card.remove();
+            }
+            peerConnections = {};
+            document.getElementById('localVideo').srcObject = null;
+            document.getElementById('toggle-mic-btn').innerText = "🔊 الانضمام وفتح المايك/الكاميرا";
+            showPanel('chat-panel');
+        }
+
+        // -----------------------------------------------------------------
+        // وظائف المحادثات والمهام والملفات
+        // -----------------------------------------------------------------
         function parseMessagePayload(rawText) {
             let text = rawText || '';
             let senderName = 'عضو الفريق';
@@ -502,9 +697,7 @@
                     if (jsonMatch) {
                         replyData = JSON.parse(jsonMatch[0]);
                     }
-                } catch(e) {
-                    console.log('Error parsing reply JSON', e);
-                }
+                } catch(e) {}
             }
             if (text.startsWith('[NAME]:')) {
                 const parts = text.split('::');
@@ -896,23 +1089,6 @@
                 teamMembers = teamMembers.filter(m => m.id !== id);
                 renderTeamTable();
             }
-        }
-
-        async function startLiveAudioCall() {
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                document.getElementById('groupVideoPlayer').srcObject = localStream;
-                document.getElementById('toggle-mic-btn').innerText = "🔊 التحدث المباشر يعمل حالياً";
-            } catch(e) {
-                alert('يرجى السماح بالوصول للميكروفون والكاميرا لتفعيل التحدث المباشر.');
-            }
-        }
-
-        function stopCamera() {
-            if(localStream) localStream.getTracks().forEach(t => t.stop());
-            document.getElementById('groupVideoPlayer').srcObject = null;
-            document.getElementById('toggle-mic-btn').innerText = "🔊 فتح المايك والتحدث المباشر";
-            showPanel('chat-panel');
         }
 
         initApp();

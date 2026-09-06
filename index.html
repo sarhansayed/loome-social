@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Loome Cosmetics Factory</title>
+    <title>Loome Cosmetics Factory - Social ERP</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -83,10 +83,11 @@
             padding: 4px;
             gap: 4px;
             flex-shrink: 0;
+            overflow-x: auto;
         }
         .tab-btn {
             flex: 1;
-            padding: 8px 4px;
+            padding: 8px 6px;
             background: transparent;
             border: none;
             color: var(--text-muted);
@@ -95,12 +96,14 @@
             border-radius: 6px;
             cursor: pointer;
             text-align: center;
+            white-space: nowrap;
             transition: all 0.2s ease;
         }
         .tab-btn.active {
             background: var(--accent-color);
             color: #fff;
         }
+        
         /* Chat Panel Components */
         .chat-container { display: flex; flex-direction: column; height: 100%; width: 100%; overflow: hidden; }
         .chat-header { padding: 8px 12px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
@@ -152,7 +155,7 @@
         .typing-indicator { font-size: 0.7rem; color: var(--accent-light); padding: 0 12px 4px 12px; font-style: italic; display: none; }
         
         .input-row { display: flex; gap: 6px; align-items: center; width: 100%; }
-        input[type="text"], input[type="email"], input[type="password"] { flex: 1; background-color: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 10px; border-radius: 8px; outline: none; font-size: 0.85rem; min-width: 0; }
+        input[type="text"], input[type="email"], input[type="password"], textarea, select { flex: 1; background-color: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 10px; border-radius: 8px; outline: none; font-size: 0.85rem; min-width: 0; }
         
         .action-btn { background-color: var(--accent-color); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; flex-shrink: 0; }
         .mic-btn { background-color: #6366f1; font-size: 0.9rem; width: 36px; height: 36px; border-radius: 8px; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -185,6 +188,18 @@
         .video-card { background: #000; border-radius: 8px; overflow: hidden; border: 1px solid var(--accent-color); position: relative; }
         .video-card video { width: 100%; height: 180px; object-fit: cover; display: block; }
         .video-label { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; }
+
+        /* Social Wall Styling */
+        .social-post-card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+        .post-author-box { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .author-info { display: flex; align-items: center; gap: 8px; }
+        .author-avatar { width: 36px; height: 36px; background: var(--accent-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.85rem; color: white; }
+        .post-body { font-size: 0.9rem; margin-bottom: 10px; line-height: 1.5; color: var(--text-main); }
+        .post-actions-bar { display: flex; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 8px; }
+        .social-act-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 4px; }
+        .social-act-btn:hover { color: var(--accent-light); }
+        .comments-section { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); font-size: 0.8rem; }
+        .comment-item { background: var(--bg-primary); padding: 6px 10px; border-radius: 6px; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -238,10 +253,12 @@
             <!-- Quick Sub Navigation -->
             <div class="sub-nav-tabs">
                 <button class="tab-btn active" id="tab-chat" onclick="showPanel('chat-panel')">💬 المحادثات</button>
+                <button class="tab-btn" id="tab-social" onclick="showPanel('social-panel')">🌐 مجتمع المصنع</button>
                 <button class="tab-btn" id="tab-tasks" onclick="showPanel('tasks-panel')">📋 المهام</button>
                 <button class="tab-btn" id="tab-team" onclick="showPanel('team-management')">👥 المديرون والفريق</button>
                 <button class="tab-btn" id="tab-video" onclick="showPanel('video-panel')">🎙️ مباشر</button>
             </div>
+
             <!-- Panel 1: Chat Panel -->
             <div id="chat-panel" class="chat-container">
                 <div class="chat-header">
@@ -283,7 +300,22 @@
                     </form>
                 </div>
             </div>
-            <!-- Panel 2: Tasks Panel -->
+
+            <!-- Panel 2: Social Wall / Social Network for Factory -->
+            <div id="social-panel" class="panel">
+                <div class="card">
+                    <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">📢 مشاركة إنجاز أو خبر على حائط المصنع</h4>
+                    <div class="form-group">
+                        <textarea id="social-post-input" class="form-control" rows="3" placeholder="ما الجديد في قسمك أو مصنع لومي اليوم؟"></textarea>
+                        <button class="action-btn" style="width:100%; margin-top:6px;" onclick="createNewPost()">🚀 نشر في مجتمع المصنع</button>
+                    </div>
+                </div>
+                <div id="social-feed">
+                    <!-- Dynamic Posts Render Here -->
+                </div>
+            </div>
+
+            <!-- Panel 3: Tasks Panel -->
             <div id="tasks-panel" class="panel">
                 <div class="card">
                     <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">إضافة مَهمة جديدة للقسم</h4>
@@ -297,7 +329,8 @@
                     <div id="dept-tasks-list"></div>
                 </div>
             </div>
-            <!-- Panel 3: Team Management Panel -->
+
+            <!-- Panel 4: Team Management Panel -->
             <div id="team-management" class="panel">
                 <div class="card">
                     <h4 style="color:var(--accent-light); margin-bottom:10px; font-size:0.9rem;">إضافة مدير أو موظف جديد</h4>
@@ -331,7 +364,8 @@
                     </div>
                 </div>
             </div>
-            <!-- Panel 4: Multi-User Live Video Room Panel -->
+
+            <!-- Panel 5: Multi-User Live Video Room Panel -->
             <div id="video-panel" class="panel">
                 <div class="card" style="text-align:center;">
                     <h4 style="color:var(--accent-light); margin-bottom:8px;">🎙️ غرفة التحدث والاجتماع المباشر بالفيديو</h4>
@@ -353,11 +387,13 @@
             </div>
         </div>
     </div>
+
     <!-- Image Modal View -->
     <div class="preview-modal" id="imageModal" onclick="closeImageModal()">
         <span class="close-modal">&times;</span>
         <img id="modalImg" src="" alt="صورة مكبرة">
     </div>
+
     <script>
         const SUPABASE_URL = 'https://gdmevluvrmexkkihcxce.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkbWV2bHV2cm1leGtraWhjeGNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NTI5ODIsImV4cCI6MjEwNDEyODk4Mn0.U1MA6q_GfuPpzkJCvMwTc07neAek1vsq5qWE44_eYQQ';
@@ -373,7 +409,6 @@
         let typingTimeout = null;
         let msgReactions = {};
 
-        // تحديث سيرفرات الاتصال المباشر (WebRTC ICE Servers) لفتح المنافذ بدون أخطاء
         const rtcConfig = {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
@@ -383,7 +418,6 @@
             ]
         };
 
-        // تم التعديل رسميًا: "م هاجر عماد" - نائب مدير الانتاج ومدير البحث والتطوير
         let teamMembers = [
             { id: 1, name: 'د دينا علي', role: 'مدير الجودة', dept: 'qc_qa' },
             { id: 2, name: 'م ندى مجدي', role: 'مدير الإنتاج', dept: 'production' },
@@ -393,6 +427,17 @@
             { id: 6, name: 'أ شهد', role: 'الشؤون الإدارية', dept: 'admin_hr' }
         ];
         let deptTasks = {};
+        let socialPosts = [
+            {
+                id: 101,
+                author: 'م هاجر عماد',
+                role: 'نائب مدير الإنتاج ومدير البحث والتطوير',
+                text: 'تم بحمد الله اعتماد العينة الجديدة لمنتج كريم البشرة بنجاح في قسم البحث والتطوير 🧪✨',
+                likes: 5,
+                comments: ['ألف مبروك بالإنجاز الممتاز! 👏'],
+                time: 'منذ ساعتين'
+            }
+        ];
 
         function generateUUID() {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -436,12 +481,18 @@
             if(savedReactions) {
                 try { msgReactions = JSON.parse(savedReactions); } catch(e){}
             }
+            let savedSocial = localStorage.getItem('loome_social_posts');
+            if(savedSocial) {
+                try { socialPosts = JSON.parse(savedSocial); } catch(e){}
+            }
+
             document.getElementById('current-user-display').innerHTML = `<span class="online-dot"></span> ${myUsername}`;
             renderTeamTable();
             loadMessages();
             subscribeRealtime();
             initMultiVideoSignaling();
             renderTasks();
+            renderSocialPosts();
         }
 
         function changeUsername() {
@@ -474,19 +525,22 @@
         function showPanel(panelId) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             if(panelId === 'chat-panel') document.getElementById('tab-chat').classList.add('active');
+            if(panelId === 'social-panel') document.getElementById('tab-social').classList.add('active');
             if(panelId === 'tasks-panel') document.getElementById('tab-tasks').classList.add('active');
             if(panelId === 'team-management') document.getElementById('tab-team').classList.add('active');
             if(panelId === 'video-panel') document.getElementById('tab-video').classList.add('active');
+            
             document.getElementById('chat-panel').style.display = panelId === 'chat-panel' ? 'flex' : 'none';
+            document.getElementById('social-panel').classList.remove('active');
             document.getElementById('team-management').classList.remove('active');
             document.getElementById('video-panel').classList.remove('active');
             document.getElementById('tasks-panel').classList.remove('active');
+            
             if(panelId !== 'chat-panel') {
                 document.getElementById(panelId).classList.add('active');
             }
-            if(panelId === 'tasks-panel') {
-                renderTasks();
-            }
+            if(panelId === 'tasks-panel') renderTasks();
+            if(panelId === 'social-panel') renderSocialPosts();
         }
 
         async function loadMessages() {
@@ -516,7 +570,6 @@
               }).subscribe();
         }
 
-        // إشارة الربط المباشر بالفيديو بين الأعضاء دون أي أخطاء
         function initMultiVideoSignaling() {
             videoChannel = db.channel('factory-multi-video-room');
 
@@ -569,7 +622,7 @@
 
                     const label = document.createElement('span');
                     label.className = 'video-label';
-                    label.innerText = 'عضو مصل للغرفة';
+                    label.innerText = 'عضو متصل بالغرفة';
 
                     remoteCard.appendChild(remoteVideo);
                     remoteCard.appendChild(label);
@@ -1008,6 +1061,81 @@
             link.click();
         }
 
+        /* Functions for Social Wall */
+        function createNewPost() {
+            const txt = document.getElementById('social-post-input').value.trim();
+            if(!txt) return alert('يرجى كتابة منشور أولاً');
+            const newP = {
+                id: Date.now(),
+                author: myUsername,
+                role: 'عضو إدارة لومي',
+                text: txt,
+                likes: 0,
+                comments: [],
+                time: 'الآن'
+            };
+            socialPosts.unshift(newP);
+            localStorage.setItem('loome_social_posts', JSON.stringify(socialPosts));
+            document.getElementById('social-post-input').value = '';
+            renderSocialPosts();
+        }
+
+        function likePost(postId) {
+            const p = socialPosts.find(x => x.id === postId);
+            if(p) {
+                p.likes += 1;
+                localStorage.setItem('loome_social_posts', JSON.stringify(socialPosts));
+                renderSocialPosts();
+            }
+        }
+
+        function addPostComment(postId) {
+            const c = prompt('أضف تعليقك على هذا الخبر:');
+            if(c && c.trim()) {
+                const p = socialPosts.find(x => x.id === postId);
+                if(p) {
+                    p.comments.push(`${myUsername}: ${c.trim()}`);
+                    localStorage.setItem('loome_social_posts', JSON.stringify(socialPosts));
+                    renderSocialPosts();
+                }
+            }
+        }
+
+        function renderSocialPosts() {
+            const container = document.getElementById('social-feed');
+            if(!container) return;
+            container.innerHTML = '';
+
+            socialPosts.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'social-post-card';
+                let commentsHtml = '';
+                p.comments.forEach(cm => {
+                    commentsHtml += `<div class="comment-item">💬 ${cm}</div>`;
+                });
+
+                card.innerHTML = `
+                    <div class="post-author-box">
+                        <div class="author-info">
+                            <div class="author-avatar">${p.author.substring(0,2)}</div>
+                            <div>
+                                <div style="font-weight:bold; font-size:0.85rem; color:var(--accent-light);">${p.author}</div>
+                                <div style="font-size:0.7rem; color:var(--text-muted);">${p.role} • ${p.time}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="post-body">${p.text}</div>
+                    <div class="post-actions-bar">
+                        <button class="social-act-btn" onclick="likePost(${p.id})">❤️ ${p.likes} إعجاب</button>
+                        <button class="social-act-btn" onclick="addPostComment(${p.id})">💬 تعليق (${p.comments.length})</button>
+                    </div>
+                    ${commentsHtml ? `<div class="comments-section">${commentsHtml}</div>` : ''}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        /* Functions for Tasks */
         function addNewTask() {
             const input = document.getElementById('task-title-input');
             const title = input.value.trim();
